@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.connectors.tier1.census_geocoder import CensusGeocoderConnector
 from app.database import neo4j_driver, postgres_client
+from app.enrichment.orchestrator import start_enrichment
 from app.models.entities import Address, EntityType
 from app.models.schemas import (
     AddressInput,
@@ -192,7 +193,22 @@ async def create_investigation(request: InvestigationRequest) -> InvestigationCr
         investigation_id = uuid4()
         address_str = f"{addr.street}, {addr.city}, {addr.state} {addr.zip}"
 
-    # TODO: Trigger enrichment pipeline (Issue #23 / 4.1)
+    # Trigger enrichment pipeline in background
+    tier1_only = False
+    if request.enrichment_config:
+        tier1_only = request.enrichment_config.tier1_only
+
+    await start_enrichment(
+        investigation_id=investigation_id,
+        address={
+            "street": addr.street,
+            "city": addr.city,
+            "state": addr.state,
+            "zip": addr.zip,
+        },
+        root_entity_id=str(address_entity.id),
+        tier1_only=tier1_only,
+    )
 
     return InvestigationCreatedResponse(
         id=investigation_id,

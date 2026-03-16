@@ -14,7 +14,7 @@ from app.connectors.base import BaseConnector, ConnectorResult, RateLimit
 from app.models.entities import EntityType
 from app.utils.http_client import fetch_json
 
-FBI_API_BASE = "https://api.usa.gov/crime/fbi/sapi"
+FBI_API_BASE = "https://cde.ucr.cjis.gov/LATEST/webapp/api"
 
 # Georgia state abbreviation and FIPS
 GA_STATE_ABBR = "GA"

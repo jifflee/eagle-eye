@@ -244,6 +244,7 @@ async def upsert_connector_status(
     """Create or update connector status for an investigation."""
     pool = await get_pool()
     now = datetime.utcnow()
+    is_terminal = status in ("complete", "failed")
     async with pool.acquire() as conn:
         existing = await conn.fetchrow(
             """
@@ -254,20 +255,35 @@ async def upsert_connector_status(
             connector_name,
         )
         if existing:
-            await conn.execute(
-                """
-                UPDATE connector_status
-                SET status = $3, entities_found = $4, error_message = $5,
-                    completed_at = CASE WHEN $3 IN ('complete', 'failed') THEN $6 ELSE completed_at END
-                WHERE investigation_id = $1 AND connector_name = $2
-                """,
-                investigation_id,
-                connector_name,
-                status,
-                entities_found,
-                error_message,
-                now,
-            )
+            if is_terminal:
+                await conn.execute(
+                    """
+                    UPDATE connector_status
+                    SET status = $3, entities_found = $4, error_message = $5, completed_at = $6
+                    WHERE investigation_id = $1 AND connector_name = $2
+                    """,
+                    investigation_id,
+                    connector_name,
+                    status,
+                    entities_found,
+                    error_message,
+                    now,
+                )
+            else:
+                await conn.execute(
+                    """
+                    UPDATE connector_status
+                    SET status = $3, entities_found = $4, error_message = $5,
+                        started_at = COALESCE(started_at, $6)
+                    WHERE investigation_id = $1 AND connector_name = $2
+                    """,
+                    investigation_id,
+                    connector_name,
+                    status,
+                    entities_found,
+                    error_message,
+                    now,
+                )
         else:
             await conn.execute(
                 """
