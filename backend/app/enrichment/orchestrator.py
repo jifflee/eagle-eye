@@ -129,7 +129,7 @@ async def _do_enrichment(
                 except Exception:
                     pass
 
-    # === Phase 2: Address enrichment (parallel) ===
+    # === Phase 2: Address enrichment — Tier 1 (parallel) ===
     phase2_names = ["census_data", "epa_echo", "openfema", "nominatim"]
     phase2 = [connectors[n] for n in phase2_names if n in connectors]
 
@@ -139,10 +139,18 @@ async def _do_enrichment(
             return_exceptions=True,
         )
 
-    # === Phase 3: Entity discovery (SEC — search by address) ===
-    # CourtListener only works with PERSON/BUSINESS entities, not ADDRESS
-    # so we skip it in the address phase — it will run during person enrichment
-    phase3_names = ["sec_edgar"]
+    # === Phase 2b: Address enrichment — Tier 2 county sources (parallel) ===
+    phase2b_names = ["gwinnett_parcel", "qpublic", "gbi_sex_offender"]
+    phase2b = [connectors[n] for n in phase2b_names if n in connectors]
+
+    if phase2b:
+        await asyncio.gather(
+            *[_run_connector(investigation_id, c, address_entity) for c in phase2b],
+            return_exceptions=True,
+        )
+
+    # === Phase 3: Entity discovery — SEC + GA SOS (parallel) ===
+    phase3_names = ["sec_edgar", "ga_secretary_state"]
     phase3 = [connectors[n] for n in phase3_names if n in connectors]
 
     if phase3:
