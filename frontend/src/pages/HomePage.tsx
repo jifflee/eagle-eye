@@ -1,96 +1,348 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { validateAddress, type AddressFields } from "@/utils/validateAddress";
+import { apiFetch } from "@/api/client";
+
+type Step = "input" | "validating" | "confirm" | "submitting";
+
+interface MatchedAddress {
+  formatted: string;
+  latitude?: number;
+  longitude?: number;
+  tract?: string;
+  county?: string;
+}
+
+interface ValidationResponse {
+  valid: boolean;
+  errors: string[];
+  matched: MatchedAddress | null;
+  suggestions: MatchedAddress[];
+  warning?: string;
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const [address, setAddress] = useState({
+  const [step, setStep] = useState<Step>("input");
+  const [address, setAddress] = useState<AddressFields>({
     street: "",
     city: "",
     state: "GA",
     zip: "",
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [serverErrors, setServerErrors] = useState<string[]>([]);
+  const [matched, setMatched] = useState<MatchedAddress | null>(null);
+  const [suggestions, setSuggestions] = useState<MatchedAddress[]>([]);
+  const [warning, setWarning] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Call POST /api/v1/investigation and navigate to graph
-    navigate("/investigation/demo");
+  // Load recent searches from localStorage
+  const [recentSearches] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("eagle-eye-recent") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const saveRecent = (addr: string) => {
+    const recent = [addr, ...recentSearches.filter((r) => r !== addr)].slice(0, 10);
+    localStorage.setItem("eagle-eye-recent", JSON.stringify(recent));
   };
 
+  const handleValidate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFieldErrors({});
+    setServerErrors([]);
+    setWarning("");
+
+    // Client-side validation
+    const { valid, errors } = validateAddress(address);
+    if (!valid) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    // Server-side validation via Census Geocoder
+    setStep("validating");
+    try {
+      const result = await apiFetch<ValidationResponse>("/api/v1/address/validate", {
+        method: "POST",
+        body: JSON.stringify(address),
+      });
+
+      if (result.warning) setWarning(result.warning);
+
+      if (result.valid && result.matched) {
+        setMatched(result.matched);
+        setSuggestions(result.suggestions || []);
+        setStep("confirm");
+      } else {
+        setServerErrors(result.errors || ["Address not found"]);
+        setSuggestions(result.suggestions || []);
+        setStep("input");
+      }
+    } catch {
+      // API unreachable — proceed with entered address
+      setMatched({
+        formatted: `${address.street}, ${address.city}, ${address.state} ${address.zip}`,
+      });
+      setWarning("Could not verify address — server unavailable. Proceeding with entered address.");
+      setStep("confirm");
+    }
+  };
+
+  const handleConfirm = async () => {
+    setStep("submitting");
+    const addressStr = matched?.formatted || `${address.street}, ${address.city}, ${address.state} ${address.zip}`;
+    saveRecent(addressStr);
+
+    // Cache the validation result locally
+    try {
+      const cacheKey = `eagle-eye-cache:${addressStr}`;
+      localStorage.setItem(cacheKey, JSON.stringify({ matched, timestamp: Date.now() }));
+    } catch { /* localStorage full — ignore */ }
+
+    try {
+      const result = await apiFetch<{ id: string }>("/api/v1/investigation", {
+        method: "POST",
+        body: JSON.stringify({ address }),
+      });
+      navigate(`/investigation/${result.id}`);
+    } catch {
+      // Fallback — navigate with demo ID
+      navigate(`/investigation/demo`);
+    }
+  };
+
+  const handleUseSuggestion = (suggestion: MatchedAddress) => {
+    setMatched(suggestion);
+    setSuggestions([]);
+    setServerErrors([]);
+    setStep("confirm");
+  };
+
+  const inputClass = (field: string) =>
+    `w-full rounded-lg border px-3 py-2 transition-colors focus:outline-none focus:ring-2 ${
+      fieldErrors[field]
+        ? "border-red-400 focus:border-red-500 focus:ring-red-200 dark:border-red-600"
+        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-blue-400 dark:focus:ring-blue-900"
+    }`;
+
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center px-4 py-24">
+    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center px-4 py-16">
       <h1 className="mb-2 text-4xl font-bold tracking-tight">Eagle Eye</h1>
-      <p className="mb-12 text-lg text-gray-500">
+      <p className="mb-10 text-lg text-gray-500 dark:text-gray-400">
         Open Source Intelligence — Address Profiling
       </p>
 
-      <form onSubmit={handleSubmit} className="w-full space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">
-            Street Address
-          </label>
-          <input
-            type="text"
-            value={address.street}
-            onChange={(e) =>
-              setAddress((a) => ({ ...a, street: e.target.value }))
-            }
-            placeholder="123 Main Street"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
-            required
-          />
-        </div>
+      {/* === Step: Input === */}
+      {(step === "input" || step === "validating") && (
+        <form onSubmit={handleValidate} className="w-full space-y-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Street Address</label>
+            <input
+              type="text"
+              value={address.street}
+              onChange={(e) => setAddress((a) => ({ ...a, street: e.target.value }))}
+              placeholder="123 Main Street"
+              className={`${inputClass("street")} text-lg px-4 py-3`}
+              disabled={step === "validating"}
+            />
+            {fieldErrors.street && (
+              <p className="mt-1 text-sm text-red-500">{fieldErrors.street}</p>
+            )}
+          </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">City</label>
-            <input
-              type="text"
-              value={address.city}
-              onChange={(e) =>
-                setAddress((a) => ({ ...a, city: e.target.value }))
-              }
-              placeholder="Lawrenceville"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
-              required
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">City</label>
+              <input
+                type="text"
+                value={address.city}
+                onChange={(e) => setAddress((a) => ({ ...a, city: e.target.value }))}
+                placeholder="Lawrenceville"
+                className={inputClass("city")}
+                disabled={step === "validating"}
+              />
+              {fieldErrors.city && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.city}</p>
+              )}
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">State</label>
+              <input
+                type="text"
+                value={address.state}
+                onChange={(e) => setAddress((a) => ({ ...a, state: e.target.value.toUpperCase() }))}
+                placeholder="GA"
+                maxLength={2}
+                className={inputClass("state")}
+                disabled={step === "validating"}
+              />
+              {fieldErrors.state && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.state}</p>
+              )}
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">ZIP</label>
+              <input
+                type="text"
+                value={address.zip}
+                onChange={(e) => setAddress((a) => ({ ...a, zip: e.target.value }))}
+                placeholder="30043"
+                maxLength={10}
+                className={inputClass("zip")}
+                disabled={step === "validating"}
+              />
+              {fieldErrors.zip && (
+                <p className="mt-1 text-sm text-red-500">{fieldErrors.zip}</p>
+              )}
+            </div>
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">State</label>
-            <input
-              type="text"
-              value={address.state}
-              onChange={(e) =>
-                setAddress((a) => ({ ...a, state: e.target.value }))
-              }
-              placeholder="GA"
-              maxLength={2}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
-              required
-            />
+
+          {/* Server errors */}
+          {serverErrors.length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+              <p className="font-medium text-red-700 dark:text-red-400">Address not found</p>
+              {serverErrors.map((err, i) => (
+                <p key={i} className="mt-1 text-sm text-red-600 dark:text-red-400">{err}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Suggestions after failed validation */}
+          {suggestions.length > 0 && step === "input" && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+              <p className="mb-2 text-sm font-medium text-blue-700 dark:text-blue-400">
+                Did you mean:
+              </p>
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleUseSuggestion(s)}
+                  className="mb-1 block w-full rounded-md border border-blue-200 bg-white px-3 py-2 text-left text-sm hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900 dark:hover:bg-blue-800"
+                >
+                  {s.formatted}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={step === "validating"}
+            className="w-full rounded-lg bg-blue-600 px-4 py-3 text-lg font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+          >
+            {step === "validating" ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                  <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" className="opacity-75" />
+                </svg>
+                Validating address...
+              </span>
+            ) : (
+              "Investigate Address"
+            )}
+          </button>
+        </form>
+      )}
+
+      {/* === Step: Confirm === */}
+      {step === "confirm" && matched && (
+        <div className="w-full space-y-4">
+          <div className="rounded-lg border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-950">
+            <p className="mb-1 text-sm font-medium text-green-700 dark:text-green-400">
+              Verified Address
+            </p>
+            <p className="text-xl font-semibold text-green-900 dark:text-green-100">
+              {matched.formatted}
+            </p>
+            {matched.latitude && matched.longitude && (
+              <p className="mt-2 text-xs text-green-600 dark:text-green-500">
+                {matched.latitude.toFixed(4)}, {matched.longitude.toFixed(4)}
+                {matched.tract && ` — Census Tract ${matched.tract}`}
+              </p>
+            )}
           </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">ZIP</label>
-            <input
-              type="text"
-              value={address.zip}
-              onChange={(e) =>
-                setAddress((a) => ({ ...a, zip: e.target.value }))
-              }
-              placeholder="30043"
-              maxLength={10}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800"
-              required
-            />
+
+          {warning && (
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-400">
+              {warning}
+            </div>
+          )}
+
+          {suggestions.length > 0 && (
+            <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">Other matches:</p>
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleUseSuggestion(s)}
+                  className="mb-1 block w-full rounded-md border border-gray-200 px-3 py-2 text-left text-sm hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                >
+                  {s.formatted}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setStep("input"); setMatched(null); setSuggestions([]); }}
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-3 font-semibold transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+            >
+              Edit Address
+            </button>
+            <button
+              onClick={handleConfirm}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              Start Investigation
+            </button>
           </div>
         </div>
+      )}
 
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-blue-600 px-4 py-3 text-lg font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-        >
-          Investigate Address
-        </button>
-      </form>
+      {/* === Step: Submitting === */}
+      {step === "submitting" && (
+        <div className="flex w-full flex-col items-center gap-4 py-8">
+          <svg className="h-10 w-10 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+            <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" className="opacity-75" />
+          </svg>
+          <p className="text-lg text-gray-500 dark:text-gray-400">Starting investigation...</p>
+        </div>
+      )}
+
+      {/* === Recent Searches === */}
+      {step === "input" && recentSearches.length > 0 && (
+        <div className="mt-8 w-full">
+          <p className="mb-2 text-sm font-medium text-gray-400 dark:text-gray-500">Recent</p>
+          <div className="space-y-1">
+            {recentSearches.slice(0, 5).map((addr, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  // Check local cache
+                  const cached = localStorage.getItem(`eagle-eye-cache:${addr}`);
+                  if (cached) {
+                    const data = JSON.parse(cached);
+                    setMatched(data.matched);
+                    setStep("confirm");
+                  }
+                }}
+                className="block w-full rounded-md px-3 py-2 text-left text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                {addr}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

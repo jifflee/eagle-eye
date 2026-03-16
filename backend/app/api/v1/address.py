@@ -7,9 +7,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
 
+from app.connectors.tier1.census_geocoder import CensusGeocoderConnector
 from app.database import neo4j_driver, postgres_client
 from app.models.entities import Address, EntityType
 from app.models.schemas import (
+    AddressInput,
     EntityResponse,
     ExportResponse,
     GraphResponse,
@@ -25,6 +27,125 @@ from app.models.schemas import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+_geocoder = CensusGeocoderConnector()
+
+
+@router.post("/address/validate")
+async def validate_address(address: AddressInput) -> dict:
+    """Validate an address via Census Geocoder.
+
+    Returns the matched/standardized address for user confirmation,
+    or an error with suggestions if no match is found.
+    """
+    from app.validation.address_validator import validate_address as client_validate
+
+    # Step 1: Client-side format validation
+    errors = client_validate(address.street, address.city, address.state, address.zip)
+    if errors:
+        return {"valid": False, "errors": errors, "matched": None, "suggestions": []}
+
+    # Step 2: Census Geocoder — server-side verification
+    entity = {
+        "id": "validation",
+        "street": address.street,
+        "city": address.city,
+        "state": address.state,
+        "zip": address.zip,
+    }
+
+    from app.utils.http_client import fetch_json
+
+    params = {
+        "street": address.street,
+        "city": address.city,
+        "state": address.state,
+        "zip": address.zip,
+        "benchmark": "Public_AR_Current",
+        "vintage": "Current_Current",
+        "format": "json",
+    }
+
+    try:
+        data = await fetch_json(
+            "https://geocoding.geo.census.gov/geocoder/geographies/address",
+            params=params,
+        )
+    except Exception as e:
+        logger.warning("Census Geocoder unavailable: %s", e)
+        return {
+            "valid": True,
+            "errors": [],
+            "matched": {
+                "street": address.street,
+                "city": address.city,
+                "state": address.state,
+                "zip": address.zip,
+                "formatted": f"{address.street}, {address.city}, {address.state} {address.zip}",
+            },
+            "suggestions": [],
+            "warning": "Could not verify address — geocoder unavailable. Proceeding with entered address.",
+        }
+
+    matches = data.get("result", {}).get("addressMatches", [])
+
+    if not matches:
+        # Try a looser search (one-line query) for suggestions
+        suggestions = []
+        try:
+            fallback = await fetch_json(
+                "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress",
+                params={
+                    "address": f"{address.street}, {address.city}, {address.state} {address.zip}",
+                    "benchmark": "Public_AR_Current",
+                    "format": "json",
+                },
+            )
+            for m in fallback.get("result", {}).get("addressMatches", []):
+                coords = m.get("coordinates", {})
+                suggestions.append({
+                    "formatted": m.get("matchedAddress", ""),
+                    "latitude": coords.get("y"),
+                    "longitude": coords.get("x"),
+                })
+        except Exception:
+            pass
+
+        return {
+            "valid": False,
+            "errors": ["Address not found. Please check and try again."],
+            "matched": None,
+            "suggestions": suggestions,
+        }
+
+    # Return the best match for confirmation
+    best = matches[0]
+    coords = best.get("coordinates", {})
+    geographies = best.get("geographies", {})
+    tracts = geographies.get("Census Tracts", [])
+    tract = tracts[0] if tracts else {}
+
+    return {
+        "valid": True,
+        "errors": [],
+        "matched": {
+            "formatted": best.get("matchedAddress", ""),
+            "latitude": coords.get("y"),
+            "longitude": coords.get("x"),
+            "tract": tract.get("TRACT", ""),
+            "county": tract.get("COUNTY", ""),
+            "state_fips": tract.get("STATE", ""),
+            "geoid": tract.get("GEOID", ""),
+        },
+        "suggestions": [
+            {
+                "formatted": m.get("matchedAddress", ""),
+                "latitude": m.get("coordinates", {}).get("y"),
+                "longitude": m.get("coordinates", {}).get("x"),
+            }
+            for m in matches[1:4]  # Up to 3 alternatives
+        ],
+    }
 
 
 @router.post("/investigation", response_model=InvestigationCreatedResponse)
