@@ -1,0 +1,54 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/build/
+.next/
+out/
+*.tsbuildinfo
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Database
+neo4j/data/
+neo4j/logs/
+postgres/data/
+redis/data/
+
+# Misc
+*.log
+tmp/
