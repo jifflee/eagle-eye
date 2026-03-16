@@ -1,33 +1,369 @@
-from fastapi import APIRouter
+"""Investigation lifecycle API endpoints."""
 
+from __future__ import annotations
+
+import logging
+from uuid import UUID
+
+from fastapi import APIRouter, HTTPException
+
+from app.database import neo4j_driver, postgres_client
+from app.models.entities import Address, EntityType
+from app.models.schemas import (
+    EntityResponse,
+    ExportResponse,
+    GraphResponse,
+    InvestigationCreatedResponse,
+    InvestigationMetadata,
+    InvestigationRequest,
+    InvestigationResponse,
+    InvestigationSummary,
+    RelationshipResponse,
+    SaveInvestigationRequest,
+    SourceInfo,
+)
+
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/investigation")
-async def create_investigation() -> dict[str, str]:
+@router.post("/investigation", response_model=InvestigationCreatedResponse)
+async def create_investigation(request: InvestigationRequest) -> InvestigationCreatedResponse:
     """Submit address to start a new investigation."""
-    return {"status": "not_implemented"}
+    addr = request.address
+
+    # Create address entity in Neo4j
+    address_entity = Address(
+        street=addr.street,
+        city=addr.city,
+        state=addr.state,
+        zip=addr.zip,
+    )
+    entity_props = {
+        "id": str(address_entity.id),
+        "street": addr.street,
+        "city": addr.city,
+        "state": addr.state,
+        "zip": addr.zip,
+        "address_type": "unknown",
+    }
+
+    try:
+        await neo4j_driver.create_entity(EntityType.ADDRESS, entity_props)
+    except Exception:
+        logger.warning("Neo4j unavailable, continuing without graph write")
+
+    # Create investigation record in PostgreSQL
+    try:
+        inv = await postgres_client.create_investigation(
+            address_street=addr.street,
+            address_city=addr.city,
+            address_state=addr.state,
+            address_zip=addr.zip,
+            root_entity_id=str(address_entity.id),
+        )
+        investigation_id = inv["id"]
+        address_str = inv["address"]
+    except Exception:
+        logger.warning("PostgreSQL unavailable, using in-memory fallback")
+        from uuid import uuid4
+
+        investigation_id = uuid4()
+        address_str = f"{addr.street}, {addr.city}, {addr.state} {addr.zip}"
+
+    # TODO: Trigger enrichment pipeline (Issue #23 / 4.1)
+
+    return InvestigationCreatedResponse(
+        id=investigation_id,
+        status="initializing",
+        address=address_str,
+    )
 
 
-@router.get("/investigation/{investigation_id}")
-async def get_investigation(investigation_id: str) -> dict[str, str]:
+@router.get("/investigation/{investigation_id}", response_model=InvestigationResponse)
+async def get_investigation(investigation_id: UUID) -> InvestigationResponse:
     """Get full entity graph for an investigation."""
-    return {"status": "not_implemented", "investigation_id": investigation_id}
+    # Get investigation metadata from PostgreSQL
+    try:
+        inv = await postgres_client.get_investigation(investigation_id)
+    except Exception:
+        inv = None
+
+    if not inv:
+        # Return empty graph for demo/offline mode
+        address_str = "Unknown"
+        status = "initializing"
+        root_entity_id = None
+        created_at = updated_at = __import__("datetime").datetime.utcnow()
+    else:
+        address_str = (
+            f"{inv['address_street']}, {inv['address_city']}, "
+            f"{inv['address_state']} {inv['address_zip']}"
+        )
+        status = inv["status"]
+        root_entity_id = inv.get("root_entity_id")
+        created_at = inv["created_at"]
+        updated_at = inv["updated_at"]
+
+    # Get graph data from Neo4j
+    entities: list[EntityResponse] = []
+    relationships: list[RelationshipResponse] = []
+
+    if root_entity_id:
+        try:
+            graph = await neo4j_driver.get_investigation_graph(root_entity_id)
+            for e in graph.get("entities", []):
+                props = e.get("properties", {})
+                labels = e.get("labels", [])
+                entity_type = _labels_to_entity_type(labels)
+                entities.append(
+                    EntityResponse(
+                        id=props.get("id", ""),
+                        type=entity_type,
+                        label=_entity_label(entity_type, props),
+                        attributes=props,
+                    )
+                )
+            for r in graph.get("relationships", []):
+                relationships.append(
+                    RelationshipResponse(
+                        id=r.get("id", 0),
+                        source_id=r.get("source_id", ""),
+                        target_id=r.get("target_id", ""),
+                        type=r.get("type", "UNKNOWN"),
+                        properties=r.get("properties", {}),
+                    )
+                )
+        except Exception:
+            logger.warning("Neo4j unavailable, returning empty graph")
+
+    return InvestigationResponse(
+        id=investigation_id,
+        address=address_str,
+        status=status,
+        graph=GraphResponse(entities=entities, relationships=relationships),
+        metadata=InvestigationMetadata(
+            total_entities=len(entities),
+            total_relationships=len(relationships),
+            enrichment_status=status,
+            created_at=created_at,
+            updated_at=updated_at,
+        ),
+    )
+
+
+@router.get("/entity/{entity_id}", response_model=EntityResponse)
+async def get_entity(entity_id: str) -> EntityResponse:
+    """Get single entity with all relationships and provenance."""
+    try:
+        entity = await neo4j_driver.get_entity(entity_id)
+    except Exception:
+        entity = None
+
+    if not entity:
+        raise HTTPException(status_code=404, detail="Entity not found")
+
+    labels = entity.pop("_labels", [])
+    entity_type = _labels_to_entity_type(labels)
+
+    # Get provenance from PostgreSQL
+    sources: list[SourceInfo] = []
+    try:
+        provenance = await postgres_client.get_entity_provenance(entity_id)
+        sources = [
+            SourceInfo(
+                connector_name=p["connector_name"],
+                confidence=p["confidence_score"],
+                retrieved_at=p["retrieval_date"],
+            )
+            for p in provenance
+        ]
+    except Exception:
+        logger.warning("PostgreSQL unavailable, no provenance data")
+
+    return EntityResponse(
+        id=entity.get("id", entity_id),
+        type=entity_type,
+        label=_entity_label(entity_type, entity),
+        attributes=entity,
+        sources=sources,
+    )
+
+
+@router.post("/entity/{entity_id}/expand")
+async def expand_entity(entity_id: str, depth: int = 1) -> GraphResponse:
+    """Load additional relationships for an entity (N+1 hop)."""
+    try:
+        neighborhood = await neo4j_driver.get_entity_neighborhood(entity_id, depth)
+    except Exception:
+        return GraphResponse(entities=[], relationships=[])
+
+    entities: list[EntityResponse] = []
+    for n in neighborhood.get("neighbors", []):
+        props = n.get("properties", {})
+        labels = n.get("labels", [])
+        entity_type = _labels_to_entity_type(labels)
+        entities.append(
+            EntityResponse(
+                id=props.get("id", ""),
+                type=entity_type,
+                label=_entity_label(entity_type, props),
+                attributes=props,
+            )
+        )
+
+    relationships = [
+        RelationshipResponse(
+            id=0,
+            source_id=r.get("source_id", ""),
+            target_id=r.get("target_id", ""),
+            type=r.get("type", "UNKNOWN"),
+            properties=r.get("properties", {}),
+        )
+        for r in neighborhood.get("relationships", [])
+    ]
+
+    return GraphResponse(entities=entities, relationships=relationships)
 
 
 @router.post("/investigation/{investigation_id}/save")
-async def save_investigation(investigation_id: str) -> dict[str, str]:
-    """Save an investigation."""
-    return {"status": "not_implemented"}
+async def save_investigation(
+    investigation_id: UUID,
+    request: SaveInvestigationRequest,
+) -> dict[str, str]:
+    """Save an investigation with a name and notes."""
+    try:
+        await postgres_client.update_investigation(
+            investigation_id,
+            name=request.name,
+            notes=request.notes,
+        )
+        await postgres_client.log_action(
+            action="save_investigation",
+            investigation_id=investigation_id,
+            details={"name": request.name},
+        )
+    except Exception:
+        logger.warning("PostgreSQL unavailable")
+
+    return {"status": "saved", "investigation_id": str(investigation_id)}
 
 
-@router.get("/saved-investigations")
-async def list_saved_investigations() -> dict[str, list[str]]:
+@router.get("/saved-investigations", response_model=list[InvestigationSummary])
+async def list_saved_investigations(
+    limit: int = 50,
+    offset: int = 0,
+) -> list[InvestigationSummary]:
     """List all saved investigations."""
-    return {"investigations": []}
+    try:
+        rows = await postgres_client.list_investigations(limit, offset)
+        return [
+            InvestigationSummary(
+                id=row["id"],
+                name=row.get("name"),
+                address=(
+                    f"{row['address_street']}, {row['address_city']}, "
+                    f"{row['address_state']} {row['address_zip']}"
+                ),
+                status=row["status"],
+                entity_count=row.get("entity_count", 0),
+                created_at=row["created_at"],
+                updated_at=row["updated_at"],
+            )
+            for row in rows
+        ]
+    except Exception:
+        logger.warning("PostgreSQL unavailable")
+        return []
 
 
-@router.get("/investigation/{investigation_id}/export")
-async def export_investigation(investigation_id: str) -> dict[str, str]:
+@router.delete("/investigation/{investigation_id}")
+async def delete_investigation(investigation_id: UUID) -> dict[str, str]:
+    """Delete an investigation."""
+    try:
+        deleted = await postgres_client.delete_investigation(investigation_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Investigation not found")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to delete investigation")
+
+    return {"status": "deleted"}
+
+
+@router.get("/investigation/{investigation_id}/export", response_model=ExportResponse)
+async def export_investigation(
+    investigation_id: UUID,
+    format: str = "json",
+) -> ExportResponse:
     """Export investigation as JSON or CSV."""
-    return {"status": "not_implemented"}
+    inv_response = await get_investigation(investigation_id)
+
+    export_data = {
+        "investigation_id": str(investigation_id),
+        "address": inv_response.address,
+        "entities": [e.model_dump(mode="json") for e in inv_response.graph.entities],
+        "relationships": [
+            r.model_dump(mode="json") for r in inv_response.graph.relationships
+        ],
+        "metadata": inv_response.metadata.model_dump(mode="json"),
+    }
+
+    return ExportResponse(format=format, data=export_data)
+
+
+# === Helpers ===
+
+
+def _labels_to_entity_type(labels: list[str]) -> EntityType:
+    """Convert Neo4j labels to EntityType enum."""
+    label_map = {
+        "Person": EntityType.PERSON,
+        "Address": EntityType.ADDRESS,
+        "Property": EntityType.PROPERTY,
+        "Business": EntityType.BUSINESS,
+        "Case": EntityType.CASE,
+        "Vehicle": EntityType.VEHICLE,
+        "CrimeRecord": EntityType.CRIME_RECORD,
+        "SocialProfile": EntityType.SOCIAL_PROFILE,
+        "PhoneNumber": EntityType.PHONE_NUMBER,
+        "EmailAddress": EntityType.EMAIL_ADDRESS,
+        "EnvironmentalFacility": EntityType.ENVIRONMENTAL_FACILITY,
+        "CensusTract": EntityType.CENSUS_TRACT,
+    }
+    for label in labels:
+        if label in label_map:
+            return label_map[label]
+    return EntityType.ADDRESS
+
+
+def _entity_label(entity_type: EntityType, props: dict) -> str:
+    """Generate a human-readable label for an entity."""
+    match entity_type:
+        case EntityType.PERSON:
+            return props.get("full_name") or f"{props.get('first_name', '')} {props.get('last_name', '')}"
+        case EntityType.ADDRESS:
+            return f"{props.get('street', '')}, {props.get('city', '')} {props.get('state', '')}"
+        case EntityType.BUSINESS:
+            return props.get("name", "Unknown Business")
+        case EntityType.PROPERTY:
+            return f"Parcel {props.get('apn', 'Unknown')}"
+        case EntityType.CASE:
+            return props.get("case_number", "Unknown Case")
+        case EntityType.VEHICLE:
+            return f"{props.get('year', '')} {props.get('make', '')} {props.get('model', '')}"
+        case EntityType.CRIME_RECORD:
+            return props.get("incident_type", "Crime")
+        case EntityType.SOCIAL_PROFILE:
+            return f"{props.get('platform', '')}/@{props.get('username', '')}"
+        case EntityType.PHONE_NUMBER:
+            return props.get("phone_number", "Unknown")
+        case EntityType.EMAIL_ADDRESS:
+            return props.get("email", "Unknown")
+        case EntityType.ENVIRONMENTAL_FACILITY:
+            return props.get("facility_name", "Unknown Facility")
+        case EntityType.CENSUS_TRACT:
+            return f"Tract {props.get('tract_number', '')}"
+        case _:
+            return str(props.get("id", "Unknown"))

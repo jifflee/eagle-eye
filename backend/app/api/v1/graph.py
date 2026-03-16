@@ -1,15 +1,23 @@
+"""Graph query API endpoints."""
+
+from __future__ import annotations
+
 from fastapi import APIRouter
+
+from app.database import neo4j_driver
 
 router = APIRouter()
 
 
-@router.get("/entity/{entity_id}")
-async def get_entity(entity_id: str) -> dict[str, str]:
-    """Get single entity with all relationships and provenance."""
-    return {"status": "not_implemented", "entity_id": entity_id}
-
-
-@router.post("/entity/{entity_id}/expand")
-async def expand_entity(entity_id: str) -> dict[str, str]:
-    """Load additional relationships for an entity."""
-    return {"status": "not_implemented", "entity_id": entity_id}
+@router.post("/graph/path")
+async def find_path(
+    source_id: str,
+    target_id: str,
+    max_depth: int = 6,
+) -> dict:
+    """Find shortest path between two entities."""
+    try:
+        result = await neo4j_driver.find_path(source_id, target_id, max_depth)
+        return result
+    except Exception:
+        return {"nodes": [], "relationships": []}

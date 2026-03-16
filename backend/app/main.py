@@ -1,4 +1,6 @@
 import logging
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1 import address, enrichment, graph, search
 from app.config import settings
+from app.database import neo4j_driver, postgres_client
 
 logging.basicConfig(
     level=getattr(logging, settings.log_level),
@@ -13,10 +16,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Startup and shutdown events."""
+    logger.info("Eagle Eye starting up...")
+    yield
+    logger.info("Eagle Eye shutting down...")
+    await neo4j_driver.close_driver()
+    await postgres_client.close_pool()
+
+
 app = FastAPI(
     title="Eagle Eye",
     description="Open Source Intelligence (OSINT) platform for address-based profiling",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -34,8 +49,20 @@ app.include_router(enrichment.router, prefix="/api/v1", tags=["enrichment"])
 
 
 @app.get("/health")
-async def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+async def health_check() -> dict:
+    """Check connectivity to all backing services."""
+    neo4j_ok = await neo4j_driver.check_health()
+    postgres_ok = await postgres_client.check_health()
+
+    status = "ok" if (neo4j_ok and postgres_ok) else "degraded"
+
+    return {
+        "status": status,
+        "services": {
+            "neo4j": "connected" if neo4j_ok else "unavailable",
+            "postgres": "connected" if postgres_ok else "unavailable",
+        },
+    }
 
 
 @app.exception_handler(404)
