@@ -13,14 +13,18 @@ from app.models.entities import EntityType
 from app.rate_limiting.limiter import CircuitBreaker, RateLimiter, TokenBucket
 
 
-def test_connector_registry_discovers_tier1() -> None:
+def test_connector_registry_discovers_all_tier1() -> None:
     reset_registry()
     connectors = discover_connectors()
-    # Should find at least census_geocoder, census_data, fbi_crime
-    assert len(connectors) >= 3
-    assert "census_geocoder" in connectors
-    assert "census_data" in connectors
-    assert "fbi_crime" in connectors
+    # Should find all 9 tier1 connectors
+    assert len(connectors) >= 9
+    expected = [
+        "census_geocoder", "census_data", "fbi_crime",
+        "epa_echo", "sec_edgar", "courtlistener",
+        "openfema", "nominatim", "nhtsa_vpic",
+    ]
+    for name in expected:
+        assert name in connectors, f"Missing connector: {name}"
 
 
 def test_get_connector_by_name() -> None:
