@@ -8,6 +8,20 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
+# === Guard: auto-install if deps missing ===
+
+.venv-check:
+	@if [ ! -d "backend/.venv" ]; then \
+		echo "Backend venv not found — running install..."; \
+		$(MAKE) install; \
+	fi
+
+.node-check:
+	@if [ ! -d "frontend/node_modules" ]; then \
+		echo "Frontend node_modules not found — running install..."; \
+		$(MAKE) install; \
+	fi
+
 # === Setup ===
 
 install: ## Install all dependencies (backend + frontend)
@@ -20,18 +34,24 @@ install: ## Install all dependencies (backend + frontend)
 
 # === Development ===
 
-dev: ## Start backend + frontend for local development
+dev: .venv-check .node-check ## Start backend + frontend for local development
 	@$(MAKE) -j2 backend frontend
 
-backend: ## Start FastAPI backend (port 8000)
+backend: .venv-check ## Start FastAPI backend (port 8000)
 	cd backend && . .venv/bin/activate && uvicorn app.main:app --reload --port 8000
 
-frontend: ## Start Vite frontend (port 5173)
+frontend: .node-check ## Start Vite frontend (port 5173)
 	cd frontend && npm run dev
 
 # === Docker ===
 
-up: ## Start all services via Docker Compose
+up: ## Start all services via Docker Compose (auto-installs if needed)
+	@command -v docker >/dev/null 2>&1 || { echo "Docker is required. Install from https://docker.com"; exit 1; }
+	@if [ ! -d "backend/.venv" ] || [ ! -d "frontend/node_modules" ]; then \
+		echo "Dependencies not installed — running install first..."; \
+		$(MAKE) install; \
+	fi
+	@test -f .env || cp .env.example .env
 	docker compose up -d
 	@echo ""
 	@echo "Backend:  http://localhost:8000"
@@ -50,21 +70,21 @@ logs: ## Tail Docker Compose logs
 
 # === Testing ===
 
-test: ## Run all tests
+test: .venv-check ## Run all tests
 	cd backend && . .venv/bin/activate && pytest tests/ -v
 
-test-cov: ## Run tests with coverage
+test-cov: .venv-check ## Run tests with coverage
 	cd backend && . .venv/bin/activate && pytest tests/ --cov=app --cov-report=term-missing
 
-lint: ## Lint and format check
+lint: .venv-check ## Lint and format check
 	cd backend && . .venv/bin/activate && ruff check app/ tests/ && ruff format --check app/ tests/
 
-fmt: ## Auto-format code
+fmt: .venv-check ## Auto-format code
 	cd backend && . .venv/bin/activate && ruff format app/ tests/
 
 # === Data ===
 
-demo: ## Load demo data into Neo4j
+demo: .venv-check ## Load demo data into Neo4j
 	cd backend && . .venv/bin/activate && python3 ../scripts/demo_data.py
 
 # === Status ===
