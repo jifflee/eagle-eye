@@ -34,14 +34,16 @@ install: ## Install all dependencies (backend + frontend)
 
 # === Development ===
 
-dev: .venv-check .node-check ## Start backend + frontend for local development
-	@$(MAKE) -j2 backend frontend
+dev: .venv-check .node-check ## Start backend + frontend (auto-picks ports, opens browser)
+	@bash scripts/launch.sh
 
-backend: .venv-check ## Start FastAPI backend (port 8000)
-	cd backend && . .venv/bin/activate && uvicorn app.main:app --reload --port 8000
+backend: .venv-check ## Start FastAPI backend (specify port: BACKEND_PORT=9000 make backend)
+	cd backend && . .venv/bin/activate && uvicorn app.main:app --reload \
+		--port $${BACKEND_PORT:-8000} --host 0.0.0.0
 
-frontend: .node-check ## Start Vite frontend (port 5173)
-	cd frontend && npm run dev
+frontend: .node-check ## Start Vite frontend (specify port: FRONTEND_PORT=3000 make frontend)
+	cd frontend && VITE_API_BASE_URL="http://localhost:$${BACKEND_PORT:-8000}" \
+		npm run dev -- --port $${FRONTEND_PORT:-5173}
 
 # === Docker ===
 
@@ -90,9 +92,20 @@ demo: .venv-check ## Load demo data into Neo4j
 # === Status ===
 
 status: ## Check service health
-	@curl -sf http://localhost:8000/health 2>/dev/null && echo "Backend:  UP" || echo "Backend:  DOWN"
-	@curl -sf http://localhost:5173 >/dev/null 2>&1 && echo "Frontend: UP" || echo "Frontend: DOWN"
-	@curl -sf http://localhost:7474 >/dev/null 2>&1 && echo "Neo4j:    UP" || echo "Neo4j:    DOWN"
+	@echo "Checking services..."
+	@for port in 8000 8001 8002; do \
+		if curl -sf "http://localhost:$$port/health" >/dev/null 2>&1; then \
+			echo "  Backend:  http://localhost:$$port (UP)"; \
+			break; \
+		fi; \
+	done || echo "  Backend:  DOWN"
+	@for port in 5173 5174 5175 3000; do \
+		if curl -sf "http://localhost:$$port" >/dev/null 2>&1; then \
+			echo "  Frontend: http://localhost:$$port (UP)"; \
+			break; \
+		fi; \
+	done || echo "  Frontend: DOWN"
+	@curl -sf http://localhost:7474 >/dev/null 2>&1 && echo "  Neo4j:    http://localhost:7474 (UP)" || echo "  Neo4j:    DOWN"
 
 # === Cleanup ===
 
@@ -100,4 +113,5 @@ clean: ## Remove build artifacts and caches
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name .ruff_cache -exec rm -rf {} + 2>/dev/null || true
+	rm -f .ports.env
 	rm -rf backend/.venv frontend/node_modules
