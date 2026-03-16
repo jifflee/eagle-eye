@@ -47,25 +47,27 @@ frontend: .node-check ## Start Vite frontend (specify port: FRONTEND_PORT=3000 m
 
 # === Docker ===
 
-up: ## Start all services via Docker Compose (auto-installs if needed)
+up: ## Start all via Docker Compose (auto-picks ports, opens browser)
 	@command -v docker >/dev/null 2>&1 || { echo "Docker is required. Install from https://docker.com"; exit 1; }
-	@if [ ! -d "backend/.venv" ] || [ ! -d "frontend/node_modules" ]; then \
-		echo "Dependencies not installed — running install first..."; \
-		$(MAKE) install; \
-	fi
 	@test -f .env || cp .env.example .env
-	docker compose up -d
-	@echo ""
-	@echo "Backend:  http://localhost:8000"
-	@echo "Frontend: http://localhost:5173"
-	@echo "Neo4j:    http://localhost:7474"
-	@echo "API Docs: http://localhost:8000/docs"
+	@bash scripts/docker-up.sh
 
 down: ## Stop all Docker services
 	docker compose down
 
 db: ## Start only databases (Neo4j, PostgreSQL, Redis)
-	docker compose up -d neo4j postgres redis
+	@bash -c '\
+		find_port() { local p=$$1; while lsof -i :$$p >/dev/null 2>&1; do p=$$((p+1)); done; echo $$p; }; \
+		export NEO4J_HTTP_PORT=$$(find_port 7474); \
+		export NEO4J_BOLT_PORT=$$(find_port 7687); \
+		export POSTGRES_PORT=$$(find_port 5432); \
+		export REDIS_PORT=$$(find_port 6379); \
+		echo "  Neo4j:    localhost:$$NEO4J_HTTP_PORT"; \
+		echo "  Bolt:     localhost:$$NEO4J_BOLT_PORT"; \
+		echo "  Postgres: localhost:$$POSTGRES_PORT"; \
+		echo "  Redis:    localhost:$$REDIS_PORT"; \
+		docker compose up -d neo4j postgres redis \
+	'
 
 logs: ## Tail Docker Compose logs
 	docker compose logs -f
