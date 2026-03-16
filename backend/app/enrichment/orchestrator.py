@@ -151,6 +151,52 @@ async def _do_enrichment(
             return_exceptions=True,
         )
 
+    # === Phase 4: Recursive discovery ===
+    # Walk discovered entities (people, businesses) and enrich them further
+    # e.g., PERSON → court cases, BUSINESS → officers
+    from app.enrichment.discovery import run_discovery
+
+    try:
+        discovery_result = await run_discovery(
+            investigation_id=investigation_id,
+            root_entity=address_entity,
+            max_depth=2,  # Keep shallow for now
+            max_entities=200,
+        )
+        logger.info(
+            "Discovery found %d entities, %d relationships",
+            discovery_result["entities_discovered"],
+            discovery_result["relationships_discovered"],
+        )
+    except Exception:
+        logger.exception("Discovery phase failed")
+
+    # === Phase 5: Deduplication ===
+    from app.enrichment.deduplicator import run_deduplication
+
+    try:
+        # Fetch all entities from the graph
+        graph = await neo4j_driver.get_investigation_graph(root_entity_id, max_depth=3)
+        all_entities = [
+            {**e.get("properties", {}), "type": _label_to_type(e.get("labels", []))}
+            for e in graph.get("entities", [])
+        ]
+
+        duplicate_groups = await run_deduplication(str(investigation_id), all_entities)
+        if duplicate_groups:
+            logger.info("Found %d duplicate groups", len(duplicate_groups))
+            # Log duplicates for now — auto-merge is a future enhancement
+            for group in duplicate_groups:
+                logger.info(
+                    "Duplicate: primary=%s, dupes=%s, confidence=%.2f (%s)",
+                    group.primary_id[:8],
+                    [d[:8] for d in group.duplicate_ids],
+                    group.confidence,
+                    group.match_reason,
+                )
+    except Exception:
+        logger.exception("Deduplication phase failed")
+
     # Mark investigation complete
     try:
         entity_count = await neo4j_driver.get_entity_count()
@@ -258,3 +304,19 @@ async def _run_connector(
 
     logger.info("Connector %s complete: %d entities", name, entities_found)
     return result
+
+
+def _label_to_type(labels: list[str]) -> str:
+    """Convert Neo4j labels to entity type string."""
+    label_map = {
+        "Person": "PERSON", "Address": "ADDRESS", "Property": "PROPERTY",
+        "Business": "BUSINESS", "Case": "CASE", "Vehicle": "VEHICLE",
+        "CrimeRecord": "CRIME_RECORD", "SocialProfile": "SOCIAL_PROFILE",
+        "PhoneNumber": "PHONE_NUMBER", "EmailAddress": "EMAIL_ADDRESS",
+        "EnvironmentalFacility": "ENVIRONMENTAL_FACILITY",
+        "CensusTract": "CENSUS_TRACT",
+    }
+    for label in labels:
+        if label in label_map:
+            return label_map[label]
+    return "ADDRESS"
