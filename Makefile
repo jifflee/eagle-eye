@@ -74,11 +74,22 @@ logs: ## Tail Docker Compose logs
 
 # === Testing ===
 
-test: .venv-check ## Run all tests
+test: .venv-check ## Run all backend tests
 	cd backend && . .venv/bin/activate && pytest tests/ -v
 
 test-cov: .venv-check ## Run tests with coverage
 	cd backend && . .venv/bin/activate && pytest tests/ --cov=app --cov-report=term-missing
+
+test-e2e: .node-check ## Run Playwright E2E tests
+	cd frontend && npx playwright test
+
+test-e2e-headed: .node-check ## Run E2E tests in visible browser
+	cd frontend && npx playwright test --headed
+
+test-e2e-ui: .node-check ## Open Playwright interactive UI
+	cd frontend && npx playwright test --ui
+
+test-all: test test-e2e ## Run all tests (backend + E2E)
 
 lint: .venv-check ## Lint and format check
 	cd backend && . .venv/bin/activate && ruff check app/ tests/ && ruff format --check app/ tests/
