@@ -386,6 +386,16 @@ async def save_investigation(
     return {"status": "saved", "investigation_id": str(investigation_id)}
 
 
+@router.get("/investigation/{investigation_id}/audit")
+async def get_audit_log(investigation_id: UUID) -> list[dict]:
+    """Get audit log for an investigation."""
+    try:
+        entries = await postgres_client.get_audit_log(investigation_id)
+        return entries
+    except Exception:
+        return []
+
+
 @router.get("/saved-investigations", response_model=list[InvestigationSummary])
 async def list_saved_investigations(
     limit: int = 50,
