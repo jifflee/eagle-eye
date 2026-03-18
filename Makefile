@@ -60,11 +60,18 @@ up: ## Build, start all services, auto-pick ports, open browser
 down: ## Stop all Docker services
 	docker compose down
 
-rebuild: ## Tear down, rebuild from scratch, and restart everything
+rebuild: ## Rebuild containers from scratch and restart (preserves data)
 	docker compose down --remove-orphans
 	docker compose build --no-cache
 	@test -f .env || cp .env.example .env
+	@echo "Data volumes preserved (Neo4j, PostgreSQL, Redis)"
 	@bash scripts/docker-up.sh
+
+nuke: ## WARNING: Delete everything including all stored data
+	@echo "This will DELETE all investigation data, users, and cached results."
+	@read -p "Are you sure? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
+	docker compose down -v --remove-orphans
+	@echo "All containers stopped and data volumes deleted."
 
 db: ## Start only databases (Neo4j, PostgreSQL, Redis)
 	@bash -c '\
