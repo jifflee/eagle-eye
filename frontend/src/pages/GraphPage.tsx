@@ -76,9 +76,15 @@ export default function GraphPage() {
         localStorage.setItem(`eagle-eye-inv:${id}`, JSON.stringify({ data: inv, timestamp: Date.now() }));
       } catch { /* full */ }
     } catch {
-      // Try local cache
+      // Try local cache first
       const cached = localStorage.getItem(`eagle-eye-inv:${id}`);
-      if (cached) setInvestigation(JSON.parse(cached).data);
+      if (cached) {
+        setInvestigation(JSON.parse(cached).data);
+      } else if (id === "demo") {
+        // Offline demo data for testing graph visualization
+        setInvestigation(DEMO_INVESTIGATION);
+        setPolling(false);
+      }
     }
   }, [id, allTypesInit]);
 
@@ -265,3 +271,39 @@ export default function GraphPage() {
     </div>
   );
 }
+
+// Demo data for offline testing of graph visualization
+const DEMO_INVESTIGATION: InvestigationData = {
+  id: "demo",
+  address: "123 Peachtree Lane, Lawrenceville, GA 30043",
+  status: "complete",
+  graph: {
+    entities: [
+      { id: "addr-1", type: "ADDRESS", label: "123 Peachtree Ln, Lawrenceville GA", attributes: { street: "123 Peachtree Lane", city: "Lawrenceville", state: "GA", zip: "30043" } },
+      { id: "person-1", type: "PERSON", label: "John Smith", attributes: { full_name: "John Smith", gender: "male" } },
+      { id: "person-2", type: "PERSON", label: "Jane Smith", attributes: { full_name: "Jane Smith", gender: "female" } },
+      { id: "person-3", type: "PERSON", label: "Robert Johnson", attributes: { full_name: "Robert Johnson" } },
+      { id: "biz-1", type: "BUSINESS", label: "Smith Consulting LLC", attributes: { name: "Smith Consulting LLC", entity_type_business: "LLC", status: "active" } },
+      { id: "prop-1", type: "PROPERTY", label: "Parcel R5001-123", attributes: { apn: "R5001-123", assessed_value: 350000, year_built: 2005, square_footage: 2400 } },
+      { id: "case-1", type: "CASE", label: "2023-CV-12345", attributes: { case_number: "2023-CV-12345", court_name: "Gwinnett County Superior Court", case_type: "civil", disposition: "dismissed" } },
+      { id: "tract-1", type: "CENSUS_TRACT", label: "Tract 0507.03", attributes: { tract_number: "0507.03", population: 5420, median_income: 78500 } },
+      { id: "env-1", type: "ENVIRONMENTAL_FACILITY", label: "Water Treatment Plant", attributes: { facility_name: "Gwinnett County Water Treatment", compliance_status: "In Compliance" } },
+      { id: "vehicle-1", type: "VEHICLE", label: "2023 Honda Accord", attributes: { make: "Honda", model: "Accord", year: 2023, color: "Silver" } },
+    ],
+    relationships: [
+      { source_id: "person-1", target_id: "addr-1", type: "LIVES_AT" },
+      { source_id: "person-2", target_id: "addr-1", type: "LIVES_AT" },
+      { source_id: "person-1", target_id: "person-2", type: "IS_RELATIVE_OF" },
+      { source_id: "person-1", target_id: "biz-1", type: "OWNS_BUSINESS" },
+      { source_id: "person-1", target_id: "prop-1", type: "OWNS_PROPERTY" },
+      { source_id: "person-2", target_id: "prop-1", type: "OWNS_PROPERTY" },
+      { source_id: "biz-1", target_id: "addr-1", type: "LOCATED_AT" },
+      { source_id: "person-3", target_id: "case-1", type: "NAMED_IN_CASE" },
+      { source_id: "biz-1", target_id: "case-1", type: "NAMED_IN_CASE" },
+      { source_id: "person-1", target_id: "vehicle-1", type: "REGISTERED_VEHICLE" },
+      { source_id: "addr-1", target_id: "tract-1", type: "IN_CENSUS_TRACT" },
+      { source_id: "addr-1", target_id: "env-1", type: "HAS_ENV_FACILITY" },
+      { source_id: "person-3", target_id: "addr-1", type: "LIVES_AT" },
+    ],
+  },
+};
