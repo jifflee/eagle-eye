@@ -132,8 +132,9 @@ async def _do_enrichment(
 
     connectors = discover_connectors()
 
-    # Skip connectors that need special conditions
-    DISABLED_CONNECTORS = {"nhtsa_vpic"}  # Only useful when VINs are discovered
+    # No permanently disabled connectors — all are available.
+    # NHTSA vPIC runs during discovery when VEHICLE entities with VINs are found.
+    DISABLED_CONNECTORS: set[str] = set()
     connectors = {
         k: v for k, v in connectors.items()
         if k not in DISABLED_CONNECTORS

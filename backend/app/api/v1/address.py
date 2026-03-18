@@ -447,6 +447,26 @@ async def export_investigation(
     """Export investigation as JSON or CSV."""
     inv_response = await get_investigation(investigation_id)
 
+    if format == "csv":
+        # Flatten entities into CSV-friendly rows
+        import csv
+        import io
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["id", "type", "label", "attributes"])
+        for e in inv_response.graph.entities:
+            attrs = "; ".join(f"{k}={v}" for k, v in (e.attributes or {}).items()
+                             if k not in ("id", "type", "entity_type", "created_at", "updated_at"))
+            writer.writerow([str(e.id), e.type.value, e.label, attrs])
+
+        writer.writerow([])
+        writer.writerow(["source_id", "target_id", "relationship_type"])
+        for r in inv_response.graph.relationships:
+            writer.writerow([str(r.source_id), str(r.target_id), r.type])
+
+        return ExportResponse(format="csv", data={"csv": output.getvalue()})
+
     export_data = {
         "investigation_id": str(investigation_id),
         "address": inv_response.address,
