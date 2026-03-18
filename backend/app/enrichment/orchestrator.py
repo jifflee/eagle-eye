@@ -1,7 +1,8 @@
 """Enrichment orchestrator — runs connectors against an investigation address.
 
-Runs as a background asyncio task. Each connector runs in parallel within
-its phase, results are written to Neo4j + PostgreSQL as they arrive.
+Supports two execution modes:
+- Celery: distributed task queue with pause/resume/cancel (when Redis is available)
+- asyncio: in-process background task (fallback when Celery is unavailable)
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ from app.models.entities import EntityType
 
 logger = logging.getLogger(__name__)
 
-# Track running enrichments so we can pause/cancel
+# Track running enrichments for asyncio fallback mode
 _running_tasks: dict[str, asyncio.Task] = {}
 
 
@@ -27,11 +28,26 @@ async def start_enrichment(
     address: dict[str, str],
     root_entity_id: str,
     tier1_only: bool = False,
-) -> None:
-    """Start enrichment as a background task."""
-    logger.info("Creating enrichment task for %s", investigation_id)
+) -> str | None:
+    """Start enrichment — uses Celery if available, falls back to asyncio.
+
+    Returns the Celery task ID if dispatched via Celery, or None for asyncio.
+    """
+    # Try Celery first
+    try:
+        from app.enrichment.tasks import run_enrichment_task
+
+        result = run_enrichment_task.delay(
+            str(investigation_id), address, root_entity_id, tier1_only
+        )
+        logger.info("Enrichment dispatched via Celery: task=%s inv=%s", result.id, investigation_id)
+        return result.id
+    except Exception:
+        logger.info("Celery unavailable, using asyncio fallback for %s", investigation_id)
+
+    # Asyncio fallback
     task = asyncio.ensure_future(
-        _run_enrichment(investigation_id, address, root_entity_id, tier1_only)
+        _run_enrichment_async(investigation_id, address, root_entity_id, tier1_only)
     )
 
     def _on_done(t: asyncio.Task) -> None:
@@ -43,15 +59,49 @@ async def start_enrichment(
 
     task.add_done_callback(_on_done)
     _running_tasks[str(investigation_id)] = task
+    return None
 
 
-async def _run_enrichment(
+async def cancel_enrichment(investigation_id: UUID) -> bool:
+    """Cancel a running enrichment task."""
+    inv_id = str(investigation_id)
+
+    # Try Celery first
+    try:
+        from app.enrichment.tasks import get_task_id
+        from app.celery_app import celery_app
+
+        task_id = get_task_id(inv_id)
+        if task_id:
+            celery_app.control.revoke(task_id, terminate=True)
+            logger.info("Celery task %s revoked for %s", task_id, inv_id)
+            await postgres_client.update_investigation(investigation_id, status="cancelled")
+            return True
+    except Exception:
+        pass
+
+    # Asyncio fallback
+    task = _running_tasks.get(inv_id)
+    if task and not task.done():
+        task.cancel()
+        _running_tasks.pop(inv_id, None)
+        try:
+            await postgres_client.update_investigation(investigation_id, status="cancelled")
+        except Exception:
+            pass
+        logger.info("Asyncio task cancelled for %s", inv_id)
+        return True
+
+    return False
+
+
+async def _run_enrichment_async(
     investigation_id: UUID,
     address: dict[str, str],
     root_entity_id: str,
     tier1_only: bool,
 ) -> None:
-    """Run the full enrichment pipeline."""
+    """Asyncio wrapper for the enrichment pipeline."""
     try:
         await _do_enrichment(investigation_id, address, root_entity_id, tier1_only)
     except Exception:

@@ -117,7 +117,27 @@ async def enrichment_control(
     request: EnrichmentControlRequest,
 ) -> dict[str, str]:
     """Pause, resume, or cancel enrichment."""
-    # TODO: Integrate with Celery task management (Issue #23 / 4.1)
+    from app.enrichment.orchestrator import cancel_enrichment
+
+    if request.action == "cancel":
+        cancelled = await cancel_enrichment(investigation_id)
+        status = "cancelled" if cancelled else "not_found"
+    elif request.action == "pause":
+        # Mark as paused in DB — connectors check this between phases
+        try:
+            await postgres_client.update_investigation(investigation_id, status="paused")
+        except Exception:
+            pass
+        status = "paused"
+    elif request.action == "resume":
+        try:
+            await postgres_client.update_investigation(investigation_id, status="enriching")
+        except Exception:
+            pass
+        status = "resumed"
+    else:
+        status = request.action
+
     try:
         await postgres_client.log_action(
             action=f"enrichment_{request.action}",
@@ -126,7 +146,7 @@ async def enrichment_control(
     except Exception:
         pass
 
-    return {"status": request.action, "investigation_id": str(investigation_id)}
+    return {"status": status, "investigation_id": str(investigation_id)}
 
 
 @router.get("/sources", response_model=SourceListResponse)
