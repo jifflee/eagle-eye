@@ -47,13 +47,24 @@ frontend: .node-check ## Start Vite frontend (specify port: FRONTEND_PORT=3000 m
 
 # === Docker ===
 
-up: ## Start all via Docker Compose (auto-picks ports, opens browser)
+up: ## Build, start all services, auto-pick ports, open browser
 	@command -v docker >/dev/null 2>&1 || { echo "Docker is required. Install from https://docker.com"; exit 1; }
+	@if [ ! -d "backend/.venv" ] || [ ! -d "frontend/node_modules" ]; then \
+		echo "Dependencies not installed — running install first..."; \
+		$(MAKE) install; \
+	fi
 	@test -f .env || cp .env.example .env
+	docker compose build
 	@bash scripts/docker-up.sh
 
 down: ## Stop all Docker services
 	docker compose down
+
+rebuild: ## Tear down, rebuild from scratch, and restart everything
+	docker compose down --remove-orphans
+	docker compose build --no-cache
+	@test -f .env || cp .env.example .env
+	@bash scripts/docker-up.sh
 
 db: ## Start only databases (Neo4j, PostgreSQL, Redis)
 	@bash -c '\
