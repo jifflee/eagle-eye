@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
+    # JWT Authentication
+    jwt_secret: str = "eagle-eye-dev-secret-change-in-production"
+
     # Optional API keys
     google_places_api_key: str = ""
     hunter_io_api_key: str = ""

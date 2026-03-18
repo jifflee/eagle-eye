@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.v1 import address, enrichment, graph, search
+from app.api.v1 import address, auth_routes, enrichment, graph, search
 from app.config import settings
 from app.database import neo4j_driver, postgres_client
 
@@ -44,6 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_routes.router, prefix="/api/v1", tags=["auth"])
 app.include_router(address.router, prefix="/api/v1", tags=["investigation"])
 app.include_router(graph.router, prefix="/api/v1", tags=["graph"])
 app.include_router(search.router, prefix="/api/v1", tags=["search"])

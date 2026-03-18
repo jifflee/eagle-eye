@@ -20,6 +20,8 @@ dependencies = [
     "redis>=5.1.0",
     "celery[redis]>=5.4.0",
     "python-dotenv>=1.0.0",
+    "pyjwt[crypto]>=2.9.0",
+    "passlib[bcrypt]>=1.7.4",
 ]
 
 [project.optional-dependencies]
