@@ -160,17 +160,45 @@ async def _do_enrichment(
         )
 
     # === Phase 4: Recursive discovery ===
-    # Walk discovered entities (people, businesses) and enrich them further
-    # e.g., PERSON → court cases, BUSINESS → officers
+    # Fetch all entities already in the graph (from phases 1-3) and run
+    # discovery on each. This ensures PERSON entities from parcel records
+    # get enriched through courts, SOS, and OpenCorporates.
     from app.enrichment.discovery import run_discovery
+
+    # Build entity list from Neo4j graph
+    discovery_entities = [address_entity]
+    try:
+        graph = await neo4j_driver.get_investigation_graph(root_entity_id, max_depth=2)
+        for e in graph.get("entities", []):
+            props = e.get("properties", {})
+            labels = e.get("labels", [])
+            etype = _label_to_type(labels)
+            if etype in ("PERSON", "BUSINESS") and props.get("id") != root_entity_id:
+                discovery_entities.append({"type": etype, **props})
+    except Exception:
+        logger.warning("Could not fetch graph for discovery seeding")
+
+    logger.info("Discovery phase: %d seed entities", len(discovery_entities))
 
     try:
         discovery_result = await run_discovery(
             investigation_id=investigation_id,
             root_entity=address_entity,
-            max_depth=2,  # Keep shallow for now
+            max_depth=2,
             max_entities=200,
         )
+        # Also run discovery from each discovered person/business
+        for seed in discovery_entities[1:]:  # Skip root address (already done)
+            if discovery_result["entities_discovered"] >= 200:
+                break
+            sub_result = await run_discovery(
+                investigation_id=investigation_id,
+                root_entity=seed,
+                max_depth=1,  # Shallow for chained entities
+                max_entities=200 - discovery_result["entities_discovered"],
+            )
+            discovery_result["entities_discovered"] += sub_result["entities_discovered"]
+            discovery_result["relationships_discovered"] += sub_result["relationships_discovered"]
         logger.info(
             "Discovery found %d entities, %d relationships",
             discovery_result["entities_discovered"],
