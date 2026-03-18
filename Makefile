@@ -69,9 +69,19 @@ rebuild: ## Rebuild containers from scratch and restart (preserves data)
 
 nuke: ## WARNING: Delete everything including all stored data
 	@echo "This will DELETE all investigation data, users, and cached results."
-	@read -p "Are you sure? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
+	@read -p "Backup first? [Y/n] " backup; \
+	if [ "$$backup" != "n" ] && [ "$$backup" != "N" ]; then \
+		bash scripts/backup.sh; \
+	fi
+	@read -p "Proceed with DELETE? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
 	docker compose down -v --remove-orphans
 	@echo "All containers stopped and data volumes deleted."
+
+backup: ## Backup PostgreSQL, Neo4j, and Redis data
+	@bash scripts/backup.sh
+
+backup-setup: ## Install automatic backup every 6 hours via cron
+	@bash scripts/backup-scheduled.sh --setup
 
 db: ## Start only databases (Neo4j, PostgreSQL, Redis)
 	@bash -c '\
