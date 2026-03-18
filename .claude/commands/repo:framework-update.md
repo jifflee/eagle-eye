@@ -212,12 +212,30 @@ else
 fi
 ```
 
-### Step 8: Show Commit Guidance
+### Step 8: Sync Global Skills to ~/.claude/
+
+After updating the repo's `.claude/`, also refresh the global skills in `~/.claude/` so slash commands are available immediately without a separate `/tool:skill-sync` step.
+
+```bash
+echo ""
+echo "### Syncing global skills to ~/.claude/"
+
+# Sync only global skills (those with global: true in frontmatter)
+"$FRAMEWORK_DIR/scripts/manifest-sync.sh" --global-only --force --clean --target "$HOME/.claude/"
+
+echo "✓ Global skills refreshed in ~/.claude/"
+```
+
+This ensures global skills like `/repo:init-framework`, `/repo:framework-update`, `/local:init`, etc. are immediately available in all repos after the update.
+
+### Step 9: Show Commit Guidance
 
 After a successful update, display commit instructions:
 
 ```
 ✅ Framework updated to v1.1.0
+
+Global skills refreshed in ~/.claude/ (available in all repos)
 
 Next step - commit the changes to your repo:
 

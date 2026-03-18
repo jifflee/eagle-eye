@@ -135,7 +135,7 @@ detect_labels_missing() {
 
 detect_milestone() {
     local milestone
-    milestone=$(gh api repos/:owner/:repo/milestone-list --jq '.[] | select(.state=="open") | .title' 2>/dev/null | head -1 || echo "")
+    milestone=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.state=="open") | .title' 2>/dev/null | head -1 || echo "")
 
     if [[ -n "$milestone" ]]; then
         echo "$milestone"
@@ -232,7 +232,7 @@ create_milestone() {
 
     # Check if milestone already exists
     local existing
-    existing=$(gh api repos/:owner/:repo/milestone-list --jq ".[] | select(.title==\"$name\") | .title" 2>/dev/null || echo "")
+    existing=$(gh api repos/:owner/:repo/milestones --jq ".[] | select(.title==\"$name\") | .title" 2>/dev/null || echo "")
 
     if [[ -n "$existing" ]]; then
         print_info "Milestone already exists: $name"
@@ -247,7 +247,7 @@ create_milestone() {
         due_date=$(date -d "+30 days" +%Y-%m-%dT00:00:00Z)
     fi
 
-    if gh api repos/:owner/:repo/milestone-list -X POST \
+    if gh api repos/:owner/:repo/milestones -X POST \
         -f title="$name" \
         -f state="open" \
         -f description="Sprint milestone created by init-repo.sh" \

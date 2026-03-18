@@ -595,7 +595,7 @@ See `/docs/WORKTREE_OPERATIONS.md` for operation classification.
 
 **If discovering next issue:** Query milestone backlog:
 ```bash
-MILESTONE=$(gh api repos/:owner/:repo/milestone-list --jq '.[] | select(.state=="open") | .title' | head -1)
+MILESTONE=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.state=="open") | .title' | head -1)
 gh issue list --milestone "$MILESTONE" --label "backlog" --json number,title,labels,createdAt
 ```
 

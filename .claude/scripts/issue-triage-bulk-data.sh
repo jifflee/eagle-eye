@@ -46,7 +46,7 @@ done
 
 # Get active milestone if not specified
 if [ -z "$MILESTONE" ]; then
-  MILESTONE=$(gh api repos/:owner/:repo/milestone-list --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
+  MILESTONE=$(gh api repos/:owner/:repo/milestones --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
 fi
 
 if [ -z "$MILESTONE" ]; then
@@ -55,7 +55,7 @@ if [ -z "$MILESTONE" ]; then
 fi
 
 # Get milestone metadata
-MILESTONE_DATA=$(gh api repos/:owner/:repo/milestone-list --jq '.[] | select(.title=="'"$MILESTONE"'") | {title: .title, due_on: .due_on, open_issues: .open_issues, closed_issues: .closed_issues}')
+MILESTONE_DATA=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.title=="'"$MILESTONE"'") | {title: .title, due_on: .due_on, open_issues: .open_issues, closed_issues: .closed_issues}')
 
 # Validate milestone exists
 if [ -z "$MILESTONE_DATA" ]; then

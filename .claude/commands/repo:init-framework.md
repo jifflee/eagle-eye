@@ -1,6 +1,7 @@
 ---
 description: Initialize a repository for use with the Claude Agent Framework
 argument-hint: "[--check] [--skip-framework]"
+global: true
 ---
 
 # Init Repo

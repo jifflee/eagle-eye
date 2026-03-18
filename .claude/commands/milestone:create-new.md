@@ -78,7 +78,7 @@ Use `suggestions.due_dates` for options:
 ### 5. Create Milestone
 
 ```bash
-gh api repos/:owner/:repo/milestone-list -X POST \
+gh api repos/:owner/:repo/milestones -X POST \
   -f title="{name}" \
   -f state="open" \
   -f description="Sprint milestone" \
@@ -88,7 +88,7 @@ gh api repos/:owner/:repo/milestone-list -X POST \
 ### 6. Verify
 
 ```bash
-gh api repos/:owner/:repo/milestone-list --jq '.[] | select(.title=="{name}")'
+gh api repos/:owner/:repo/milestones --jq '.[] | select(.title=="{name}")'
 ```
 
 ## Output Format

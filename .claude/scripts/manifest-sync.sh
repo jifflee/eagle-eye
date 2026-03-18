@@ -166,8 +166,7 @@ if [ -f "$INSTALLED_MANIFEST" ]; then
   echo "  Installed version: $INSTALLED_VERSION"
 
   if [ "$INSTALLED_VERSION" = "$FRAMEWORK_VERSION" ] && [ "$FORCE" = false ]; then
-    echo -e "${GREEN}Already up to date (use --force to override)${NC}"
-    exit 0
+    echo "  Versions match — checking for file-level changes..."
   fi
 else
   echo "  No previous installation found (fresh install)"

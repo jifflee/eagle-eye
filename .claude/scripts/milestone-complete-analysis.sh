@@ -85,7 +85,7 @@ trap "rm -rf $TMPDIR" EXIT
 
 # Get milestone if not specified (use earliest due date among open milestones)
 if [ -z "$MILESTONE_NAME" ]; then
-  MILESTONE_NAME=$(gh api repos/:owner/:repo/milestone-list --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
+  MILESTONE_NAME=$(gh api repos/:owner/:repo/milestones --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
 fi
 
 if [ -z "$MILESTONE_NAME" ]; then
@@ -94,7 +94,7 @@ if [ -z "$MILESTONE_NAME" ]; then
 fi
 
 # Verify milestone exists and get metadata
-MILESTONE_DATA=$(gh api repos/:owner/:repo/milestone-list --jq '.[] | select(.title=="'"$MILESTONE_NAME"'")')
+MILESTONE_DATA=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.title=="'"$MILESTONE_NAME"'")')
 if [ -z "$MILESTONE_DATA" ]; then
   echo '{"error": "Milestone not found: '"$MILESTONE_NAME"'"}'
   exit 1
@@ -403,11 +403,11 @@ if [ "$AUTO_MOVE" = true ] && [ "$DEFERRABLE_COUNT" -gt 0 ]; then
     log_info "Moving $DEFERRABLE_COUNT deferrable issues to backlog..."
 
     # Get or create backlog milestone
-    BACKLOG_NUMBER=$(gh api repos/:owner/:repo/milestone-list --jq '.[] | select(.title=="backlog") | .number' 2>/dev/null)
+    BACKLOG_NUMBER=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.title=="backlog") | .number' 2>/dev/null)
 
     if [ -z "$BACKLOG_NUMBER" ]; then
       log_info "Creating backlog milestone..."
-      BACKLOG_NUMBER=$(gh api repos/:owner/:repo/milestone-list -X POST \
+      BACKLOG_NUMBER=$(gh api repos/:owner/:repo/milestones -X POST \
         -f title="backlog" \
         -f description="Unscheduled work: epics and features not assigned to an active sprint" \
         --jq '.number')

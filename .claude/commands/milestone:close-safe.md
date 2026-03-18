@@ -111,7 +111,7 @@ Branch Status:
 ### 5. Close Milestone
 
 ```bash
-gh api repos/:owner/:repo/milestone-list/{milestone.number} -X PATCH -f state=closed
+gh api repos/:owner/:repo/milestones/{milestone.number} -X PATCH -f state=closed
 ```
 
 ## Output Format

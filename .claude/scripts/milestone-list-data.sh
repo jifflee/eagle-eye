@@ -28,9 +28,9 @@ done
 
 # Get milestones
 if [ "$SHOW_ALL" = true ]; then
-  milestones=$(gh api repos/:owner/:repo/milestone-list?state=all --jq '.')
+  milestones=$(gh api repos/:owner/:repo/milestones?state=all --jq '.')
 else
-  milestones=$(gh api repos/:owner/:repo/milestone-list --jq '.')
+  milestones=$(gh api repos/:owner/:repo/milestones --jq '.')
 fi
 
 # Process each milestone

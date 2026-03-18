@@ -83,7 +83,7 @@ fi
 get_active_milestone() {
     # Get all open milestones, sort by due_on, return first
     local milestones
-    milestones=$(gh api repos/:owner/:repo/milestone-list \
+    milestones=$(gh api repos/:owner/:repo/milestones \
         --jq '[.[] | select(.state=="open")] | sort_by(.due_on // "9999-12-31") | .[0].title // ""' \
         2>/dev/null) || {
         warn "Failed to fetch milestones"

@@ -23,7 +23,7 @@ Display milestones with status, progress, and issue breakdown.
 ## Steps
 
 1. **Get milestones**
-   `gh api repos/:owner/:repo/milestone-list --jq '.[] | {title, state, open_issues, closed_issues, due_on}'`
+   `gh api repos/:owner/:repo/milestones --jq '.[] | {title, state, open_issues, closed_issues, due_on}'`
 
 2. **Get issues per milestone** (for open milestones)
    `gh issue list --milestone "{name}" --state all --json number,title,state,labels`

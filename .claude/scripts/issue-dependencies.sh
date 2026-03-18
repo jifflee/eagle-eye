@@ -184,7 +184,7 @@ build_dependency_graph() {
 
   # Get milestone if not specified
   if [ -z "$milestone" ]; then
-    milestone=$(gh api repos/:owner/:repo/milestone-list --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
+    milestone=$(gh api repos/:owner/:repo/milestones --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
   fi
 
   if [ -z "$milestone" ]; then
@@ -286,7 +286,7 @@ find_parallel_candidates() {
 
   # Get milestone if not specified
   if [ -z "$milestone" ]; then
-    milestone=$(gh api repos/:owner/:repo/milestone-list --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
+    milestone=$(gh api repos/:owner/:repo/milestones --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0].title // empty')
   fi
 
   if [ -z "$milestone" ]; then

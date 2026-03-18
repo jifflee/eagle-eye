@@ -106,14 +106,14 @@ create_milestone() {
 
     # Check if milestone already exists
     local existing
-    existing=$(gh api repos/:owner/:repo/milestone-list --jq ".[] | select(.title==\"$name\") | .title" 2>/dev/null || echo "")
+    existing=$(gh api repos/:owner/:repo/milestones --jq ".[] | select(.title==\"$name\") | .title" 2>/dev/null || echo "")
 
     if [[ -n "$existing" ]]; then
         print_info "  Milestone already exists: $name"
         return 0
     fi
 
-    if gh api repos/:owner/:repo/milestone-list -X POST \
+    if gh api repos/:owner/:repo/milestones -X POST \
         -f title="$name" \
         -f state="open" \
         -f description="Sprint milestone created by init-github-conventions.sh" \

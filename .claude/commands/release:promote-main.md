@@ -165,7 +165,7 @@ After PR is merged, check if the active milestone should be closed:
 
 ```bash
 # Get active milestone
-MILESTONE=$(gh api repos/:owner/:repo/milestone-list --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0]')
+MILESTONE=$(gh api repos/:owner/:repo/milestones --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0]')
 MILESTONE_TITLE=$(echo "$MILESTONE" | jq -r '.title')
 MILESTONE_NUM=$(echo "$MILESTONE" | jq -r '.number')
 
@@ -183,7 +183,7 @@ Close milestone? [y/n]
 
 **If confirmed (y):**
 ```bash
-gh api repos/:owner/:repo/milestone-list/$MILESTONE_NUM -X PATCH -f state=closed
+gh api repos/:owner/:repo/milestones/$MILESTONE_NUM -X PATCH -f state=closed
 ```
 
 **If declined (n):**

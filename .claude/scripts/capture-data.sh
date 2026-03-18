@@ -34,7 +34,7 @@ done
 
 # Function to get active milestone
 get_active_milestone() {
-  gh api repos/:owner/:repo/milestone-list --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0] | {number, title, due_on}' 2>/dev/null || echo 'null'
+  gh api repos/:owner/:repo/milestones --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0] | {number, title, due_on}' 2>/dev/null || echo 'null'
 }
 
 # Function to search for duplicates

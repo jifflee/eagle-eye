@@ -32,7 +32,7 @@ Syncs ONLY global skills to ~/.claude/ using the manifest-sync.sh script with --
 # --force: Force sync even if versions match
 # --clean: Remove old hyphenated skill names (pre-colon migration cleanup)
 #
-# This syncs only the 9 global skills:
+# This syncs only the 10 global skills:
 # - tool:skill-help
 # - tool:skill-sync
 # - tool:example
@@ -40,10 +40,11 @@ Syncs ONLY global skills to ~/.claude/ using the manifest-sync.sh script with --
 # - local:health
 # - local:create-skill
 # - local:create-agent
+# - repo:init-framework
 # - repo:framework-update
 # - validate:framework
 #
-# Project-specific skills (55 total) remain in .claude/commands/ only
+# Project-specific skills (54 total) remain in .claude/commands/ only
 # Old hyphenated names (e.g., 'tool-skill-sync') are removed if found
 ```
 
@@ -69,13 +70,13 @@ SCRIPTS_COUNT=$(find "$CLAUDE_DIR/scripts" -name '*.sh' 2>/dev/null | wc -l)
 
 echo "Installed in ~/.claude/:"
 echo "  Agents: $AGENTS_COUNT"
-echo "  Commands: $COMMANDS_COUNT (should be 9 global skills)"
+echo "  Commands: $COMMANDS_COUNT (should be 10 global skills)"
 echo "  Scripts: $SCRIPTS_COUNT"
 
 # Show which global skills are installed
 echo ""
-echo "Global skills (should have 9):"
-for skill in tool:skill-help tool:skill-sync tool:example local:init local:health local:create-skill local:create-agent repo:framework-update validate:framework; do
+echo "Global skills (should have 10):"
+for skill in tool:skill-help tool:skill-sync tool:example local:init local:health local:create-skill local:create-agent repo:init-framework repo:framework-update validate:framework; do
   if [ -f "$CLAUDE_DIR/commands/$skill.md" ]; then
     echo "  ✓ $skill"
   else
@@ -94,7 +95,7 @@ Removes project-specific skills from ~/.claude/commands/ that should NOT be glob
 
 **Orphan detection:**
 - Lists all .md files in ~/.claude/commands/
-- Checks each against the 9 global skills list
+- Checks each against the 10 global skills list
 - Any skills without `global: true` are considered orphans
 
 **Old name detection:**
@@ -120,6 +121,7 @@ GLOBAL_SKILLS=(
   "local:health"
   "local:create-skill"
   "local:create-agent"
+  "repo:init-framework"
   "repo:framework-update"
   "validate:framework"
 )

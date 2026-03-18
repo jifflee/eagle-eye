@@ -109,7 +109,7 @@ When ready:
 
 ```bash
 # Close the milestone via GitHub API
-gh api repos/:owner/:repo/milestone-list/{number} -X PATCH -f state=closed
+gh api repos/:owner/:repo/milestones/{number} -X PATCH -f state=closed
 ```
 
 ### 7. Trigger Release Workflow (Optional)
@@ -211,7 +211,7 @@ n8n Workflow: Milestone Completion
    - If deferrable > 0: ./scripts/milestone-complete-analysis.sh --auto
    - If in-progress > 0: Wait or alert (post to Slack/webhook)
    - If ready_to_close: Continue
-4. Close: gh api repos/:owner/:repo/milestone-list/{number} -X PATCH -f state=closed
+4. Close: gh api repos/:owner/:repo/milestones/{number} -X PATCH -f state=closed
 5. Promote: ./scripts/milestone-complete-promotion.sh --auto-merge
 6. Notify: Post completion summary to webhook
 ```

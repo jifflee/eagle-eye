@@ -49,10 +49,10 @@ get_milestone() {
   local name="$1"
 
   if [ -n "$name" ]; then
-    gh api repos/:owner/:repo/milestone-list --jq ".[] | select(.title==\"$name\")"
+    gh api repos/:owner/:repo/milestones --jq ".[] | select(.title==\"$name\")"
   else
     # Get first open milestone by due date
-    gh api repos/:owner/:repo/milestone-list --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0]'
+    gh api repos/:owner/:repo/milestones --jq '[.[] | select(.state=="open")] | sort_by(.due_on) | .[0]'
   fi
 }
 

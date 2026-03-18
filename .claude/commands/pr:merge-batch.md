@@ -46,7 +46,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 ```bash
 # Get current milestone
-MILESTONE=$(gh api repos/:owner/:repo/milestone-list --jq '.[] | select(.state=="open") | .title' | head -1)
+MILESTONE=$(gh api repos/:owner/:repo/milestones --jq '.[] | select(.state=="open") | .title' | head -1)
 
 # Get mergeable PRs
 gh pr list --json number,title,mergeable,mergeStateStatus,reviewDecision,headRefName \
