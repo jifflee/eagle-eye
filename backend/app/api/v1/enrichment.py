@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from app.database import postgres_client
+from app.connectors.registry import discover_connectors, get_connector
+from app.database import neo4j_driver, postgres_client
+from app.enrichment.orchestrator import _run_connector
 from app.models.schemas import (
     ConnectorStatusResponse,
     EnrichmentControlRequest,
@@ -133,7 +137,31 @@ async def list_sources() -> SourceListResponse:
 
 @router.post("/investigation/{investigation_id}/source/{source}/retry")
 async def retry_source(investigation_id: UUID, source: str) -> dict[str, str]:
-    """Retry a failed data source."""
+    """Retry a failed data source by re-running its connector."""
+    connector = get_connector(source)
+    if not connector:
+        raise HTTPException(status_code=404, detail=f"Connector '{source}' not found")
+
+    # Get investigation to build entity context
+    try:
+        inv = await postgres_client.get_investigation(investigation_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    # Build address entity for the connector
+    entity: dict[str, Any] = {
+        "id": inv.get("root_entity_id", ""),
+        "type": "ADDRESS",
+        "street": inv.get("address_street", ""),
+        "city": inv.get("address_city", ""),
+        "state": inv.get("address_state", ""),
+        "zip": inv.get("address_zip", ""),
+    }
+
+    # Reset status and log
     try:
         await postgres_client.upsert_connector_status(
             investigation_id=investigation_id,
@@ -146,9 +174,16 @@ async def retry_source(investigation_id: UUID, source: str) -> dict[str, str]:
             details={"source": source},
         )
     except Exception:
-        logger.warning("PostgreSQL unavailable")
+        logger.warning("PostgreSQL unavailable for status update")
 
-    # TODO: Re-trigger the connector via Celery (Issue #23 / 4.1)
+    # Run connector in background
+    async def _retry() -> None:
+        try:
+            await _run_connector(investigation_id, connector, entity)
+        except Exception:
+            logger.exception("Retry failed for %s", source)
+
+    asyncio.ensure_future(_retry())
 
     return {"status": "retrying", "source": source}
 
