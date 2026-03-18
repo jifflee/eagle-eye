@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "@/api/client";
 import GraphVisualization, { type GraphNode, type GraphEdge } from "@/components/Graph/GraphVisualization";
 import GraphFilters from "@/components/Graph/GraphFilters";
 import EntityDetailPanel from "@/components/Entity/EntityDetailPanel";
+import SaveDialog from "@/components/Common/SaveDialog";
+import ConfirmDialog from "@/components/Common/ConfirmDialog";
 
 interface ConnectorStatus {
   connector_name: string;
@@ -48,6 +50,9 @@ export default function GraphPage() {
   const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set());
   const [allTypesInit, setAllTypesInit] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSave, setShowSave] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch data
   const fetchData = useCallback(async () => {
@@ -183,6 +188,29 @@ export default function GraphPage() {
             }`}>
               {isEnriching ? "Enriching..." : enrichment?.status || "Loading"}
             </span>
+            {/* Save / Export / Delete buttons */}
+            {id !== "demo" && (
+              <>
+                <button onClick={() => setShowSave(true)} className="rounded-md border border-gray-200 px-2 py-1 text-[10px] hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" title="Save">
+                  Save
+                </button>
+                <button
+                  onClick={async () => {
+                    const data = await apiFetch<any>(`/api/v1/investigation/${id}/export?format=json`);
+                    const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a"); a.href = url; a.download = `eagle-eye-${id}.json`; a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="rounded-md border border-gray-200 px-2 py-1 text-[10px] hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" title="Export JSON"
+                >
+                  Export
+                </button>
+                <button onClick={() => setShowDelete(true)} className="rounded-md border border-red-200 px-2 py-1 text-[10px] text-red-500 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950" title="Delete">
+                  Delete
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -268,6 +296,30 @@ export default function GraphPage() {
           </div>
         )}
       </div>
+
+      {/* Save Dialog */}
+      {showSave && id && (
+        <SaveDialog
+          investigationId={id}
+          onSaved={() => { setShowSave(false); fetchData(); }}
+          onCancel={() => setShowSave(false)}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      {showDelete && id && (
+        <ConfirmDialog
+          title="Delete Investigation"
+          message={`Delete "${investigation?.address}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          confirmVariant="danger"
+          onConfirm={async () => {
+            await apiFetch(`/api/v1/investigation/${id}`, { method: "DELETE" });
+            navigate("/");
+          }}
+          onCancel={() => setShowDelete(false)}
+        />
+      )}
     </div>
   );
 }
