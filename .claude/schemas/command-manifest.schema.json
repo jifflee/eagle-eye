@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/command-manifest.schema.json",
+  "title": "Command Manifest",
+  "description": "Defines the structure and constraints for a CLI command. Each command must declare a manifest that is validated against this schema.",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "description",
+    "script_path"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique command identifier in kebab-case",
+      "examples": ["create-issue", "check-naming", "validate-config"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Command version (semver)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "Brief description of command purpose"
+    },
+    "script_path": {
+      "type": "string",
+      "pattern": "^scripts/[a-z0-9/-]+\\.sh$",
+      "description": "Path to the command script relative to repo root"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "ci",
+        "dev",
+        "setup",
+        "maintenance",
+        "audit",
+        "testing",
+        "deployment",
+        "github",
+        "git",
+        "util"
+      ],
+      "description": "Command category for organization"
+    },
+    "usage": {
+      "type": "object",
+      "required": ["syntax"],
+      "additionalProperties": false,
+      "properties": {
+        "syntax": {
+          "type": "string",
+          "description": "Command-line syntax",
+          "examples": ["./scripts/command.sh [options]", "./scripts/command.sh <arg1> [arg2]"]
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["command", "description"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Example command"
+              },
+              "description": {
+                "type": "string",
+                "description": "What this example does"
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "Usage examples"
+        },
+        "exit_codes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "meaning"],
+            "properties": {
+              "code": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255,
+                "description": "Exit code number"
+              },
+              "meaning": {
+                "type": "string",
+                "description": "What this exit code means"
+              }
+            }
+          },
+          "description": "Exit code documentation"
+        }
+      }
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["flag", "description"],
+        "properties": {
+          "flag": {
+            "type": "string",
+            "pattern": "^--[a-z][a-z0-9-]*$",
+            "description": "Long option flag"
+          },
+          "short": {
+            "type": "string",
+            "pattern": "^-[a-zA-Z]$",
+            "description": "Short flag variant"
+          },
+          "description": {
+            "type": "string",
+            "description": "Option description"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this option is required"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["boolean", "string", "number", "array"],
+            "default": "boolean",
+            "description": "Expected value type"
+          },
+          "default": {
+            "description": "Default value if not provided"
+          }
+        }
+      },
+      "description": "Available command-line options"
+    },
+    "permissions": {
+      "type": "object",
+      "required": ["destructive"],
+      "additionalProperties": false,
+      "properties": {
+        "destructive": {
+          "type": "boolean",
+          "description": "Whether this command performs destructive operations"
+        },
+        "requires_confirmation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether destructive operations require user confirmation"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "file.read",
+              "file.write",
+              "file.delete",
+              "github.read",
+              "github.write",
+              "git.read",
+              "git.write",
+              "git.push",
+              "git.force",
+              "shell.exec",
+              "network.read",
+              "network.write",
+              "docker.exec"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "Permission scopes this command requires"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Other commands this command depends on"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "External tools/binaries required (e.g., jq, gh, docker, curl)"
+        },
+        "env_vars": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Z_][A-Z0-9_]*$",
+                "description": "Environment variable name"
+              },
+              "required": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether this env var is required"
+              },
+              "description": {
+                "type": "string",
+                "description": "What this env var is used for"
+              }
+            }
+          },
+          "description": "Required or optional environment variables"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["text", "json", "table", "markdown"],
+          "description": "Primary output format"
+        },
+        "supports_json": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether command supports --output json flag"
+        },
+        "supports_quiet": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether command supports --quiet flag"
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "test_file": {
+          "type": "string",
+          "pattern": "^tests/.*\\.sh$",
+          "description": "Path to test file for this command"
+        },
+        "has_tests": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether tests exist for this command"
+        }
+      }
+    }
+  }
+}

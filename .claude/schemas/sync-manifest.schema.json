@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/sync-manifest.schema.json",
+  "title": "Sync Manifest",
+  "description": "Schema for sync manifests tracking declared assets at each level (framework/project/user)",
+  "type": "object",
+  "required": ["version", "level", "generatedAt", "assets"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of manifest format"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["framework", "project", "user"],
+      "description": "Sync level - each level is independently reconciled"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when manifest was generated"
+    },
+    "assets": {
+      "type": "object",
+      "description": "Declared assets by type",
+      "required": ["skills", "agents", "hooks", "configs", "manifests"],
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "configs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        },
+        "manifests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "sourceRepo": {
+      "type": "string",
+      "description": "Source repository URL (for framework level)"
+    },
+    "sourceCommit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$",
+      "description": "Git commit hash of source (for framework level)"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "required": ["name", "type", "path", "hash"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Asset filename"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["skills", "agents", "hooks", "configs", "manifests"],
+          "description": "Asset type"
+        },
+        "path": {
+          "type": "string",
+          "description": "Full path to asset file"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of asset content"
+        },
+        "version": {
+          "type": "string",
+          "description": "Optional version tag"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Optional metadata",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "version": "1.0.0",
+      "level": "framework",
+      "generatedAt": "2026-02-10T00:00:00Z",
+      "assets": {
+        "skills": [
+          {
+            "name": "capture.sh",
+            "type": "skills",
+            "path": "/path/to/skills/capture.sh",
+            "hash": "abc123def456..."
+          }
+        ],
+        "agents": [],
+        "hooks": [],
+        "configs": [],
+        "manifests": []
+      },
+      "sourceRepo": "https://github.com/example/claude-tastic",
+      "sourceCommit": "abc123def456..."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "script": "auto-promote-to-qa.sh",
+  "description": "Automatically promote issues to QA testing",
+  "network_calls": [
+    {
+      "host": "api.github.com",
+      "purpose": "GitHub API calls for issue label management and PR status checks",
+      "required": true,
+      "tool": "gh",
+      "scope": "github_repo only"
+    }
+  ],
+  "tags": ["automation", "github", "qa"]
+}

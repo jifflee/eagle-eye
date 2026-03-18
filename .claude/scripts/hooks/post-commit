@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+# ============================================================
+# Script: post-commit
+# Purpose: Capture repository metrics after each commit for trend analysis
+# Usage: Automatically called by git after each commit
+#
+# This hook captures:
+# - File counts (total, test files, test ratio)
+# - Tech debt markers (TODO, FIXME, HACK)
+# - File size distribution (avg, max, large files)
+#
+# Metrics are stored in .repo-audit/metrics.jsonl (JSON Lines format)
+# Runs asynchronously to avoid blocking git workflow
+#
+# Requirements:
+# - Standard Unix tools: find, wc, grep, awk
+# - jq for JSON formatting (optional, degrades gracefully)
+#
+# Issue: #175 - Implement post-commit metrics capture
+# Parent Epic: #172 - Repository Analysis & Drift Detection
+# ============================================================
+
+# Run metrics capture in background to avoid blocking git
+(
+  set -e
+
+  REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  METRICS_DIR="$REPO_ROOT/.repo-audit"
+  METRICS_FILE="$METRICS_DIR/metrics.jsonl"
+
+  # Create metrics directory if it doesn't exist
+  mkdir -p "$METRICS_DIR"
+
+  # Get commit SHA and timestamp
+  COMMIT_SHA=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  # ============================================================
+  # File Counting Functions
+  # ============================================================
+
+  # Count total files (excluding .git, node_modules, etc.)
+  count_total_files() {
+    find "$REPO_ROOT" -type f \
+      -not -path "*/.*" \
+      -not -path "*/node_modules/*" \
+      -not -path "*/vendor/*" \
+      -not -path "*/dist/*" \
+      -not -path "*/build/*" \
+      -not -path "*/coverage/*" \
+      2>/dev/null | wc -l | tr -d ' '
+  }
+
+  # Count test files (files with test/spec in name or __tests__ directory)
+  count_test_files() {
+    find "$REPO_ROOT" -type f \
+      -not -path "*/.*" \
+      -not -path "*/node_modules/*" \
+      -not -path "*/vendor/*" \
+      \( -name "*test*" -o -name "*spec*" -o -path "*/__tests__/*" \) \
+      2>/dev/null | wc -l | tr -d ' '
+  }
+
+  # Count tech debt markers
+  count_marker() {
+    local marker="$1"
+    # Search in source files, excluding common non-source directories
+    find "$REPO_ROOT" -type f \
+      -not -path "*/.*" \
+      -not -path "*/node_modules/*" \
+      -not -path "*/vendor/*" \
+      -not -path "*/dist/*" \
+      -not -path "*/build/*" \
+      \( -name "*.sh" -o -name "*.js" -o -name "*.ts" -o -name "*.py" \
+         -o -name "*.rb" -o -name "*.go" -o -name "*.java" -o -name "*.c" \
+         -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \
+         -o -name "*.rs" -o -name "*.php" -o -name "*.swift" \
+         -o -name "*.kt" -o -name "*.scala" -o -name "*.md" \) \
+      -exec grep -l "$marker" {} \; 2>/dev/null | wc -l | tr -d ' '
+  }
+
+  # Calculate file size statistics (in lines of code)
+  calculate_file_sizes() {
+    local sizes
+    sizes=$(find "$REPO_ROOT" -type f \
+      -not -path "*/.*" \
+      -not -path "*/node_modules/*" \
+      -not -path "*/vendor/*" \
+      -not -path "*/dist/*" \
+      -not -path "*/build/*" \
+      -not -name "*.json" \
+      -not -name "*.lock" \
+      -not -name "*.min.*" \
+      -exec wc -l {} \; 2>/dev/null | awk '{print $1}' | grep -E '^[0-9]+$')
+
+    if [ -z "$sizes" ]; then
+      echo "0 0 0"
+      return
+    fi
+
+    # Calculate average, max, and count of large files (>500 LOC)
+    echo "$sizes" | awk '
+      BEGIN { sum=0; max=0; large=0; count=0 }
+      {
+        count++;
+        sum += $1;
+        if ($1 > max) max = $1;
+        if ($1 > 500) large++;
+      }
+      END {
+        avg = (count > 0) ? int(sum/count) : 0;
+        printf "%d %d %d", avg, max, large
+      }
+    '
+  }
+
+  # ============================================================
+  # Metrics Collection
+  # ============================================================
+
+  # Collect metrics
+  FILE_COUNT=$(count_total_files)
+  TEST_FILE_COUNT=$(count_test_files)
+  TODO_COUNT=$(count_marker "TODO")
+  FIXME_COUNT=$(count_marker "FIXME")
+  HACK_COUNT=$(count_marker "HACK")
+
+  # Calculate test ratio (avoid division by zero)
+  if [ "$FILE_COUNT" -gt 0 ]; then
+    TEST_RATIO=$(echo "scale=2; $TEST_FILE_COUNT / $FILE_COUNT" | bc 2>/dev/null || echo "0")
+  else
+    TEST_RATIO="0"
+  fi
+
+  # Get file size statistics
+  read -r AVG_SIZE MAX_SIZE LARGE_FILES <<< "$(calculate_file_sizes)"
+
+  # ============================================================
+  # JSON Output
+  # ============================================================
+
+  # Check if jq is available for prettier JSON
+  if command -v jq &>/dev/null; then
+    # Use jq for robust JSON formatting
+    jq -n \
+      --arg commit_sha "$COMMIT_SHA" \
+      --arg timestamp "$TIMESTAMP" \
+      --argjson file_count "$FILE_COUNT" \
+      --argjson test_file_count "$TEST_FILE_COUNT" \
+      --argjson test_ratio "$TEST_RATIO" \
+      --argjson todo_count "$TODO_COUNT" \
+      --argjson fixme_count "$FIXME_COUNT" \
+      --argjson hack_count "$HACK_COUNT" \
+      --argjson large_files "$LARGE_FILES" \
+      --argjson avg_file_size_loc "$AVG_SIZE" \
+      --argjson max_file_size_loc "$MAX_SIZE" \
+      '{
+        commit_sha: $commit_sha,
+        timestamp: $timestamp,
+        metrics: {
+          file_count: $file_count,
+          test_file_count: $test_file_count,
+          test_ratio: $test_ratio,
+          todo_count: $todo_count,
+          fixme_count: $fixme_count,
+          hack_count: $hack_count,
+          large_files: $large_files,
+          avg_file_size_loc: $avg_file_size_loc,
+          max_file_size_loc: $max_file_size_loc
+        }
+      }' >> "$METRICS_FILE"
+  else
+    # Fallback to manual JSON construction (less robust but works without jq)
+    cat >> "$METRICS_FILE" <<EOF
+{"commit_sha":"$COMMIT_SHA","timestamp":"$TIMESTAMP","metrics":{"file_count":$FILE_COUNT,"test_file_count":$TEST_FILE_COUNT,"test_ratio":$TEST_RATIO,"todo_count":$TODO_COUNT,"fixme_count":$FIXME_COUNT,"hack_count":$HACK_COUNT,"large_files":$LARGE_FILES,"avg_file_size_loc":$AVG_SIZE,"max_file_size_loc":$MAX_SIZE}}
+EOF
+  fi
+
+) &
+
+# Don't wait for background process - exit immediately
+exit 0

@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "pm-orchestrator",
+  "display_name": "PM / Orchestrator Agent",
+  "version": "1.0.0",
+  "description": "Coordinates all agents, sequences SDLC phases, resolves dependencies, plans work. Does not write production code.",
+  "trust_tier": "T1",
+  "permission_level": "READ-ONLY",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": ["docs/plans/**", "docs/roadmaps/**", ".sprint-state.json"]
+  },
+  "constraints": {
+    "blocked_operations": ["file.write.src", "file.write.scripts", "issue.close", "pr.merge", "pr.create", "git.commit", "git.push"]
+  },
+  "metadata": {
+    "sdlc_phase": "planning",
+    "agent_category": "planning"
+  }
+}

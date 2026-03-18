@@ -1,0 +1,339 @@
+# Repository Profile Configuration
+# Defines repository visibility and deployment architecture settings
+#
+# Related: Issue #934 (public/private repo detection)
+#          Issue #933 (environment-tiered SDLC)
+
+version: "1.0.0"
+
+# Repository visibility and deployment architecture
+visibility:
+  # Repository type: private (internal/source) or public (external/release)
+  type: "private"  # Options: "private" | "public"
+
+  # Auto-detected from repository name during /repo-init
+  # Private repos: source-{name}
+  # Public repos: external-{name}
+  auto_detected: false
+
+  # When this profile was created
+  configured_at: ""
+
+  # Who configured this (gh username)
+  configured_by: ""
+
+# Repository naming convention enforcement
+naming:
+  # Expected prefix based on visibility type
+  # Private repos must use: source-{repo-name}
+  # Public repos must use: external-{repo-name}
+  enforce_convention: true
+
+  # Current repository name (auto-populated)
+  current_name: ""
+
+  # Expected name pattern for current visibility type
+  expected_pattern: ""
+
+  # Validation status
+  naming_valid: true
+
+  # Last validation timestamp
+  last_validated: ""
+
+# Deployment architecture - UNIFIED FOR BOTH PUBLIC AND PRIVATE
+# Issue #1129: Both public and private repos now use full dev/qa/main SDLC
+deployment:
+  # Branch strategy is now the same for both public and private repos
+  # Both: full dev/qa/main pipeline
+  # Public repos have ADDITIONAL external deployment check gate on qa → main
+  branches:
+    dev:
+      enabled: true      # Now true for both public and private repos
+      description: "Development environment with full SDLC tooling"
+
+    qa:
+      enabled: true      # Now true for both public and private repos
+      description: "QA/staging environment for validation"
+
+    main:
+      enabled: true      # Always true for both
+      description: "Production/release environment"
+
+  # Environment tiers available - SAME FOR BOTH
+  # Both public and private repos: development, validation, production
+  environment_tiers:
+    - "production"       # Available for both
+    - "validation"       # Available for both
+    - "development"      # Available for both
+
+  # Agent categories permitted - SAME FOR BOTH
+  # Both public and private repos get all agent categories
+  allowed_agent_categories:
+    - "deployment_agents"
+    - "monitoring_tools"
+    - "development_agents"
+    - "testing_agents"
+    - "refactoring_agents"
+    - "documentation_agents"
+    - "security_agents"
+    - "code_review_agents"
+
+  # External deployment gate (PUBLIC REPOS ONLY)
+  # This is the key difference: public repos have an additional gate
+  external_deployment_check:
+    enabled: false       # true for public repos, false for private
+    script: "scripts/ci/validators/external-deployment-check.sh"
+    blocking: true       # Blocks qa → main promotion if check fails
+    description: "Validates repository is safe for external/public release"
+
+# Public release sensitivity scanning (for external repos)
+sensitivity_scanning:
+  # Only applies to public (external) repos
+  enabled: false         # true for public repos
+
+  # Scan runs during /pr-to-main or source->external sync
+  blocking: true         # Blocks promotion if findings detected
+
+  # Allowlist file for false positive suppression
+  allowlist_file: "config/public-release-allowlist.yaml"
+
+  # Scan categories
+  categories:
+    - "credentials"      # API keys, tokens, passwords
+    - "private_keys"     # PEM files, SSH keys, certs
+    - "internal_urls"    # Private hostnames, internal IPs
+    - "internal_paths"   # User directories, internal paths
+    - "env_files"        # .env files with real values
+    - "internal_config"  # Development configs, debug settings
+    - "keychain_refs"    # Secret store references
+    - "internal_issues"  # Private repo issue links
+    - "pii"              # Email addresses, real names
+    - "license"          # Internal-only license headers
+    - "orchestration"    # Internal automation URLs
+
+# Dual-repo sync configuration (for paired source/external repos)
+dual_repo_sync:
+  # Only applies when both source-{name} and external-{name} exist
+  enabled: false
+
+  # Paired repository (auto-discovered via naming convention)
+  paired_repo: ""        # e.g., "external-claude-agents" if this is "source-claude-agents"
+
+  # Sync direction
+  sync_direction: ""     # "source_to_external" or "bidirectional"
+
+  # Metadata to sync during promotion
+  sync_metadata:
+    description: true    # Repo description
+    topics: true         # Repo topics/tags (filtered)
+    homepage: true       # Homepage URL
+    license: true        # License file
+
+  # Version tag propagation
+  sync_tags:
+    enabled: true
+    preserve_signatures: true   # Keep GPG signatures
+    sync_release_notes: true    # Sync GitHub Release notes
+
+# Validation hooks
+validation:
+  # Pre-commit: validate naming convention
+  naming_convention:
+    enabled: true
+    script: "scripts/ci/validate-repo-naming.sh"
+
+  # Pre-promotion: validate environment tier compliance
+  tier_compliance:
+    enabled: true
+    script: "scripts/ci/validate-environment-tier.sh"
+
+  # Pre-release: sensitivity scan for public repos
+  sensitivity_scan:
+    enabled: false       # true for public repos
+    script: "scripts/ci/sensitivity-scan.sh"
+
+# Pre-promotion quality gates (#955)
+# Enforces quality checks before branch promotions (dev→qa, qa→main)
+promotion_gates:
+  # dev → qa promotion gate
+  dev_to_qa:
+    enabled: true
+    script: "scripts/pr/pre-promote-qa-gate.sh"
+
+    # Blocking checks (FAIL prevents promotion)
+    blocking_checks:
+      - tests              # Test suite (scripts/test-runner.sh)
+      - lint               # Lint / ShellCheck (scripts/ci/refactor-lint.sh)
+      - refactor_critical  # Refactor scan (critical severity only)
+      - security_scan      # Security scan (scripts/ci/sensitivity-scan.sh)
+      - dependency_audit   # Dependency CVE audit (scripts/ci/dep-audit.sh) - critical/high only
+      - credentials_check  # Credentials scan (scripts/ci/security-scan.sh) - secrets detection
+      - sanitization_check # Sanitization (scripts/ci/sanitize-for-public.sh) - visibility-aware
+      - repo_settings_drift # Repo settings validation
+      - environment_tier   # Environment tier compliance (qa)
+      - open_prs           # No open PRs to dev
+      - ci_status          # CI passing on dev
+
+    # Warning checks (WARN reported but don't block)
+    warning_checks:
+      - repo_naming        # Repo naming convention (not enforced yet)
+      - doc_freshness      # Documentation freshness (stale docs)
+      - dependency_medium  # Medium/low CVEs (non-blocking, tracked)
+      - sanitization_private # Sanitization warnings for private repos (non-blocking)
+
+    # Cache settings
+    cache_ttl_minutes: 30
+    cache_dir: ".promotion-gate-cache"
+
+    # Integration
+    invoked_by:
+      - "/pr-to-qa"
+      - "scripts/auto-promote-to-qa.sh"
+
+  # qa → main promotion gate (STRICTER)
+  qa_to_main:
+    enabled: true
+    script: "scripts/pr/pre-promote-main-gate.sh"
+
+    # ALL checks are blocking for production promotion
+    blocking_checks:
+      - tests              # FULL test suite (not --fast)
+      - lint               # Strict lint (medium+ severity)
+      - refactor_critical  # Critical refactor issues
+      - refactor_high      # High-severity refactor issues
+      - refactor_medium    # Medium-severity refactor issues
+      - security_scan      # Security scan (zero tolerance)
+      - dependency_audit   # Dependency CVE audit (ALL severities for prod)
+      - credentials_check  # Credentials scan (zero tolerance)
+      - sanitization_check # Sanitization check (BLOCKING for all repos in prod)
+      - repo_settings_drift # Repo settings validation
+      - environment_tier   # Production tier compliance
+      - repo_naming        # Repo naming (BLOCKING for prod)
+      - doc_freshness      # Documentation freshness (BLOCKING for prod)
+      - changelog_exists   # CHANGELOG.md required
+      - version_tag_valid  # Git tag validation (semver)
+      - open_prs           # No open PRs to qa
+      - ci_status          # CI passing on qa
+      - external_deployment_check # External deployment check (PUBLIC REPOS ONLY) - Issue #1129
+
+    # No warnings allowed for production
+    warning_checks: []
+
+    # Shorter cache for production gate
+    cache_ttl_minutes: 15
+    cache_dir: ".promotion-gate-cache"
+
+    # Integration
+    invoked_by:
+      - "/pr-to-main"
+
+    # Emergency bypass (requires justification in PR)
+    bypass_flag: "--bypass"
+    bypass_requires_justification: true
+
+# Drift detection (#940)
+drift_detection:
+  # Verify repo name matches visibility type
+  check_naming_drift: true
+
+  # Verify branches match visibility type
+  check_branch_drift: true
+
+  # Verify agents match visibility type
+  check_agent_drift: true
+
+  # When to check for drift
+  check_on:
+    - "pre_commit"
+    - "pre_pr"
+    - "pre_merge"
+
+# Execution mode configuration (#948)
+execution_mode:
+  # How sprint-work executes issues
+  # Options: local, hosted, hybrid
+  # - local: All work runs locally (worktrees or local Docker)
+  # - hosted: Work delegated to Proxmox VM containers
+  # - hybrid: Mix of local and remote execution
+  mode: "local"  # Default: local
+
+  # When this was configured
+  configured_at: ""
+
+  # Who configured this (gh username)
+  configured_by: ""
+
+  # Local execution configuration
+  local:
+    # Execution method for local mode
+    # Options: worktree, docker
+    method: "worktree"
+
+    # Auto-cleanup completed worktrees
+    auto_cleanup: false
+
+    # Worktree base directory (relative to repo root)
+    worktree_base_dir: "../"
+
+    # Docker configuration (if method is docker)
+    docker:
+      image: "ghcr.io/anthropics/claude-code:latest"
+      sync_mode: "detached"  # detached or sync
+      memory_limit: "4g"
+      cpu_limit: "2.0"
+
+  # Hosted (Proxmox) execution configuration
+  hosted:
+    # Proxmox setup status
+    configured: false
+
+    # Remote Docker host configuration
+    remote_host: "docker-workers"
+    remote_ip: "10.69.5.11"
+    ssh_key: "~/.ssh/id_ed25519_proxmox_bootstrap"
+    ssh_user: "ubuntu"
+    remote_env_file: "/opt/apps/claude-workers/.env"
+
+    # n8n integration
+    n8n:
+      enabled: false
+      webhook_url: "http://10.69.5.20:5678/webhook"
+
+    # Resource limits
+    max_containers: 3
+
+    # Connectivity validation status
+    validation:
+      last_validated: ""
+      ssh_accessible: false
+      docker_accessible: false
+      credentials_configured: false
+
+  # Hybrid mode configuration
+  hybrid:
+    # Preference order when both available
+    preference_order:
+      - "hosted"
+      - "local"
+
+    # Fallback to local if hosted unavailable
+    fallback_to_local: true
+
+    # Auto-detect based on issue complexity
+    auto_route_by_complexity: false
+
+# Metadata
+metadata:
+  schema_version: "1.0.0"
+  created_by: "/repo-init"
+  last_updated: ""
+  related_issues:
+    - "https://github.com/jifflee/claude-tastic/issues/933"  # Environment-tiered SDLC
+    - "https://github.com/jifflee/claude-tastic/issues/934"  # Public/private repo detection
+    - "https://github.com/jifflee/claude-tastic/issues/939"  # Dual-repo sync
+    - "https://github.com/jifflee/claude-tastic/issues/940"  # Drift detection
+    - "https://github.com/jifflee/claude-tastic/issues/948"  # Execution mode prompt
+    - "https://github.com/jifflee/claude-tastic/issues/955"  # Pre-promotion quality gates
+    - "https://github.com/jifflee/claude-tastic/issues/972"  # Mandatory security review and sanitization for QA gates
+    - "https://github.com/jifflee/claude-tastic/issues/1129" # Unified SDLC for public/private repos with external deployment gate

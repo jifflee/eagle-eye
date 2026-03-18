@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/YourRepo/schemas/orchestrator-config.schema.json",
+  "title": "LLM Orchestrator Configuration",
+  "description": "Configuration schema for the Multi-LLM Task Orchestrator (issue #748, epic #263)",
+  "type": "object",
+  "required": ["version", "providers", "task_selection"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Configuration schema version",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "default": "1.0"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of this configuration"
+    },
+    "providers": {
+      "type": "object",
+      "description": "LLM provider configurations",
+      "properties": {
+        "claude": {
+          "$ref": "#/definitions/provider"
+        }
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/provider"
+      }
+    },
+    "task_selection": {
+      "type": "object",
+      "description": "Task selection and prioritization settings",
+      "required": ["strategy"],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "description": "Task selection strategy",
+          "enum": ["priority", "fifo", "lifo", "random"],
+          "default": "priority"
+        },
+        "max_issues": {
+          "type": "integer",
+          "description": "Maximum issues to process per run",
+          "minimum": 1,
+          "default": 1
+        },
+        "milestone": {
+          "type": "string",
+          "description": "Milestone filter (milestone name or 'auto' for active)",
+          "default": "auto"
+        },
+        "priority_filter": {
+          "type": "string",
+          "description": "Minimum priority label (P0, P1, P2, P3)",
+          "enum": ["P0", "P1", "P2", "P3", ""],
+          "default": "P0"
+        },
+        "label_filters": {
+          "type": "array",
+          "description": "Additional label filters",
+          "items": {
+            "type": "string"
+          },
+          "default": ["backlog"]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about task selection"
+        }
+      }
+    },
+    "scheduling": {
+      "type": "object",
+      "description": "Scheduling and retry settings",
+      "properties": {
+        "interval_minutes": {
+          "type": "integer",
+          "description": "Recommended check interval in minutes",
+          "minimum": 1,
+          "default": 10
+        },
+        "retry_delay_seconds": {
+          "type": "integer",
+          "description": "Delay before retrying failed tasks (seconds)",
+          "minimum": 0,
+          "default": 300
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about scheduling"
+        }
+      }
+    },
+    "capacity_checks": {
+      "type": "object",
+      "description": "Capacity check settings",
+      "properties": {
+        "check_token_usage": {
+          "type": "boolean",
+          "description": "Check LLM token usage limits",
+          "default": true
+        },
+        "check_resource_usage": {
+          "type": "boolean",
+          "description": "Check system resource usage (CPU/memory)",
+          "default": true
+        },
+        "check_container_count": {
+          "type": "boolean",
+          "description": "Check running container count",
+          "default": true
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about capacity checks"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "provider": {
+      "type": "object",
+      "description": "LLM provider configuration",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable/disable this provider",
+          "default": true
+        },
+        "priority": {
+          "type": "integer",
+          "description": "Provider priority (1 = highest, lower numbers = higher priority)",
+          "minimum": 1,
+          "default": 1
+        },
+        "max_concurrent": {
+          "type": "integer",
+          "description": "Maximum concurrent tasks for this provider",
+          "minimum": 1,
+          "default": 2
+        },
+        "health_check": {
+          "type": "string",
+          "description": "Health check method/script name",
+          "enum": ["usage-monitor", "llm-health-check", "none"],
+          "default": "usage-monitor"
+        },
+        "executor": {
+          "type": "string",
+          "description": "Execution method/script name",
+          "enum": ["container-launch", "worktree", "direct"],
+          "default": "container-launch"
+        },
+        "task_types": {
+          "type": "array",
+          "description": "Task types this provider can handle (future: multi-LLM routing)",
+          "items": {
+            "type": "string",
+            "enum": ["complex", "simple", "code", "docs", "basic"]
+          },
+          "default": ["complex", "code"]
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about this provider"
+        }
+      }
+    }
+  }
+}

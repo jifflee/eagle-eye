@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# {{NAME}}.sh
+# Validation hook
+# Validates outputs or operations based on rules
+
+set -euo pipefail
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Log file
+LOG_FILE="${HOME}/.claude-tastic/hooks/{{NAME}}.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+
+# Log function
+log_hook() {
+    local level="$1"
+    local message="$2"
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [$level] $message" >> "$LOG_FILE"
+}
+
+log_hook "INFO" "Validation hook: {{NAME}}"
+
+# Read input (could be from stdin or arguments)
+INPUT="${1:-$(cat)}"
+
+# Validation rules
+validate() {
+    local data="$1"
+    local errors=0
+
+    # TODO: Implement your validation rules here
+    # Example validations:
+    # - Check for required fields
+    # - Validate format
+    # - Check constraints
+    # - Verify integrity
+
+    # Example: Check if input is not empty
+    if [ -z "$data" ]; then
+        log_hook "ERROR" "Validation failed: Input is empty"
+        ((errors++))
+    fi
+
+    return $errors
+}
+
+# Main logic
+if validate "$INPUT"; then
+    log_hook "INFO" "Validation passed"
+    echo "✅ Validation passed"
+    exit 0
+else
+    log_hook "ERROR" "Validation failed"
+    echo "❌ Validation failed"
+    exit 1
+fi

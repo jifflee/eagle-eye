@@ -1,0 +1,151 @@
+# LLM Provider Configuration
+#
+# Configure multiple LLM providers for task routing and fallback support.
+# The router will automatically select the best available provider based on
+# task complexity and provider availability.
+
+# Default settings
+defaults:
+  health_check_interval: 300  # Seconds between health checks (5 minutes)
+  max_retries: 2              # Maximum retry attempts per provider
+  enable_fallback: true       # Enable fallback to alternative providers
+
+# Provider configurations
+# Priority: higher values are preferred (0-100)
+providers:
+  # Primary provider: Claude (Anthropic)
+  - name: claude
+    type: claude
+    priority: 100
+    enabled: true
+    config:
+      # API key from environment variable ANTHROPIC_API_KEY
+      model: claude-sonnet-4-5
+      max_tokens: 4096
+    capabilities:
+      - text_generation
+      - code_generation
+      - code_review
+      - tool_use
+      - multi_turn
+      - long_context
+      - streaming
+      - vision
+    supported_complexity:
+      - simple
+      - moderate
+      - complex
+      - critical
+
+  # Secondary provider: OpenAI (fallback for simple/moderate tasks)
+  - name: openai
+    type: openai
+    priority: 50
+    enabled: true
+    config:
+      # API key from environment variable OPENAI_API_KEY
+      model: gpt-4
+      max_tokens: 4096
+    capabilities:
+      - text_generation
+      - code_generation
+      - multi_turn
+      - streaming
+      - vision
+    supported_complexity:
+      - simple
+      - moderate
+
+  # Fallback provider: Local minimal responses
+  - name: fallback
+    type: fallback
+    priority: 1
+    enabled: true
+    config: {}
+    capabilities:
+      - text_generation
+    supported_complexity:
+      - simple
+
+# Task classification rules
+# Override automatic classification with explicit rules
+task_classification:
+  # Keyword-based overrides
+  keywords:
+    critical:
+      - production
+      - security
+      - authentication
+      - deploy
+      - release
+    complex:
+      - architect
+      - design system
+      - migrate
+      - multi-file
+    moderate:
+      - refactor
+      - debug
+      - review
+      - optimize
+    simple:
+      - explain
+      - what is
+      - format
+      - hello world
+
+  # File count thresholds
+  file_thresholds:
+    simple: 1      # Tasks touching 1 file
+    moderate: 2-5  # Tasks touching 2-5 files
+    complex: 6+    # Tasks touching 6+ files
+
+# Routing rules
+routing:
+  # Prefer Claude for all tasks when available
+  prefer_primary: true
+
+  # Allow fallback to alternative providers
+  enable_fallback: true
+
+  # Complexity-based routing (when primary unavailable)
+  complexity_routing:
+    simple:
+      allowed_providers:
+        - claude
+        - openai
+        - fallback
+    moderate:
+      allowed_providers:
+        - claude
+        - openai
+    complex:
+      allowed_providers:
+        - claude
+    critical:
+      allowed_providers:
+        - claude
+      # Critical tasks require primary provider
+      block_if_unavailable: true
+
+# Health check configuration
+health_check:
+  # Interval between background health checks (seconds)
+  interval: 300
+
+  # Timeout for health check requests (seconds)
+  timeout: 10
+
+  # Number of consecutive failures before marking provider as unhealthy
+  failure_threshold: 3
+
+  # Time to wait before retrying unhealthy provider (seconds)
+  retry_after: 60
+
+# Logging configuration
+logging:
+  level: INFO
+  log_provider_selection: true
+  log_health_checks: true
+  log_task_classification: true
+  audit_log_path: ~/.claude-tastic/llm-router-audit

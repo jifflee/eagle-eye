@@ -1,0 +1,14 @@
+{
+  "script": "n8n-health.sh",
+  "description": "Health check for local n8n instance",
+  "network_calls": [
+    {
+      "host": "localhost",
+      "purpose": "Health check API calls to local n8n instance",
+      "required": true,
+      "tool": "curl",
+      "scope": "local only"
+    }
+  ],
+  "tags": ["n8n", "health-check", "infrastructure"]
+}

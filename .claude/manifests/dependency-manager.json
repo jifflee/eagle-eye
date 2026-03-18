@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "dependency-manager",
+  "display_name": "Dependency Manager Agent",
+  "version": "1.0.0",
+  "description": "Manages dependencies, handles upgrades, analyzes security vulnerabilities.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-FULL",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "git.read", "git.write", "shell.exec"],
+    "allowed_paths": ["package.json", "package-lock.json", "requirements.txt", "Pipfile*", "poetry.lock", "pyproject.toml", "go.mod", "go.sum", "Cargo.toml", "Cargo.lock"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "force-push"]
+  },
+  "metadata": {
+    "sdlc_phase": "implementation",
+    "agent_category": "development"
+  }
+}

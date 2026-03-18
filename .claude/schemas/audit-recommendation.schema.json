@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "audit-recommendation.schema.json",
+  "title": "Audit Recommendation",
+  "description": "Schema for structured recommendations output by audit and read-only skills for auto-issue generation",
+  "type": "object",
+  "required": ["recommendations"],
+  "properties": {
+    "recommendations": {
+      "type": "array",
+      "description": "List of actionable recommendations from the audit",
+      "items": {
+        "$ref": "#/definitions/Recommendation"
+      }
+    }
+  },
+  "definitions": {
+    "Recommendation": {
+      "type": "object",
+      "required": ["id", "action", "severity", "description", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this recommendation (e.g., 'ms-stale-123', 'epic-orphan-456')",
+          "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+        },
+        "action": {
+          "type": "string",
+          "description": "Short, actionable title for the recommendation (used as GitHub issue title suffix)",
+          "maxLength": 100
+        },
+        "severity": {
+          "type": "string",
+          "description": "Severity level, maps to GitHub issue priority labels",
+          "enum": ["critical", "high", "medium", "low", "info"],
+          "x-priority-mapping": {
+            "critical": "P0",
+            "high": "P1",
+            "medium": "P2",
+            "low": "P3",
+            "info": "P3"
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the problem and what needs to be done",
+          "minLength": 10
+        },
+        "type": {
+          "type": "string",
+          "description": "Category of the recommendation, maps to GitHub issue labels",
+          "enum": ["cleanup", "quality", "security", "tech-debt", "docs", "structure", "code"],
+          "x-label-mapping": {
+            "security": ["bug", "security"],
+            "tech-debt": ["tech-debt"],
+            "code": ["tech-debt"],
+            "docs": ["docs"],
+            "cleanup": ["tech-debt"],
+            "quality": ["tech-debt"],
+            "structure": ["tech-debt"]
+          }
+        },
+        "item_reference": {
+          "type": "string",
+          "description": "Optional reference to the specific item (e.g., '#123', 'path/to/file.ts')",
+          "examples": ["#123", "#456", "scripts/foo.sh"]
+        },
+        "source_skill": {
+          "type": "string",
+          "description": "The audit skill that generated this recommendation (auto-set by audit-create-issues.sh --skill flag)",
+          "examples": ["/audit:milestone", "/audit:code", "/audit:epics", "/sprint:status-pm"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "examples": [
+    {
+      "recommendations": [
+        {
+          "id": "ms-stale-123",
+          "action": "Resolve stale in-progress issue #123",
+          "severity": "high",
+          "description": "Issue #123 'Implement auth flow' has been in-progress for 8 days without update. Stale work blocks sprint progress.",
+          "type": "quality",
+          "item_reference": "#123"
+        },
+        {
+          "id": "epic-orphan-456",
+          "action": "Triage orphaned issue #456 in closed milestone",
+          "severity": "critical",
+          "description": "Issue #456 'Fix login bug' is OPEN but milestone 'sprint-1' is CLOSED. Work was missed and needs reassignment.",
+          "type": "cleanup",
+          "item_reference": "#456"
+        }
+      ]
+    }
+  ]
+}

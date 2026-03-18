@@ -1,0 +1,203 @@
+# Corporate Mode Configuration
+# Feature #686: Corporate mode - approved methods and restrictions
+#
+# This file defines what operations are allowed when corporate_managed = true
+# Philosophy: Deny by default. Minimal surface. Skills can extend.
+
+version: "1.0"
+
+# Corporate mode settings
+corporate_mode:
+  # Enable/disable corporate mode restrictions
+  # When false, no restrictions are enforced (but config is still tracked for visibility)
+  enabled: false
+
+  # Framework repository for cross-repo feedback
+  # Used by /capture --framework to submit issues back to framework repo
+  framework_repo: ""  # e.g., "owner/claude-tastic"
+
+  # Audit trail configuration
+  audit:
+    enabled: true
+    log_dir: "~/.claude-tastic/corporate-audit"
+    retention_days: 90
+    log_allowed: true    # Log approved operations too
+    log_blocked: true    # Log blocked operations with reason
+
+# Default Approved Methods (when corporate_managed = true)
+# These are the baseline approved operations for corporate environments
+# Can be extended via /approve-method skill
+
+approved_methods:
+  # Network operations
+  network:
+    # GitHub API (configured repos only)
+    github_api:
+      enabled: true
+      allowed_repos:
+        - "{{CURRENT_REPO}}"  # Current repository
+        - "{{FRAMEWORK_REPO}}"  # Framework repository (for /capture --framework)
+      blocked_hosts: []  # All other hosts blocked by default
+      notes: "GitHub API access restricted to configured repositories"
+
+    # All other network hosts (blocked by default)
+    external_hosts:
+      enabled: false
+      allowed_hosts: []
+      notes: "External network access blocked for egress risk control"
+
+  # LLM operations
+  llm:
+    # Corporate-provided endpoint
+    corporate_endpoint:
+      enabled: true
+      endpoint: "{{CORPORATE_LLM_ENDPOINT}}"  # Set via env var
+      notes: "Corporate-provided LLM endpoint only"
+
+    # Local models (blocked)
+    local_models:
+      enabled: false
+      notes: "Local LLM models blocked in corporate mode"
+
+    # Alternative providers (blocked)
+    alternative_providers:
+      enabled: false
+      notes: "Third-party LLM providers blocked in corporate mode"
+
+  # Agent operations
+  agents:
+    # All agents allowed (local logic)
+    all_agents:
+      enabled: true
+      notes: "Agents use local logic, no egress risk"
+
+  # Tool operations
+  tools:
+    # Approved tools
+    approved:
+      - Read
+      - Edit
+      - Write
+      - Glob
+      - Grep
+      - Bash  # Limited by script restrictions below
+      - Task
+      - TodoWrite
+      - AskUserQuestion
+      - Skill
+      - EnterPlanMode
+      - ExitPlanMode
+      - NotebookEdit
+      - TaskOutput
+      - KillShell
+
+    # Blocked tools (egress risk)
+    blocked:
+      - WebFetch
+      - WebSearch
+
+    notes: "WebFetch and WebSearch blocked due to egress risk"
+
+  # MCP (Model Context Protocol) servers
+  mcp:
+    # All MCP servers blocked by default (must be explicitly approved)
+    default_policy: deny
+    approved_servers: []
+    notes: "MCP servers must be explicitly approved via /approve-method"
+
+  # Container operations
+  containers:
+    # Docker execution disabled (egress hard to control)
+    docker:
+      enabled: false
+      notes: "Container execution disabled due to egress control challenges"
+
+    sandbox:
+      enabled: false
+      notes: "Sandbox environments disabled in corporate mode"
+
+  # Script execution
+  scripts:
+    # Local scripts only (no network calls)
+    local_scripts:
+      enabled: true
+      allowed_patterns:
+        - "^\\./scripts/"
+        - "^scripts/"
+      blocked_commands:
+        - curl
+        - wget
+        - nc
+        - telnet
+        - ssh
+        - scp
+        - rsync
+        - ftp
+      notes: "Local scripts allowed but network commands blocked"
+
+    # Scripts with network calls (blocked)
+    network_scripts:
+      enabled: false
+      notes: "Scripts with curl, wget, or external calls blocked"
+
+  # Git operations
+  git:
+    # Push/pull to configured repos only
+    configured_repos:
+      enabled: true
+      allowed_remotes:
+        - "{{CURRENT_REPO_REMOTE}}"
+        - "{{FRAMEWORK_REPO_REMOTE}}"
+      notes: "Git operations restricted to configured remotes"
+
+    # Other remotes (blocked)
+    other_remotes:
+      enabled: false
+      notes: "Git operations to unconfigured remotes blocked"
+
+# Dynamic approved methods (extended via /approve-method skill)
+# This section is automatically updated when users run /approve-method
+# Do not edit manually - use the skill instead
+dynamic_approvals:
+  # Example structure:
+  # - type: mcp
+  #   target: "context7"
+  #   reason: "Docs lookup"
+  #   approved_by: "user@example.com"
+  #   approved_at: "2024-01-15T10:30:00Z"
+  #   expires_at: null  # null = no expiration
+  mcp_servers: []
+  tools: []
+  network_hosts: []
+  git_remotes: []
+
+# Enforcement rules
+enforcement:
+  # Action to take when operation is blocked
+  blocked_action: deny  # deny or warn
+
+  # Log all blocked operations
+  log_blocked: true
+
+  # Include stack trace in blocked operation logs
+  include_stack_trace: false
+
+  # Notification settings for blocked operations
+  notifications:
+    enabled: false
+    webhook_url: ""  # Set via env var: CORPORATE_BLOCK_WEBHOOK_URL
+
+# Validation rules
+validation:
+  # Changes to approved methods require explicit user action
+  require_explicit_approval: true
+
+  # Prevent auto-approval of methods
+  prevent_auto_approve: true
+
+  # Maximum dynamic approvals per type
+  max_dynamic_approvals:
+    mcp_servers: 10
+    tools: 5
+    network_hosts: 5
+    git_remotes: 3

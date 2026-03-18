@@ -1,0 +1,24 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "guardrails-policy",
+  "display_name": "Guardrails & Policy Agent",
+  "version": "1.0.0",
+  "description": "Enforces repository coding standards, structure rules, naming conventions, and secret handling.",
+  "trust_tier": "T0",
+  "permission_level": "READ-ONLY",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": []
+  },
+  "constraints": {
+    "blocked_operations": ["file.write", "git.commit", "git.push", "issue.close", "pr.merge"]
+  },
+  "review_powers": {
+    "can_block_pr": true
+  },
+  "metadata": {
+    "sdlc_phase": "governance",
+    "agent_category": "governance"
+  }
+}

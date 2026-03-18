@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/refactor-finding.schema.json",
+  "title": "Refactor Finding",
+  "description": "Structured schema for refactor findings produced by scan dimensions and consumed by owning agents. Defines the contract between the refactor observer and the agents responsible for remediation.",
+  "type": "object",
+  "required": [
+    "id",
+    "dimension",
+    "category",
+    "severity",
+    "owning_agent",
+    "file_paths",
+    "description",
+    "suggested_fix",
+    "acceptance_criteria",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^RF-[0-9]{3,}$",
+      "description": "Unique finding identifier in format RF-NNN (e.g., RF-001)",
+      "examples": ["RF-001", "RF-042", "RF-100"]
+    },
+    "dimension": {
+      "type": "string",
+      "enum": [
+        "code",
+        "architecture",
+        "dependencies",
+        "documentation",
+        "tests",
+        "framework"
+      ],
+      "description": "Scan dimension that produced this finding. Determines which scanner identified the issue."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "modularize",
+        "dedup",
+        "dead-code",
+        "naming",
+        "error-handling",
+        "circular-dep",
+        "coupling",
+        "cohesion",
+        "complexity",
+        "security",
+        "performance",
+        "outdated-dep",
+        "missing-dep",
+        "unused-dep",
+        "missing-docs",
+        "stale-docs",
+        "obsolete-docs",
+        "duplicate-docs",
+        "orphan-docs",
+        "bloat-docs",
+        "missing-tests",
+        "test-coverage",
+        "test-quality",
+        "framework-pattern",
+        "framework-version",
+        "config-drift"
+      ],
+      "description": "Classification of the finding type, used for agent routing and grouping"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"],
+      "description": "Severity level of the finding. Determines priority and exit code behavior. critical/high → exit code 2, medium/low → exit code 1."
+    },
+    "owning_agent": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Primary agent responsible for addressing this finding",
+      "examples": [
+        "backend-developer",
+        "frontend-developer",
+        "refactoring-specialist",
+        "dependency-manager",
+        "documentation",
+        "test-qa",
+        "architect"
+      ]
+    },
+    "fallback_agent": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Fallback agent if owning agent cannot or declines to address the finding",
+      "examples": ["refactoring-specialist", "backend-developer"]
+    },
+    "file_paths": {
+      "type": "array",
+      "description": "List of affected file paths, optionally with line range (format: path:start-end)",
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\s]+(\\.\\w+)?(:[0-9]+(\\-[0-9]+)?)?$"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "examples": [
+        ["src/foo.py:45-80"],
+        ["src/bar.ts", "src/baz.ts:10-50"]
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 1000,
+      "description": "Clear, actionable description of the issue. Should explain what the problem is and why it matters.",
+      "examples": [
+        "Function exceeds 200 lines with 3 distinct responsibilities",
+        "Module imports from sibling modules creating circular dependency chain"
+      ]
+    },
+    "suggested_fix": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 2000,
+      "description": "Concrete, actionable suggestion for remediation. Should be specific enough for an agent to act without clarification.",
+      "examples": [
+        "Extract lines 45-80 into validate_input(), lines 81-120 into process_data()",
+        "Move shared types to a common module to break the circular dependency"
+      ]
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "description": "Verifiable conditions that must all be true for this finding to be considered resolved",
+      "items": {
+        "type": "string",
+        "minLength": 5
+      },
+      "minItems": 1,
+      "examples": [
+        [
+          "Original function < 50 lines",
+          "Extracted functions have single responsibility",
+          "All existing tests still pass"
+        ]
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "in-progress", "fixed", "rejected", "deferred"],
+      "description": "Current lifecycle status of the finding",
+      "default": "open"
+    },
+    "agent_response": {
+      "type": "object",
+      "description": "Agent's response after processing this finding. Populated after the owning agent has acted.",
+      "required": ["status"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["completed", "partial", "rejected", "alternative"],
+          "description": "Outcome of agent's remediation attempt"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Explanation of the agent's decision, especially for partial/rejected/alternative outcomes"
+        },
+        "actual_changes": {
+          "type": "array",
+          "description": "List of changes actually made by the agent",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pr_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Pull request number if changes were submitted via PR"
+        },
+        "resolved_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when the finding was resolved"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata for tooling and tracking",
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when the finding was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when the finding was last updated"
+        },
+        "scanner_version": {
+          "type": "string",
+          "description": "Version of the scanner/dimension that produced this finding"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "Optional tags for grouping or filtering findings"
+        },
+        "related_findings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^RF-[0-9]{3,}$"
+          },
+          "uniqueItems": true,
+          "description": "IDs of related findings that should be addressed together"
+        },
+        "epic_issue": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "GitHub issue number of the parent epic"
+        },
+        "effort_estimate": {
+          "type": "string",
+          "enum": ["xs", "s", "m", "l", "xl"],
+          "description": "Estimated effort to resolve: xs=<1h, s=1-2h, m=2-4h, l=4-8h, xl=>8h"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "id": "RF-001",
+      "dimension": "code",
+      "category": "modularize",
+      "severity": "high",
+      "owning_agent": "backend-developer",
+      "fallback_agent": "refactoring-specialist",
+      "file_paths": ["src/foo.py:45-80"],
+      "description": "Function exceeds 200 lines with 3 distinct responsibilities",
+      "suggested_fix": "Extract lines 45-80 into validate_input(), lines 81-120 into process_data()",
+      "acceptance_criteria": [
+        "Original function < 50 lines",
+        "Extracted functions have single responsibility",
+        "All existing tests still pass"
+      ],
+      "status": "open",
+      "metadata": {
+        "created_at": "2026-02-18T00:00:00Z",
+        "effort_estimate": "m"
+      }
+    }
+  ]
+}

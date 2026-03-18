@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+# ============================================================
+# Script: post-merge
+# Purpose: Detect merged PRs from worktrees and prompt for cleanup
+# Usage: Automatically called by git after 'git pull' merges changes
+#
+# This hook detects when:
+# - A PR from a worktree branch (feat/issue-N, fix/issue-N) was merged
+# - The corresponding worktree still exists locally
+# - Prompts the user to cleanup the worktree
+# - Auto-cleanup if PR was created with --cleanup-after-merge flag
+#
+# Requirements:
+# - Must run from main repository (not a worktree)
+# - Requires gh CLI for GitHub API access
+# - Requires jq for JSON parsing
+#
+# Issue: #103 - Post-merge hook to detect merged PRs and prompt for cleanup
+# Issue: #104 - Add --cleanup-after-merge flag to PR creation
+# ============================================================
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+# Source common utilities if available
+COMMON_SH="$REPO_ROOT/scripts/lib/common.sh"
+if [ -f "$COMMON_SH" ]; then
+  source "$COMMON_SH"
+else
+  # Minimal fallback
+  log_info() { echo "[INFO] $*"; }
+  log_warn() { echo "[WARN] $*"; }
+  log_error() { echo "[ERROR] $*"; }
+  log_success() { echo "[OK] $*"; }
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[0;33m'
+  BLUE='\033[0;34m'
+  NC='\033[0m'
+fi
+
+# Source cleanup tracking if available
+CLEANUP_TRACKING_SH="$REPO_ROOT/scripts/lib/cleanup-tracking.sh"
+CLEANUP_TRACKING_AVAILABLE=false
+if [ -f "$CLEANUP_TRACKING_SH" ]; then
+  source "$CLEANUP_TRACKING_SH"
+  CLEANUP_TRACKING_AVAILABLE=true
+fi
+
+# ============================================================
+# Safety Checks
+# ============================================================
+
+# Must be in main repository (not a worktree)
+if [ ! -d "$REPO_ROOT/.git" ]; then
+  # In a worktree - .git is a file, not a directory
+  # Silently exit - this hook only runs in main repo
+  exit 0
+fi
+
+# Check for required tools
+if ! command -v gh &> /dev/null; then
+  log_warn "gh CLI not found - skipping worktree cleanup detection"
+  exit 0
+fi
+
+if ! command -v jq &> /dev/null; then
+  log_warn "jq not found - skipping worktree cleanup detection"
+  exit 0
+fi
+
+# ============================================================
+# Helper Functions
+# ============================================================
+
+# Get repo name without -issue-N suffix
+get_repo_name() {
+  local name
+  name=$(basename "$REPO_ROOT")
+  echo "$name" | sed 's/-issue-[0-9]*$//'
+}
+
+# Extract issue number from branch name
+# Supports: feat/issue-123, fix/issue-456, feature/issue-789
+extract_issue_number() {
+  local branch="$1"
+  if [[ "$branch" =~ issue-([0-9]+) ]]; then
+    echo "${BASH_REMATCH[1]}"
+  fi
+}
+
+# Check if worktree exists for an issue
+worktree_exists() {
+  local issue="$1"
+  local repo_name
+  repo_name=$(get_repo_name)
+  local parent_dir
+  parent_dir=$(dirname "$REPO_ROOT")
+  local worktree_path="$parent_dir/${repo_name}-issue-$issue"
+
+  if [ -d "$worktree_path" ]; then
+    echo "$worktree_path"
+    return 0
+  fi
+  return 1
+}
+
+# Get recently merged PRs (last 24 hours) from worktree branches
+get_recently_merged_prs() {
+  # Get merged PRs and filter for worktree branches
+  gh pr list --state merged --limit 20 --json number,headRefName,mergedAt,body 2>/dev/null | jq -r '
+    [.[] |
+      select(.headRefName | test("(feat|fix|feature)/issue-[0-9]+")) |
+      {
+        pr_number: .number,
+        branch: .headRefName,
+        merged_at: .mergedAt,
+        issue: (.headRefName | capture("issue-(?<num>[0-9]+)") | .num | tonumber)
+      }
+    ] | sort_by(.merged_at) | reverse
+  ' 2>/dev/null || echo '[]'
+}
+
+# Prompt for cleanup
+prompt_cleanup() {
+  local issue="$1"
+  local worktree_path="$2"
+  local pr_number="$3"
+  local branch="$4"
+
+  echo ""
+  echo -e "${GREEN}============================================${NC}"
+  echo -e "${GREEN}  PR #$pr_number merged!${NC}"
+  echo -e "${GREEN}============================================${NC}"
+  echo ""
+  echo -e "Branch: ${BLUE}$branch${NC}"
+  echo -e "Issue:  ${BLUE}#$issue${NC}"
+  echo -e "Worktree: ${YELLOW}$worktree_path${NC}"
+  echo ""
+
+  # Check for any issues in worktree (uncommitted, unpushed)
+  local status_warning=""
+  if [ -n "$(git -C "$worktree_path" status --porcelain 2>/dev/null)" ]; then
+    status_warning="${YELLOW}Warning: Worktree has uncommitted changes${NC}"
+  elif git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
+    local unpushed
+    unpushed=$(git -C "$worktree_path" log --oneline '@{upstream}..HEAD' 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$unpushed" -gt 0 ]; then
+      status_warning="${YELLOW}Warning: Worktree has $unpushed unpushed commits${NC}"
+    fi
+  fi
+
+  if [ -n "$status_warning" ]; then
+    echo -e "$status_warning"
+    echo ""
+  fi
+
+  # Interactive prompt
+  echo -n "Cleanup worktree for issue #$issue? [y/N/d(etails)] "
+  read -r response </dev/tty
+
+  case "$response" in
+    y|Y|yes|YES)
+      echo ""
+      echo "Running cleanup..."
+      if [ -x "$REPO_ROOT/scripts/worktree-cleanup.sh" ]; then
+        "$REPO_ROOT/scripts/worktree-cleanup.sh" "$issue" --delete-branch
+      else
+        echo "Cleanup script not found. Run manually:"
+        echo "  ./scripts/worktree-cleanup.sh $issue --delete-branch"
+      fi
+      ;;
+    d|D|details)
+      echo ""
+      echo "Worktree status:"
+      git -C "$worktree_path" status --short 2>/dev/null || echo "  (could not read status)"
+      echo ""
+      if git -C "$worktree_path" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
+        echo "Unpushed commits:"
+        git -C "$worktree_path" log --oneline '@{upstream}..HEAD' 2>/dev/null || echo "  (none)"
+      fi
+      echo ""
+      echo "To cleanup later:"
+      echo "  ./scripts/worktree-cleanup.sh $issue --delete-branch"
+      ;;
+    *)
+      echo ""
+      echo "Skipped. To cleanup later:"
+      echo "  ./scripts/worktree-cleanup.sh $issue --delete-branch"
+      ;;
+  esac
+}
+
+# ============================================================
+# Main Logic
+# ============================================================
+
+main() {
+  local repo_name
+  repo_name=$(get_repo_name)
+
+  # First, check for auto-cleanup intents (Issue #104)
+  if [ "$CLEANUP_TRACKING_AVAILABLE" = true ]; then
+    # Run auto-cleanup for merged PRs with cleanup intent
+    if [ -x "$REPO_ROOT/scripts/auto-cleanup-merged.sh" ]; then
+      log_info "Checking for auto-cleanup intents..."
+      "$REPO_ROOT/scripts/auto-cleanup-merged.sh" --all --force 2>/dev/null || true
+    fi
+  fi
+
+  # Get recently merged PRs from worktree branches
+  local merged_prs
+  merged_prs=$(get_recently_merged_prs)
+
+  if [ "$merged_prs" = "[]" ] || [ -z "$merged_prs" ]; then
+    # No recently merged worktree PRs
+    exit 0
+  fi
+
+  # Track if we prompted anything
+  local prompted=false
+
+  # Check each merged PR for existing worktree
+  # Note: Using process substitution to keep loop in current shell context
+  # (allows variable assignments like prompted=true to persist)
+  while read -r pr; do
+    local issue
+    local pr_number
+    local branch
+
+    issue=$(echo "$pr" | jq -r '.issue')
+    pr_number=$(echo "$pr" | jq -r '.pr_number')
+    branch=$(echo "$pr" | jq -r '.branch')
+
+    # Check if auto-cleanup was already handled
+    if [ "$CLEANUP_TRACKING_AVAILABLE" = true ]; then
+      if ! has_cleanup_intent "$issue"; then
+        # No auto-cleanup intent - check if worktree exists and prompt
+        local worktree_path
+        if worktree_path=$(worktree_exists "$issue"); then
+          prompted=true
+          prompt_cleanup "$issue" "$worktree_path" "$pr_number" "$branch"
+        fi
+      fi
+    else
+      # Cleanup tracking not available - use legacy behavior
+      local worktree_path
+      if worktree_path=$(worktree_exists "$issue"); then
+        prompted=true
+        prompt_cleanup "$issue" "$worktree_path" "$pr_number" "$branch"
+      fi
+    fi
+  done < <(echo "$merged_prs" | jq -c '.[]')
+}
+
+# Run main function
+main "$@"

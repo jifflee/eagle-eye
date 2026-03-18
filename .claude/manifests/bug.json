@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "bug",
+  "display_name": "Bug Agent",
+  "version": "1.0.0",
+  "description": "Analyzes, triages, and diagnoses bugs. Provides reproduction steps and root causes.",
+  "trust_tier": "T0",
+  "permission_level": "READ-ONLY",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": []
+  },
+  "constraints": {
+    "blocked_operations": ["file.write", "git.commit", "git.push", "issue.close", "pr.merge"]
+  },
+  "metadata": {
+    "sdlc_phase": "implementation",
+    "agent_category": "development"
+  }
+}

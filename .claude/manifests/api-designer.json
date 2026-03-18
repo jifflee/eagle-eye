@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "api-designer",
+  "display_name": "API Designer Agent",
+  "version": "1.0.0",
+  "description": "Designs REST/GraphQL APIs, creates OpenAPI specs, and establishes API contracts.",
+  "trust_tier": "T1",
+  "permission_level": "WRITE-LIMITED",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": ["docs/api/**", "openapi/**", "swagger/**", "graphql/**", "**/*.graphql"]
+  },
+  "constraints": {
+    "blocked_operations": ["file.write.src", "issue.close", "pr.merge"]
+  },
+  "metadata": {
+    "sdlc_phase": "design",
+    "agent_category": "planning"
+  }
+}

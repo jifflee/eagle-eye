@@ -1,0 +1,38 @@
+{
+  "bundles": {
+    "bug": {
+      "agents": ["bug", "backend-developer", "test-qa", "pr-code-reviewer"],
+      "description": "Bug analysis and fixing"
+    },
+    "feature": {
+      "agents": ["product-spec-ux", "architect", "backend-developer", "test-qa", "documentation"],
+      "description": "New feature development"
+    },
+    "security": {
+      "agents": ["security-iam-design", "financial-security-auditor", "pr-security-iam"],
+      "description": "Security-related work"
+    },
+    "docs": {
+      "agents": ["documentation", "documentation-librarian"],
+      "description": "Documentation updates"
+    },
+    "tech-debt": {
+      "agents": ["architect", "backend-developer", "test-qa", "refactoring-specialist"],
+      "description": "Technical debt and refactoring"
+    },
+    "data": {
+      "agents": ["data-storage", "backend-developer", "test-qa"],
+      "description": "Database and data work"
+    }
+  },
+  "body_signals": {
+    "security|vulnerability|injection|credential": ["security-iam-design"],
+    "database|schema|migration|SQL": ["data-storage"],
+    "UI|frontend|component|React": ["frontend-developer"],
+    "performance|slow|optimize|latency": ["performance-engineering"]
+  },
+  "threshold": {
+    "max_agents": 8,
+    "pm_trim_above": 8
+  }
+}

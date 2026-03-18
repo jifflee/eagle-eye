@@ -1,0 +1,39 @@
+{
+  "_comment": "Directory-scoped CI configuration for scripts/. Overrides root .ci-config.json thresholds for this directory.",
+  "_scope": "scripts",
+  "version": "1.0",
+  "overrides": {
+    "pre-commit": {
+      "timeout_seconds": 60,
+      "description": "Scripts directory: lighter pre-commit (shell scripts change fast)"
+    },
+    "pre-pr": {
+      "timeout_seconds": 180,
+      "additional_checks": [
+        {
+          "name": "script-sizes-strict",
+          "script": "check-script-sizes.sh",
+          "args": "--strict",
+          "description": "Stricter script size enforcement for scripts/ directory"
+        }
+      ]
+    }
+  },
+  "test_mappings": {
+    "_comment": "Explicit file-to-test mappings for scripts in this directory",
+    "run-pipeline.sh": ["tests/scripts/test-run-pipeline.sh"],
+    "test-runner.py": ["tests/test_test_runner.py"],
+    "test-scan.py": ["tests/test_test_scan.py"],
+    "arch-scan.sh": ["tests/scripts/test-arch-scan.sh"],
+    "analyze-epic-work-mode.sh": ["tests/scripts/test-analyze-epic-work-mode.sh"],
+    "auto-promote-to-qa.sh": ["tests/scripts/test-auto-promote-to-qa.sh"],
+    "batch-branch-manager.sh": ["tests/scripts/test-batch-branch-manager.sh"],
+    "framework-scan.sh": ["tests/scripts/test-framework-scan.sh"]
+  },
+  "thresholds": {
+    "_comment": "Stricter thresholds for this directory",
+    "max_script_lines": 200,
+    "max_function_lines": 50,
+    "agent_doc_threshold": 75
+  }
+}

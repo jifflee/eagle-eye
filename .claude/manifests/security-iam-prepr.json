@@ -1,0 +1,24 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "security-iam-prepr",
+  "display_name": "Security & IAM Agent (Pre-PR)",
+  "version": "1.0.0",
+  "description": "Deep security review before any PR is created.",
+  "trust_tier": "T0",
+  "permission_level": "READ-ONLY",
+  "model": "sonnet",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": []
+  },
+  "constraints": {
+    "blocked_operations": ["file.write", "git.commit", "git.push", "issue.close", "pr.merge"]
+  },
+  "review_powers": {
+    "can_block_pr": true
+  },
+  "metadata": {
+    "sdlc_phase": "review",
+    "agent_category": "review"
+  }
+}

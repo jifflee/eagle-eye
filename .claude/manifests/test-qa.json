@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "test-qa",
+  "display_name": "Test & QA Agent",
+  "version": "1.0.0",
+  "description": "Writes/validates tests and checks pre-PR test coverage.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-FULL",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "github.write", "git.read", "git.write"],
+    "allowed_paths": ["tests/**", "test/**", "**/*.test.*", "**/*.spec.*", "cypress/**", "playwright/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["file.write.src", "issue.close", "pr.merge"]
+  },
+  "metadata": {
+    "sdlc_phase": "testing",
+    "agent_category": "development"
+  }
+}

@@ -1,0 +1,225 @@
+# container-permission-policy.yaml
+# Policy rules for container Permission Decision Engine
+# Part of Issue #596
+
+# =============================================================================
+# CONTEXT-AWARE RISK ASSESSMENT (Issue #597)
+# =============================================================================
+#
+# The permission system now includes context-aware risk assessment where
+# operations related to the current work are considered lower risk:
+#
+# 1. Issue Scope Detection (IMPLEMENTED)
+#    - Automatically extracts file patterns from issue body
+#    - Files mentioned in acceptance criteria are in-scope
+#    - Operations on in-scope files receive -1 tier adjustment
+#    - Issue scope cached for 1 hour to minimize overhead
+#
+# 2. File Proximity Rules (IMPLEMENTED)
+#    - Test file modifications: -1 tier (lower risk)
+#    - Files in issue scope: -1 tier (expected changes)
+#    - Files outside scope: +1 tier (if scope defined)
+#
+# 3. Historical Patterns (IMPLEMENTED)
+#    - Commands with 3+ successful executions: -1 tier
+#    - Command history tracked with 30-day retention
+#    - Success rate used for risk assessment
+#
+# 4. Sprint Context (RESERVED)
+#    - Sprint metadata injection: planned for future
+#    - Sprint-blocked files: planned for future
+#
+# Configuration:
+#    - Enable/disable: Set CONTEXT_EVAL_ENABLED=true/false
+#    - Performance: <50ms overhead per permission check
+#    - Fail-safe: Falls back to static tier on context parsing errors
+#    - Audit: All context factors logged in decision audit
+#
+# Scripts:
+#    - scripts/permissions/extract-issue-scope.sh - Parse issue for file patterns
+#    - scripts/permissions/context-evaluator.sh - Apply context-based adjustments
+#    - scripts/permissions/track-command-history.sh - Track command success rate
+# =============================================================================
+
+# Version
+version: "1.0"
+
+# Default behavior when no rule matches
+defaults:
+  t0_action: allow    # Read-only always allowed
+  t1_action: allow    # Safe writes allowed
+  t2_action: allow    # Reversible operations allowed in container
+  t3_action: deny     # Destructive operations denied unless escalated
+
+  # Webhook escalation for T3 (optional)
+  # Set PERMISSION_WEBHOOK_URL env var to enable
+  t3_escalation: webhook
+
+# Explicit allow rules (checked first)
+allow_rules:
+  # Git operations (most are safe in container)
+  - pattern: "^git (status|log|diff|show|branch|tag|remote|config|ls-files|rev-parse|blame)"
+    tier_override: T0
+    reason: "git read operation"
+
+  - pattern: "^git (add|commit|checkout|stash|fetch|pull|merge|rebase)"
+    tier_override: T1
+    reason: "git safe write operation"
+
+  - pattern: "^git push(?!.*--force)"
+    tier_override: T2
+    reason: "git push (non-force)"
+
+  # GitHub CLI
+  - pattern: "^gh (issue|pr|api|repo|workflow|run)"
+    tier_override: T2
+    reason: "github cli operation"
+
+  # Package managers (read/build)
+  - pattern: "^(npm|yarn|pnpm) (list|ls|outdated|audit|info|view|run|test|build)"
+    tier_override: T1
+    reason: "package manager read/build"
+
+  # Package managers (install)
+  - pattern: "^(npm|yarn|pnpm) (install|add|remove|ci)"
+    tier_override: T2
+    reason: "package manager install"
+
+  # Project scripts (trusted)
+  - pattern: "^\\./scripts/"
+    tier_override: T2
+    reason: "project script execution"
+
+  # Make targets
+  - pattern: "^make (build|test|lint|clean|install)"
+    tier_override: T2
+    reason: "makefile target"
+
+  # Common dev commands
+  - pattern: "^(python|node|npx|pytest|jest|mocha)"
+    tier_override: T2
+    reason: "development runtime"
+
+# Explicit deny rules (checked before allow, blocks execution)
+deny_rules:
+  # Catastrophic commands
+  - pattern: "rm -rf /"
+    reason: "catastrophic delete"
+
+  - pattern: "rm -rf \\*"
+    reason: "wildcard delete"
+
+  - pattern: ":(){ :|:& };:"
+    reason: "fork bomb"
+
+  # Database destruction
+  - pattern: "DROP DATABASE"
+    reason: "database destruction"
+
+  - pattern: "DELETE FROM .* WHERE 1"
+    reason: "table wipe"
+
+  - pattern: "TRUNCATE TABLE"
+    reason: "table truncation"
+
+  # Force push to protected branches
+  - pattern: "git push.*--force.*(main|master|production)"
+    reason: "force push to protected branch"
+
+  - pattern: "git push --force-with-lease.*(main|master|production)"
+    reason: "force push to protected branch"
+
+  # Remote code execution
+  - pattern: "curl.*\\|.*bash"
+    reason: "remote code execution"
+
+  - pattern: "wget.*\\|.*bash"
+    reason: "remote code execution"
+
+  # Privilege escalation
+  - pattern: "^sudo"
+    reason: "privilege escalation"
+
+  - pattern: "^su -"
+    reason: "privilege escalation"
+
+  # System modification
+  - pattern: "^(apt|yum|dnf|brew) (install|remove|upgrade)"
+    reason: "system package modification"
+
+  # Network exfiltration patterns
+  - pattern: "curl.*-d.*\\$"
+    reason: "potential data exfiltration"
+
+  - pattern: "nc -e"
+    reason: "netcat reverse shell"
+
+# Context rules (ACTIVE - Issue #597)
+# These are evaluated dynamically based on issue context and command history
+context_rules:
+  # Rule 1: Files in issue scope (extracted from issue body)
+  - scope: "issue"
+    tier_adjustment: -1
+    reason: "file in issue scope"
+    notes: "Automatically matches against file patterns extracted from issue body"
+
+  # Rule 2: Test file modifications
+  - file_pattern: "*/test*/*"
+    tier_adjustment: -1
+    reason: "test file modification"
+
+  - file_pattern: "*/__tests__/*"
+    tier_adjustment: -1
+    reason: "test file modification"
+
+  - file_pattern: "*.test.*"
+    tier_adjustment: -1
+    reason: "test file modification"
+
+  - file_pattern: "*.spec.*"
+    tier_adjustment: -1
+    reason: "test file modification"
+
+  # Rule 3: Historical success patterns
+  - scope: "history"
+    success_threshold: 3
+    tier_adjustment: -1
+    reason: "historically safe command"
+    notes: "Commands with 3+ successful executions in history"
+
+  # Rule 4: Command context matching
+  - scope: "issue"
+    match_type: "keyword"
+    tier_adjustment: -1
+    reason: "command matches issue context"
+    notes: "Command contains keywords from issue"
+
+  # Rule 5: Files outside scope (escalation)
+  - scope: "issue"
+    match_type: "inverse"
+    tier_adjustment: 1
+    reason: "file outside issue scope"
+    notes: "Only applied if no other rules reduce tier"
+
+# Session caching configuration
+session_cache:
+  enabled: true
+  ttl_hours: 8           # Cache expires after 8 hours
+  max_entries: 1000      # Max cached decisions per session
+
+# Audit logging configuration
+audit:
+  enabled: true
+  log_dir: "~/.claude-tastic/permission-audit"
+  retention_days: 30
+  include_allow: true    # Log allowed operations too
+  include_input: false   # Don't log full input (may contain secrets)
+
+# Webhook escalation configuration
+webhook:
+  # Set these via environment variables:
+  # PERMISSION_WEBHOOK_URL - Endpoint for T3 escalation
+  # PERMISSION_WEBHOOK_TOKEN - Bearer token for auth
+  timeout_seconds: 10
+  retry_count: 1
+  fallback_on_error: deny  # deny or allow if webhook fails

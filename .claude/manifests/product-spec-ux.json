@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "product-spec-ux",
+  "display_name": "Product Spec & UX Agent",
+  "version": "1.0.0",
+  "description": "Creates product specs, user stories, UX flows, and acceptance criteria.",
+  "trust_tier": "T1",
+  "permission_level": "WRITE-LIMITED",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": ["docs/**/*.md", "specs/**/*.md", "docs/specs/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "pr.create", "file.write.src", "file.write.scripts"]
+  },
+  "metadata": {
+    "sdlc_phase": "planning",
+    "agent_category": "planning"
+  }
+}

@@ -53,3 +53,5 @@ redis/data/
 # Misc
 *.log
 tmp/
+.claude/.manifest.json
+.claude/settings.json

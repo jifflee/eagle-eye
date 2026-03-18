@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "deployment",
+  "display_name": "Deployment Agent",
+  "version": "1.0.0",
+  "description": "Designs deployment strategy, rollback plans, and promotion flows.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-FULL",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "git.read", "git.write"],
+    "allowed_paths": ["deploy/**", "infrastructure/**", "k8s/**", "terraform/**", ".github/workflows/*deploy*"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "force-push"]
+  },
+  "metadata": {
+    "sdlc_phase": "deployment",
+    "agent_category": "infrastructure"
+  }
+}

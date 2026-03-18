@@ -1,0 +1,184 @@
+# GitHub Actions Workflow Template: Security Scan
+#
+# PURPOSE: Run security scanning on PRs and pushes to main/dev.
+#          Executes: secrets detection, OWASP checks, dependency audit.
+#
+# TO ACTIVATE: Copy this file to .github/workflows/security-scan.yml
+#   cp scripts/ci/workflows/security-scan.yml .github/workflows/security-scan.yml
+#
+# NOTE: Container OAuth tokens lack `workflow` scope (see CLAUDE.md rule #16).
+#       This file lives in scripts/ci/workflows/ and must be manually copied
+#       to .github/workflows/ by a user with workflow scope.
+#
+# Local equivalents:
+#   ./scripts/ci/validators/security-scan.sh --full
+#   ./scripts/ci/validators/osv-scan.sh
+#   ./scripts/ci/validators/sast-scan.sh
+#   ./scripts/ci/validators/dep-audit.sh
+#
+# Run locally:
+#   ./scripts/ci/validators/security-scan.sh --full   # full codebase scan
+#   ./scripts/ci/validators/security-scan.sh --lightweight  # staged files only
+#
+# Exit codes from security-scan.sh:
+#   0  No findings
+#   1  Medium/low findings (non-blocking)
+#   2  Critical/high findings (blocks CI)
+#
+# Issue: #1219
+
+name: Security Scan
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  schedule:
+    # Run nightly at 02:00 UTC to catch newly disclosed vulnerabilities
+    - cron: '0 2 * * *'
+
+permissions:
+  contents: read
+  security-events: write  # Required for uploading SARIF results
+
+jobs:
+  secrets-scan:
+    name: Secrets & Sensitivity Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Run secrets/sensitivity scan
+        run: |
+          chmod +x scripts/ci/validators/security-scan.sh
+          ./scripts/ci/validators/security-scan.sh --full --categories=secrets --severity=high
+        env:
+          SECURITY_SCAN_REPORT: security-report-secrets.json
+
+      - name: Upload secrets report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-secrets
+          path: security-report-secrets.json
+          retention-days: 30
+
+  sast-scan:
+    name: SAST (Static Analysis)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Run SAST scan
+        run: |
+          chmod +x scripts/ci/validators/sast-scan.sh
+          ./scripts/ci/validators/sast-scan.sh
+        continue-on-error: true  # SAST findings are advisory; review output
+
+      - name: Run OWASP security scan
+        run: |
+          chmod +x scripts/ci/validators/security-scan.sh
+          ./scripts/ci/validators/security-scan.sh --full --categories=owasp --severity=medium
+        env:
+          SECURITY_SCAN_REPORT: security-report-owasp.json
+
+      - name: Upload OWASP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-owasp
+          path: security-report-owasp.json
+          retention-days: 30
+
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies (if requirements.txt exists)
+        run: |
+          if [[ -f requirements.txt ]]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Run OSV vulnerability scan
+        run: |
+          if [[ -f scripts/ci/validators/osv-scan.sh ]]; then
+            chmod +x scripts/ci/validators/osv-scan.sh
+            ./scripts/ci/validators/osv-scan.sh
+          else
+            echo "osv-scan.sh not found — skipping OSV scan"
+          fi
+
+      - name: Run dependency audit
+        run: |
+          if [[ -f scripts/ci/validators/dep-audit.sh ]]; then
+            chmod +x scripts/ci/validators/dep-audit.sh
+            ./scripts/ci/validators/dep-audit.sh
+          else
+            echo "dep-audit.sh not found — skipping dependency audit"
+          fi
+
+      - name: Run full dependency security scan
+        run: |
+          chmod +x scripts/ci/validators/security-scan.sh
+          ./scripts/ci/validators/security-scan.sh --full --categories=dependencies --severity=high
+        env:
+          SECURITY_SCAN_REPORT: security-report-deps.json
+
+      - name: Upload dependency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-dependencies
+          path: security-report-deps.json
+          retention-days: 30
+
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [secrets-scan, sast-scan, dependency-scan]
+    if: always()
+    steps:
+      - name: Check scan results
+        run: |
+          echo "Security scan jobs completed."
+          echo "secrets-scan:    ${{ needs.secrets-scan.result }}"
+          echo "sast-scan:       ${{ needs.sast-scan.result }}"
+          echo "dependency-scan: ${{ needs.dependency-scan.result }}"
+
+          # Fail the summary job if the secrets scan failed
+          # (SAST is advisory; dep scan is informational unless critical)
+          if [[ "${{ needs.secrets-scan.result }}" == "failure" ]]; then
+            echo "FATAL: Secrets scan failed. Review findings and remove secrets."
+            exit 1
+          fi
+
+          echo "Security checks passed or are advisory."

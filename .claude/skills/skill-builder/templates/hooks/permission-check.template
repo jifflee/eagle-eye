@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# {{NAME}}.sh
+# Permission check hook
+# Evaluates permissions for operations based on tier classification
+
+set -euo pipefail
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Audit directory
+AUDIT_DIR="${HOME}/.claude-tastic/permission-audit"
+mkdir -p "$AUDIT_DIR"
+
+# Log function
+log_hook() {
+    local level="$1"
+    local message="$2"
+    local log_file="$AUDIT_DIR/hook-$(date +%Y%m%d).log"
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [$level] $message" >> "$log_file"
+}
+
+log_hook "INFO" "Permission check hook: {{NAME}}"
+
+# Read hook input from stdin
+HOOK_INPUT=$(cat)
+
+# Parse hook event
+HOOK_EVENT=$(echo "$HOOK_INPUT" | jq -r '.hook_event_name // "PreToolUse"')
+TOOL_NAME=$(echo "$HOOK_INPUT" | jq -r '.tool_name // ""')
+TOOL_INPUT=$(echo "$HOOK_INPUT" | jq -r '.tool_input // {}')
+
+log_hook "INFO" "Event: $HOOK_EVENT, Tool: $TOOL_NAME"
+
+# Permission decision logic
+check_permission() {
+    local tool="$1"
+
+    # TODO: Implement your permission logic here
+    # Return decision as JSON:
+    # {"decision":"allow","reason":"..."}
+    # {"decision":"deny","reason":"..."}
+
+    # Example: Allow read operations, deny everything else
+    case "$tool" in
+        Read|Glob|Grep)
+            echo '{"decision":"allow","reason":"Read operation approved"}'
+            ;;
+        *)
+            echo '{"decision":"deny","reason":"Operation requires approval"}'
+            ;;
+    esac
+}
+
+# Main logic
+DECISION=$(check_permission "$TOOL_NAME")
+DECISION_TYPE=$(echo "$DECISION" | jq -r '.decision')
+
+log_hook "INFO" "Decision: $DECISION_TYPE"
+
+# Output decision
+echo "$DECISION"
+
+# Exit based on decision
+if [ "$DECISION_TYPE" = "allow" ]; then
+    exit 0
+else
+    exit 2  # Exit 2 blocks execution
+fi

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# {{NAME}}.sh
+# {{DESCRIPTION}}
+
+set -euo pipefail
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source common utilities
+# shellcheck source=scripts/lib/common.sh
+source "$(dirname "${SCRIPT_DIR}")/../scripts/lib/common.sh" 2>/dev/null || {
+    echo "Warning: common.sh not found, using fallback functions"
+    log_info() { echo "[INFO] $*" >&2; }
+    log_warn() { echo "[WARN] $*" >&2; }
+    log_error() { echo "[ERROR] $*" >&2; }
+    log_success() { echo "[SUCCESS] $*" >&2; }
+}
+
+# Usage information
+usage() {
+    cat <<EOF
+Usage: {{NAME}}.sh [OPTIONS] [ARGUMENTS]
+
+{{DESCRIPTION}}
+
+OPTIONS:
+    -h, --help      Show this help message
+    -v, --verbose   Enable verbose output
+
+EXAMPLES:
+    {{NAME}}.sh
+    {{NAME}}.sh --verbose
+
+EOF
+    exit 0
+}
+
+# Main logic
+main() {
+    local verbose=false
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                usage
+                ;;
+            -v|--verbose)
+                verbose=true
+                shift
+                ;;
+            *)
+                echo "Unknown option: $1"
+                usage
+                ;;
+        esac
+    done
+
+    log_info "Running {{NAME}}..."
+
+    # TODO: Implement your skill logic here
+
+    log_success "{{NAME}} completed successfully"
+}
+
+# Run main
+main "$@"

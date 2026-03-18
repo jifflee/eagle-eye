@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "description": "License policy for dependency compliance - defines allowed, flagged, and blocked licenses",
+  "allowed": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "CC0-1.0",
+    "0BSD",
+    "Unlicense",
+    "Python-2.0",
+    "PSF-2.0",
+    "Zlib",
+    "X11",
+    "libpng"
+  ],
+  "flagged_for_review": [
+    "GPL-2.0",
+    "GPL-3.0",
+    "LGPL-2.1",
+    "LGPL-3.0",
+    "AGPL-3.0",
+    "MPL-2.0",
+    "EPL-1.0",
+    "EPL-2.0",
+    "CDDL-1.0",
+    "CPL-1.0",
+    "OSL-3.0",
+    "Artistic-2.0"
+  ],
+  "blocked": [
+    "SSPL-1.0",
+    "Commons Clause",
+    "BUSL-1.1"
+  ],
+  "dual_licensed_acceptable": true,
+  "unknown_license_action": "flag",
+  "rationale": {
+    "allowed": "Permissive licenses compatible with commercial and non-commercial use",
+    "flagged_for_review": "Copyleft licenses requiring legal review for compliance - may be acceptable depending on usage",
+    "blocked": "Licenses incompatible with project requirements - SSPL and Commons Clause restrict commercial use, BUSL has time-based restrictions",
+    "dual_licensed_acceptable": "Dual-licensed packages (e.g., MIT OR GPL-2.0) are acceptable if at least one license is allowed"
+  }
+}

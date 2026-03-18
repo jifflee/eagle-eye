@@ -1,0 +1,14 @@
+{
+  "script": "canary-health-check.sh",
+  "description": "Health check for canary deployments",
+  "network_calls": [
+    {
+      "host": "api.github.com",
+      "purpose": "GitHub API calls to check deployment status",
+      "required": true,
+      "tool": "gh",
+      "scope": "github_repo only"
+    }
+  ],
+  "tags": ["canary", "deployment", "health-check"]
+}

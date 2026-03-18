@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/skill-manifest.schema.json",
+  "title": "Skill Manifest",
+  "description": "Defines the structure and constraints for a Claude skill. Each skill must declare a manifest that is validated against this schema.",
+  "type": "object",
+  "required": [
+    "name",
+    "display_name",
+    "version",
+    "description",
+    "script_path",
+    "permissions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique skill identifier in kebab-case",
+      "examples": ["issue-checkout", "pr-review", "sprint-work"]
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Human-readable skill name"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Skill version (semver)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "Brief description of skill purpose and usage"
+    },
+    "script_path": {
+      "type": "string",
+      "pattern": "^skills/[a-z][a-z0-9-]*\\.sh$",
+      "description": "Path to the skill script relative to repo root"
+    },
+    "data_script_path": {
+      "type": "string",
+      "pattern": "^scripts/[a-z][a-z0-9-]*-data\\.sh$",
+      "description": "Optional path to data-gathering script (if skill uses one)"
+    },
+    "permissions": {
+      "type": "object",
+      "required": ["tier", "scopes"],
+      "additionalProperties": false,
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["T0", "T1", "T2", "T3"],
+          "description": "Permission tier. T0=read-only, T1=safe-write, T2=write-full, T3=destructive"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "file.read",
+              "file.write",
+              "github.read",
+              "github.write",
+              "git.read",
+              "git.write",
+              "shell.exec",
+              "network.read"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Permission scopes this skill requires"
+        },
+        "allowed_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns for paths this skill can write to"
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "syntax": {
+          "type": "string",
+          "description": "Command-line syntax for the skill",
+          "examples": ["/skill-name [options]", "/issue-checkout <issue-number>"]
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["command", "description"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Example command"
+              },
+              "description": {
+                "type": "string",
+                "description": "What this example does"
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 5,
+          "description": "Usage examples"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["flag", "description"],
+            "properties": {
+              "flag": {
+                "type": "string",
+                "pattern": "^--[a-z][a-z0-9-]*$",
+                "description": "Option flag"
+              },
+              "short": {
+                "type": "string",
+                "pattern": "^-[a-z]$",
+                "description": "Short flag variant"
+              },
+              "description": {
+                "type": "string",
+                "description": "Option description"
+              },
+              "required": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether this option is required"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["boolean", "string", "number"],
+                "default": "boolean",
+                "description": "Expected value type"
+              }
+            }
+          },
+          "description": "Available command-line options"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "description": "Other skills this skill depends on"
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "description": "Agents this skill invokes"
+        },
+        "tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "External tools/binaries required (e.g., jq, gh, docker)"
+        }
+      }
+    },
+    "proactive": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this skill should be proactively suggested by Claude"
+    },
+    "read_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this skill only reads data and makes no modifications"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "github",
+          "git",
+          "testing",
+          "ci-cd",
+          "deployment",
+          "security",
+          "monitoring",
+          "documentation",
+          "workflow",
+          "sprint",
+          "issue-management",
+          "pr-management",
+          "audit"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "Categorization tags for the skill"
+    }
+  }
+}

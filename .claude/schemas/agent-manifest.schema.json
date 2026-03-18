@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/agent-manifest.schema.json",
+  "title": "Agent Manifest",
+  "description": "Defines the capabilities, permissions, and constraints for a Claude agent. Each agent must declare a manifest that is validated against this schema before operation.",
+  "type": "object",
+  "required": [
+    "name",
+    "display_name",
+    "version",
+    "trust_tier",
+    "permission_level",
+    "capabilities",
+    "constraints"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique agent identifier in kebab-case",
+      "examples": ["backend-developer", "pm-orchestrator"]
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Human-readable agent name"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Manifest version (semver)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Brief description of agent purpose"
+    },
+    "trust_tier": {
+      "type": "string",
+      "enum": ["T0", "T1", "T2", "T3"],
+      "description": "Maximum trust tier this agent can access. T0=read-only, T1=safe-write, T2=write-full, T3=destructive"
+    },
+    "permission_level": {
+      "type": "string",
+      "enum": ["READ-ONLY", "WRITE-LIMITED", "WRITE-FULL", "MANAGED"],
+      "description": "Agent permission scope. READ-ONLY=T0 max, WRITE-LIMITED=scoped T1, WRITE-FULL=T2, MANAGED=T3 with user context"
+    },
+    "model": {
+      "type": "string",
+      "enum": ["haiku", "sonnet", "opus"],
+      "default": "haiku",
+      "description": "Recommended model for this agent. haiku=fast/cheap, sonnet=balanced, opus=deep reasoning"
+    },
+    "capabilities": {
+      "type": "object",
+      "required": ["domains"],
+      "additionalProperties": false,
+      "description": "What this agent can do",
+      "properties": {
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "file.read",
+              "file.write",
+              "file.write.src",
+              "file.write.scripts",
+              "file.write.backend",
+              "github.read",
+              "github.write",
+              "git.read",
+              "git.write",
+              "network.read",
+              "network.write",
+              "shell.exec",
+              "database.read",
+              "database.write"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Capability domains this agent has access to"
+        },
+        "allowed_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns for paths this agent can write to. Empty array means no write access."
+        },
+        "allowed_endpoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "External API endpoints this agent may access (default-deny egress)"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "required": ["blocked_operations"],
+      "additionalProperties": false,
+      "description": "What this agent cannot do",
+      "properties": {
+        "blocked_operations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "file.write",
+              "file.write.src",
+              "file.write.scripts",
+              "file.write.backend",
+              "git.commit",
+              "git.push",
+              "force-push",
+              "issue.close",
+              "issue.create",
+              "pr.merge",
+              "pr.create",
+              "pr.close",
+              "repo.delete",
+              "database.drop",
+              "database.truncate",
+              "milestone.close"
+            ]
+          },
+          "uniqueItems": true,
+          "description": "Operations explicitly denied to this agent"
+        },
+        "requires_review_from": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "description": "Other agents that must review this agent's output before acceptance"
+        },
+        "requires_user_context": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, agent can only operate when explicitly invoked by user or PM"
+        },
+        "allowed_t3_operations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "issue.close",
+              "issue.reopen",
+              "pr.merge",
+              "milestone.close",
+              "milestone.create"
+            ]
+          },
+          "description": "T3 operations this agent is permitted to perform (MANAGED tier only)"
+        }
+      }
+    },
+    "review_powers": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Special review capabilities for review agents",
+      "properties": {
+        "can_block_pr": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this agent's review can block PR merging"
+        },
+        "can_request_changes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this agent can formally request changes on PRs"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Additional agent metadata",
+      "properties": {
+        "sdlc_phase": {
+          "type": "string",
+          "enum": [
+            "planning",
+            "design",
+            "implementation",
+            "testing",
+            "review",
+            "deployment",
+            "governance"
+          ],
+          "description": "Primary SDLC phase this agent operates in"
+        },
+        "agent_category": {
+          "type": "string",
+          "enum": [
+            "planning",
+            "development",
+            "financial",
+            "review",
+            "infrastructure",
+            "governance"
+          ],
+          "description": "Organizational category"
+        }
+      }
+    }
+  }
+}

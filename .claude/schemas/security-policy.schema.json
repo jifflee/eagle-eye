@@ -1,0 +1,438 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/security-policy.schema.json",
+  "title": "Security Policy Schema",
+  "description": "JSON Schema for validating security policy files (policy-as-code) for the MCP Security Authorization Server. Defines risk classifications, authorization actions, and policy enforcement rules.",
+  "type": "object",
+  "required": [
+    "version",
+    "defaults",
+    "policies"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Policy schema version (semver)"
+    },
+    "defaults": {
+      "type": "object",
+      "required": ["default_risk_level", "default_action"],
+      "additionalProperties": false,
+      "properties": {
+        "default_risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Default risk level for operations not explicitly defined"
+        },
+        "default_action": {
+          "type": "string",
+          "enum": ["auto_approve", "log_and_approve", "require_approval", "multi_agent_consensus"],
+          "description": "Default authorization action for operations not explicitly defined"
+        },
+        "audit_all": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to audit all operations regardless of risk level"
+        },
+        "audit_log_path": {
+          "type": "string",
+          "description": "Path to audit log directory"
+        },
+        "audit_retention_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "description": "Number of days to retain audit logs"
+        }
+      }
+    },
+    "policies": {
+      "type": "array",
+      "minItems": 1,
+      "description": "List of security policies",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "risk_level", "action"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Unique policy identifier in kebab-case"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Human-readable policy name"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "description": "Policy priority for evaluation order (higher = evaluated first). Default: 0"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "description": "Risk classification: low=read-only, medium=reversible, high=destructive, critical=production/admin"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["auto_approve", "log_and_approve", "require_approval", "multi_agent_consensus"],
+            "description": "Authorization action to take when policy matches"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Detailed description of what this policy covers"
+          },
+          "patterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Regular expression patterns to match against commands/operations"
+          },
+          "agent_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Agent operation types from agent-permissions.yaml"
+          },
+          "file_patterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "File path patterns (glob) to match"
+          },
+          "excluded_patterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Patterns to exclude from matching"
+          },
+          "excluded_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Operations to exclude from this policy"
+          },
+          "approval_requirements": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Requirements for approval actions",
+            "properties": {
+              "user_confirmation": {
+                "type": "boolean",
+                "description": "Require explicit user confirmation"
+              },
+              "reason_required": {
+                "type": "boolean",
+                "description": "Require user to provide reason"
+              },
+              "dry_run_first": {
+                "type": "boolean",
+                "description": "Require dry-run execution before actual operation"
+              },
+              "ci_checks_passed": {
+                "type": "boolean",
+                "description": "Require CI checks to pass"
+              },
+              "review_approved": {
+                "type": "boolean",
+                "description": "Require code review approval"
+              },
+              "security_review": {
+                "type": "boolean",
+                "description": "Require security review"
+              },
+              "backup_verified": {
+                "type": "boolean",
+                "description": "Require backup verification"
+              },
+              "cost_estimate": {
+                "type": "boolean",
+                "description": "Require cost estimate for infrastructure changes"
+              },
+              "rollback_plan": {
+                "type": "boolean",
+                "description": "Require documented rollback plan"
+              },
+              "security_scan_passed": {
+                "type": "boolean",
+                "description": "Require security scan to pass"
+              },
+              "affected_branches": {
+                "type": "boolean",
+                "description": "List affected git branches"
+              },
+              "affected_items_list": {
+                "type": "boolean",
+                "description": "List affected files/resources"
+              },
+              "all_issues_closed": {
+                "type": "boolean",
+                "description": "Require all related issues to be closed"
+              },
+              "audit_logged": {
+                "type": "boolean",
+                "description": "Ensure operation is audit logged"
+              },
+              "consensus_agents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                "description": "List of agents required for consensus"
+              },
+              "minimum_approvals": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10,
+                "description": "Minimum number of approvals required"
+              }
+            }
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes about this policy"
+          }
+        }
+      }
+    },
+    "agent_operation_risk_levels": {
+      "type": "object",
+      "description": "Maps agent operations to risk levels",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["low", "medium", "high", "critical"]
+      }
+    },
+    "enforcement": {
+      "type": "object",
+      "required": ["enabled", "mode"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable or disable policy enforcement globally"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["strict", "advisory", "audit"],
+          "description": "Enforcement mode: strict=block violations, advisory=warn only, audit=log only"
+        },
+        "user_override": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Allow users to override policy decisions"
+            },
+            "requires_confirmation": {
+              "type": "boolean",
+              "description": "Require confirmation for overrides"
+            },
+            "log_all_overrides": {
+              "type": "boolean",
+              "description": "Log all user overrides"
+            }
+          }
+        },
+        "session_cache": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable session caching of approved operations"
+            },
+            "ttl_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 24,
+              "description": "Time-to-live for cached approvals in hours"
+            },
+            "max_entries": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 10000,
+              "description": "Maximum number of cached entries"
+            }
+          }
+        },
+        "webhook": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable webhook integration for approvals"
+            },
+            "timeout_seconds": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 300,
+              "description": "Webhook timeout in seconds"
+            },
+            "retry_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "description": "Number of retry attempts"
+            },
+            "fallback_on_error": {
+              "type": "string",
+              "enum": ["allow", "deny"],
+              "description": "Action to take if webhook fails"
+            }
+          }
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable audit logging"
+        },
+        "log_format": {
+          "type": "string",
+          "enum": ["json", "jsonl", "text"],
+          "description": "Audit log format"
+        },
+        "log_path": {
+          "type": "string",
+          "description": "Path to audit log directory"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "description": "Number of days to retain audit logs"
+        },
+        "log_operations": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allow": {
+              "type": "boolean",
+              "description": "Log allowed operations"
+            },
+            "deny": {
+              "type": "boolean",
+              "description": "Log denied operations"
+            },
+            "override": {
+              "type": "boolean",
+              "description": "Log user overrides"
+            },
+            "consensus": {
+              "type": "boolean",
+              "description": "Log consensus decisions"
+            }
+          }
+        },
+        "include_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "agent_name": {
+              "type": "boolean",
+              "description": "Include agent name in logs"
+            },
+            "risk_level": {
+              "type": "boolean",
+              "description": "Include risk level in logs"
+            },
+            "policy_id": {
+              "type": "boolean",
+              "description": "Include matched policy ID in logs"
+            },
+            "file_paths": {
+              "type": "boolean",
+              "description": "Include affected file paths in logs"
+            },
+            "command_pattern": {
+              "type": "boolean",
+              "description": "Include command pattern in logs"
+            },
+            "timestamp": {
+              "type": "boolean",
+              "description": "Include timestamp in logs"
+            },
+            "session_id": {
+              "type": "boolean",
+              "description": "Include session ID in logs"
+            },
+            "user_id": {
+              "type": "boolean",
+              "description": "Include user ID in logs (privacy consideration)"
+            }
+          }
+        },
+        "redact_patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Patterns to redact from logs (e.g., passwords, secrets)"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Policy metadata",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "Schema version"
+        },
+        "created_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Policy creation date (YYYY-MM-DD)"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date",
+          "description": "Last modification date (YYYY-MM-DD)"
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Policy authors"
+        },
+        "related_issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Related GitHub issues"
+        },
+        "related_docs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Related documentation files"
+        }
+      }
+    }
+  }
+}

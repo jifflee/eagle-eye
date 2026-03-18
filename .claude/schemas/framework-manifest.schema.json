@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-agents/schemas/framework-manifest.schema.json",
+  "title": "Framework Manifest",
+  "description": "Schema for .claude/.manifest.json - tracks all framework files for total sync operations",
+  "type": "object",
+  "required": ["manifest_version", "framework_version", "generated_at", "git_commit", "file_count", "files"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "manifest_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Version of the manifest format itself"
+    },
+    "framework_version": {
+      "type": "string",
+      "description": "Framework version tag (e.g., v1.5.0 or dev)"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when manifest was generated"
+    },
+    "git_commit": {
+      "type": "string",
+      "description": "Git commit hash of the framework repo at generation time"
+    },
+    "file_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of tracked files"
+    },
+    "files": {
+      "type": "object",
+      "description": "Map of source path -> file metadata",
+      "additionalProperties": {
+        "$ref": "#/$defs/fileEntry"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "fileEntry": {
+      "type": "object",
+      "required": ["target", "category", "hash", "size"],
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "Target path relative to .claude/ (where file is deployed)"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["agents", "commands", "skills", "hooks", "scripts", "configs", "schemas", "manifests"],
+          "description": "File category for sync filtering"
+        },
+        "hash": {
+          "type": "string",
+          "description": "SHA-256 hash of file content"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "File size in bytes"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

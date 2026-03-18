@@ -1,0 +1,83 @@
+# GitHub Actions Workflow Template: Linting
+#
+# PURPOSE: Run Python (ruff) and shell (shellcheck) linters on PRs.
+#
+# TO ACTIVATE: Copy this file to .github/workflows/lint.yml
+#   cp scripts/ci/workflows/lint.yml .github/workflows/lint.yml
+#
+# NOTE: The local equivalent is scripts/ci/lint.sh
+#   Run locally:
+#     ./scripts/ci/lint.sh              # all linters
+#     ./scripts/ci/lint.sh --python     # Python only
+#     ./scripts/ci/lint.sh --shell      # Shell only
+#     ./scripts/ci/lint.sh --changed-only  # PR-scoped
+#
+# Issue: #1202
+
+name: Lint
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - '**/*.py'
+      - '**/*.sh'
+      - '.shellcheckrc'
+      - 'pyproject.toml'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - '**/*.sh'
+      - '.shellcheckrc'
+      - 'pyproject.toml'
+
+permissions:
+  contents: read
+
+jobs:
+  lint-python:
+    name: Python Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run Python lint
+        run: |
+          chmod +x scripts/ci/lint.sh
+          ./scripts/ci/lint.sh --python --changed-only
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+
+  lint-shell:
+    name: Shell Lint (shellcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+
+      - name: Run shell lint
+        run: |
+          chmod +x scripts/ci/lint.sh
+          ./scripts/ci/lint.sh --shell --changed-only
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}

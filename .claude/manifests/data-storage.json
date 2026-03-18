@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "data-storage",
+  "display_name": "Data & Storage Agent",
+  "version": "1.0.0",
+  "description": "SQL/NoSQL schema design, table definitions, indexing, ETL/data flow recommendations.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-FULL",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "git.read", "git.write", "database.read", "database.write"],
+    "allowed_paths": ["migrations/**", "src/models/**", "src/schemas/**", "database/**", "docs/data/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "force-push", "database.drop", "database.truncate"]
+  },
+  "metadata": {
+    "sdlc_phase": "design",
+    "agent_category": "development"
+  }
+}

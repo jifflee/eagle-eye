@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "frontend-developer",
+  "display_name": "Frontend Developer Agent",
+  "version": "1.0.0",
+  "description": "Implements UI components, flows, and frontend data handling.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-FULL",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "github.write", "git.read", "git.write"],
+    "allowed_paths": ["src/components/**", "src/pages/**", "src/views/**", "src/ui/**", "src/styles/**", "public/**", "tests/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "force-push", "file.write.backend"]
+  },
+  "metadata": {
+    "sdlc_phase": "implementation",
+    "agent_category": "development"
+  }
+}

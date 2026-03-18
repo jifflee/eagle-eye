@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook for naming convention validation
+# Install with: ./scripts/hooks/install-hooks.sh
+#
+
+set -e
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_DIR="$( cd "$SCRIPT_DIR/../.." && pwd )"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo "Running pre-commit naming validation..."
+
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  echo "No files staged for commit."
+  exit 0
+fi
+
+ERRORS=0
+
+# Check each staged file for naming convention violations
+while IFS= read -r file; do
+  filename=$(basename "$file")
+
+  # Check shell scripts
+  if [[ "$file" == *.sh ]]; then
+    if [[ ! "$filename" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*\.sh$ ]]; then
+      echo -e "${RED}✗${NC} Script name violation: $file"
+      echo "  Should be kebab-case (e.g., my-script.sh)"
+      ((ERRORS++)) || true
+    fi
+  fi
+
+  # Check for spaces in filenames
+  if [[ "$filename" == *" "* ]]; then
+    echo -e "${RED}✗${NC} Filename contains spaces: $file"
+    echo "  Use hyphens instead of spaces"
+    ((ERRORS++)) || true
+  fi
+
+  # Check for prohibited generic names
+  if [[ "$filename" == "utils.ts" ]] || [[ "$filename" == "helpers.ts" ]] || [[ "$filename" == "misc.ts" ]]; then
+    echo -e "${RED}✗${NC} Prohibited generic name: $file"
+    echo "  Use a more specific name (e.g., string-utils.ts)"
+    ((ERRORS++)) || true
+  fi
+
+  # Check directories in file paths
+  dir=$(dirname "$file")
+  while [[ "$dir" != "." ]] && [[ "$dir" != "/" ]]; do
+    dirname=$(basename "$dir")
+
+    # Skip hidden directories and special cases
+    if [[ "$dirname" != .* ]] && [[ "$dirname" != "node_modules" ]]; then
+      # Allow GitHub special directories
+      if [[ "$dir" == .github/* ]] && [[ "$dirname" =~ ^[A-Z_]+$ ]]; then
+        : # Skip GitHub convention directories
+      elif [[ ! "$dirname" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]] && [[ ! "$dirname" =~ ^[A-Z][a-zA-Z0-9]*$ ]]; then
+        echo -e "${YELLOW}⚠${NC} Directory name may violate convention: $dir"
+        echo "  Consider using kebab-case"
+      fi
+    fi
+
+    dir=$(dirname "$dir")
+  done
+
+done <<< "$STAGED_FILES"
+
+if [ "$ERRORS" -gt 0 ]; then
+  echo ""
+  echo -e "${RED}Found $ERRORS naming convention violation(s).${NC}"
+  echo "See: docs/standards/NAMING_CONVENTIONS.md"
+  echo ""
+  echo "To bypass this check (not recommended), use: git commit --no-verify"
+  exit 1
+fi
+
+echo -e "${GREEN}✓${NC} All staged files pass naming conventions."
+
+# Check if any config files were modified
+CONFIG_MODIFIED=false
+while IFS= read -r file; do
+  if [[ "$file" == config/* ]]; then
+    CONFIG_MODIFIED=true
+    break
+  fi
+done <<< "$STAGED_FILES"
+
+# Regenerate manifest if configs were modified
+if [ "$CONFIG_MODIFIED" = true ]; then
+  echo ""
+  echo "Regenerating sync manifest..."
+  if [ -f "$REPO_DIR/scripts/generate-manifest.sh" ]; then
+    if "$REPO_DIR/scripts/generate-manifest.sh"; then
+      # Stage the updated manifest
+      git add "$REPO_DIR/.sync-manifest.json"
+      echo -e "${GREEN}✓${NC} Manifest regenerated and staged"
+    else
+      echo -e "${RED}✗${NC} Failed to regenerate manifest"
+      exit 1
+    fi
+  else
+    echo -e "${YELLOW}⚠${NC} generate-manifest.sh not found, skipping manifest regeneration"
+  fi
+fi
+
+# Run documentation sync check (warns about stale docs, never blocks)
+if [ -f "$REPO_DIR/scripts/hooks/pre-commit-doc-sync.sh" ]; then
+  "$REPO_DIR/scripts/hooks/pre-commit-doc-sync.sh" || true
+fi
+
+# Check skill file sizes for any staged skill files
+SKILL_FILES_STAGED=false
+while IFS= read -r file; do
+  if [[ "$file" == .claude/commands/*.md ]] || [[ "$file" == core/commands/*.md ]] || [[ "$file" == "CLAUDE.md" ]] || [[ "$file" == "core/CLAUDE.md" ]]; then
+    SKILL_FILES_STAGED=true
+    break
+  fi
+done <<< "$STAGED_FILES"
+
+if [ "$SKILL_FILES_STAGED" = true ]; then
+  echo ""
+  echo "Checking skill file sizes (Anthropic <500 line guidance)..."
+  if [ -f "$REPO_DIR/scripts/ci/validators/check-skill-sizes.sh" ]; then
+    # Check each staged skill file individually
+    while IFS= read -r file; do
+      if [[ "$file" == .claude/commands/*.md ]] || [[ "$file" == core/commands/*.md ]] || [[ "$file" == "CLAUDE.md" ]] || [[ "$file" == "core/CLAUDE.md" ]]; then
+        if [ -f "$file" ]; then
+          if ! "$REPO_DIR/scripts/ci/validators/check-skill-sizes.sh" "$file" >/dev/null 2>&1; then
+            echo -e "${RED}✗${NC} Skill file exceeds 500 lines: $file"
+            echo "  Run: ./scripts/ci/validators/check-skill-sizes.sh --fix"
+            echo "  See: SKILL_SIZE_POLICY.md"
+            ERRORS=$((ERRORS + 1))
+          fi
+        fi
+      fi
+    done <<< "$STAGED_FILES"
+
+    if [ "$ERRORS" -gt 0 ]; then
+      echo ""
+      echo -e "${RED}Skill file size violations found.${NC}"
+      echo "Anthropic guidance: SKILL.md files must be <500 lines"
+      echo "Run with --fix flag to see refactoring suggestions:"
+      echo "  ./scripts/ci/validators/check-skill-sizes.sh --fix"
+      echo ""
+      echo "To bypass this check (not recommended), use: git commit --no-verify"
+      exit 1
+    else
+      echo -e "${GREEN}✓${NC} All staged skill files are within size limits"
+    fi
+  fi
+fi
+
+# Validate commit message (conventional commits)
+if [ -f "$REPO_DIR/scripts/hooks/validate-commit-msg.sh" ]; then
+  echo ""
+  echo "Validating commit message format..."
+
+  # Get the commit message from the command line or editor
+  # For pre-commit hook, we check if COMMIT_MSG is in env (set by commit-msg hook)
+  # Otherwise, we skip (commit-msg hook will handle it)
+  if [ -n "${COMMIT_MSG:-}" ]; then
+    if ! "$REPO_DIR/scripts/hooks/validate-commit-msg.sh" "$COMMIT_MSG"; then
+      echo ""
+      echo -e "${RED}Commit message validation failed${NC}"
+      echo "See: docs/standards/COMMIT_CONVENTIONS.md"
+      echo ""
+      echo "To bypass this check (not recommended), use: git commit --no-verify"
+      exit 1
+    fi
+  else
+    # Commit message will be validated by commit-msg hook
+    echo -e "${GREEN}✓${NC} Commit message will be validated after editor closes"
+  fi
+fi
+
+exit 0

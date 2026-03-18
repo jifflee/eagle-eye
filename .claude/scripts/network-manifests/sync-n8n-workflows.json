@@ -1,0 +1,14 @@
+{
+  "script": "sync-n8n-workflows.sh",
+  "description": "Sync n8n workflows via n8n API",
+  "network_calls": [
+    {
+      "host": "localhost",
+      "purpose": "n8n API calls for workflow synchronization",
+      "required": true,
+      "tool": "curl",
+      "scope": "local only"
+    }
+  ],
+  "tags": ["n8n", "workflow-sync", "infrastructure"]
+}

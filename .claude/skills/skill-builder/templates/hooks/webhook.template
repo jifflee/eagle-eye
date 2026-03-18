@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# {{NAME}}.sh
+# Webhook hook
+# Sends notifications to external webhook endpoints
+
+set -euo pipefail
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Configuration
+WEBHOOK_URL="${WEBHOOK_URL:-}"  # Set via environment variable
+
+# Log file
+LOG_FILE="${HOME}/.claude-tastic/hooks/{{NAME}}.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+
+# Log function
+log_hook() {
+    local level="$1"
+    local message="$2"
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [$level] $message" >> "$LOG_FILE"
+}
+
+log_hook "INFO" "Webhook hook: {{NAME}}"
+
+# Check if webhook URL is configured
+if [ -z "$WEBHOOK_URL" ]; then
+    log_hook "WARN" "WEBHOOK_URL not configured, skipping webhook"
+    exit 0
+fi
+
+# Prepare payload
+prepare_payload() {
+    cat <<EOF
+{
+  "event": "{{NAME}}",
+  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "hostname": "$(hostname)",
+  "user": "${USER}",
+  "data": {
+    "message": "Hook triggered"
+  }
+}
+EOF
+}
+
+# Send webhook
+send_webhook() {
+    local url="$1"
+    local payload="$2"
+
+    log_hook "INFO" "Sending webhook to: $url"
+
+    # Send POST request
+    if curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "$payload" \
+        "$url" \
+        --max-time 5 \
+        --silent \
+        --show-error \
+        >> "$LOG_FILE" 2>&1; then
+        log_hook "INFO" "Webhook sent successfully"
+        return 0
+    else
+        log_hook "ERROR" "Webhook failed"
+        return 1
+    fi
+}
+
+# Main logic
+PAYLOAD=$(prepare_payload)
+
+if send_webhook "$WEBHOOK_URL" "$PAYLOAD"; then
+    exit 0
+else
+    # Don't fail the hook if webhook fails
+    exit 0
+fi

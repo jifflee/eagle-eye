@@ -1,0 +1,337 @@
+# ============================================================
+# Semgrep SAST Security Rules Configuration
+# Purpose: Security-focused static analysis ruleset
+#
+# This configuration extends Semgrep's community security rules
+# with custom rules tailored to this repository's tech stack.
+#
+# Supported languages:
+#   - Bash (shell scripts)
+#   - Python
+#   - TypeScript/JavaScript
+#   - Generic (YAML, JSON, etc.)
+#
+# Rule categories:
+#   - Injection vulnerabilities (SQL, command, XSS, LDAP)
+#   - Authentication/authorization bypasses
+#   - Cryptographic weaknesses
+#   - Insecure deserialization
+#   - Path traversal and SSRF
+#   - Security misconfigurations
+#
+# Related: Issue #1042 - SAST integration
+# ============================================================
+
+rules:
+  # ─── Bash Security Rules ─────────────────────────────────────────────────
+
+  - id: bash-eval-injection
+    pattern: eval $EXPR
+    message: |
+      Potential command injection via 'eval'. User input in eval() can lead to
+      arbitrary code execution. Use safer alternatives or validate input strictly.
+    languages: [bash]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-78: OS Command Injection"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+
+  - id: bash-unquoted-variable-expansion
+    patterns:
+      - pattern: $CMD $VAR
+      - pattern-not: $CMD "$VAR"
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: \$\{?[A-Za-z_][A-Za-z0-9_]*\}?
+    message: |
+      Unquoted variable expansion can lead to word splitting and glob expansion.
+      Always quote variables: "$VAR" instead of $VAR
+    languages: [bash]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-78: OS Command Injection"
+
+  - id: bash-curl-insecure
+    patterns:
+      - pattern-either:
+          - pattern: curl ... -k ...
+          - pattern: curl ... --insecure ...
+    message: |
+      curl with -k/--insecure disables SSL/TLS certificate verification.
+      This allows man-in-the-middle attacks. Remove the insecure flag.
+    languages: [bash]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-295: Improper Certificate Validation"
+      owasp: "A02:2021 - Cryptographic Failures"
+
+  - id: bash-wget-no-check-certificate
+    pattern: wget ... --no-check-certificate ...
+    message: |
+      wget with --no-check-certificate disables SSL/TLS verification.
+      This allows MITM attacks. Remove this flag.
+    languages: [bash]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-295: Improper Certificate Validation"
+
+  # ─── Python Security Rules ───────────────────────────────────────────────
+
+  - id: python-eval-injection
+    pattern: eval($EXPR)
+    message: |
+      Using eval() with user input enables arbitrary code execution.
+      Use ast.literal_eval() for safe evaluation or validate input strictly.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-94: Code Injection"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+
+  - id: python-exec-injection
+    pattern: exec($EXPR)
+    message: |
+      Using exec() can lead to arbitrary code execution if user input is involved.
+      Avoid exec() or ensure input is strictly validated and sanitized.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-94: Code Injection"
+
+  - id: python-sql-injection-format
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute("..." % $VAR)
+          - pattern: $CURSOR.execute("..." + $VAR)
+          - pattern: $CURSOR.execute(f"... {$VAR} ...")
+      - pattern-not: $CURSOR.execute("..." % (...))
+    message: |
+      SQL query constructed with string formatting is vulnerable to SQL injection.
+      Use parameterized queries with placeholders: cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+
+  - id: python-command-injection-shell-true
+    patterns:
+      - pattern: subprocess.$FUNC(..., shell=True)
+      - pattern-not: subprocess.$FUNC("...", shell=True)
+    message: |
+      Using shell=True with variable commands enables command injection.
+      Use shell=False and pass command as a list: subprocess.run(["cmd", arg1, arg2])
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-78: OS Command Injection"
+      owasp: "A03:2021 - Injection"
+
+  - id: python-pickle-deserialization
+    patterns:
+      - pattern-either:
+          - pattern: pickle.loads($DATA)
+          - pattern: pickle.load($FILE)
+    message: |
+      Deserializing untrusted data with pickle can lead to arbitrary code execution.
+      Use safer formats like JSON for untrusted data.
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+      owasp: "A08:2021 - Software and Data Integrity Failures"
+
+  - id: python-yaml-unsafe-load
+    patterns:
+      - pattern-either:
+          - pattern: yaml.load($DATA)
+          - pattern: yaml.load($DATA, Loader=yaml.Loader)
+      - pattern-not: yaml.load($DATA, Loader=yaml.SafeLoader)
+    message: |
+      yaml.load() without SafeLoader can execute arbitrary Python code.
+      Use yaml.safe_load() or yaml.load(..., Loader=yaml.SafeLoader)
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+
+  - id: python-hardcoded-password
+    patterns:
+      - pattern-either:
+          - pattern: $VAR = "..."
+          - pattern: $DICT["..."] = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i)(password|passwd|pwd|secret|api_key|token)
+      - metavariable-regex:
+          metavariable: $DICT
+          regex: (?i)(config|settings|credentials)
+    message: |
+      Potential hardcoded password or secret detected.
+      Use environment variables or secret management systems instead.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      owasp: "A07:2021 - Identification and Authentication Failures"
+
+  - id: python-weak-crypto-md5
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.md5($DATA)
+          - pattern: hashlib.sha1($DATA)
+    message: |
+      MD5 and SHA1 are cryptographically broken. Use SHA256 or SHA512 instead.
+      For passwords, use bcrypt, argon2, or PBKDF2.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      owasp: "A02:2021 - Cryptographic Failures"
+
+  - id: python-assert-used
+    pattern: assert $EXPR
+    message: |
+      Assertions are removed in optimized Python (-O flag). Don't use assert for
+      security checks or input validation. Use explicit if statements and raise exceptions.
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-617: Reachable Assertion"
+
+  # ─── TypeScript/JavaScript Security Rules ────────────────────────────────
+
+  - id: ts-eval-injection
+    pattern: eval($EXPR)
+    message: |
+      eval() executes arbitrary JavaScript code and is extremely dangerous with user input.
+      Avoid eval() entirely or use safer alternatives like JSON.parse() for data.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-94: Code Injection"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+
+  - id: ts-function-constructor
+    pattern: new Function($ARGS, $BODY)
+    message: |
+      Function constructor can execute arbitrary code like eval().
+      Avoid using new Function() with untrusted input.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-94: Code Injection"
+
+  - id: ts-dangerous-innerhtml
+    patterns:
+      - pattern-either:
+          - pattern: $EL.innerHTML = $VAR
+          - pattern: $EL.outerHTML = $VAR
+      - pattern-not: $EL.innerHTML = "..."
+    message: |
+      Setting innerHTML with variables can lead to XSS attacks.
+      Use textContent, createElement(), or a sanitization library like DOMPurify.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-79: Cross-site Scripting (XSS)"
+      owasp: "A03:2021 - Injection"
+
+  - id: ts-sql-injection-template
+    patterns:
+      - pattern: $DB.query(`... ${$VAR} ...`)
+      - pattern-not: $DB.query("...")
+    message: |
+      SQL query with template literal interpolation is vulnerable to SQL injection.
+      Use parameterized queries: db.query('SELECT * FROM users WHERE id = ?', [userId])
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+      owasp: "A03:2021 - Injection"
+
+  - id: ts-hardcoded-secret
+    patterns:
+      - pattern-either:
+          - pattern: const $VAR = "..."
+          - pattern: let $VAR = "..."
+          - pattern: var $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i)(password|secret|api_key|apikey|token|private_key)
+    message: |
+      Potential hardcoded secret or credential.
+      Use environment variables (process.env.SECRET) or a secrets manager.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  # ─── Generic Security Rules ──────────────────────────────────────────────
+
+  - id: generic-aws-access-key
+    pattern-regex: (A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}
+    message: |
+      Potential AWS Access Key ID detected.
+      Remove credentials from code and use AWS IAM roles or environment variables.
+    languages: [generic]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      owasp: "A07:2021 - Identification and Authentication Failures"
+      confidence: HIGH
+
+  - id: generic-private-key
+    pattern-regex: -----BEGIN (RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY-----
+    message: |
+      Private key detected in code.
+      Remove immediately and rotate the key. Use secret management systems.
+    languages: [generic]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-522: Insufficiently Protected Credentials"
+      confidence: HIGH
+
+  - id: generic-github-token
+    pattern-regex: (ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{36,255}
+    message: |
+      GitHub token detected.
+      Remove the token and revoke it immediately at github.com/settings/tokens
+    languages: [generic]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+# ─── External Rulesets ───────────────────────────────────────────────────────
+# Extend with Semgrep's curated security rulesets
+# These are applied in addition to custom rules above
+
+# Uncomment to use additional rulesets (requires network access):
+# - https://semgrep.dev/p/security-audit
+# - https://semgrep.dev/p/owasp-top-ten
+# - https://semgrep.dev/p/cwe-top-25

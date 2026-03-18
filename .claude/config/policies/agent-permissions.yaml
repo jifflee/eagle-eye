@@ -1,0 +1,803 @@
+# Agent Permission Matrix
+#
+# Defines which permission tiers each agent can access.
+# See /docs/PERMISSION_TIERS.md for tier definitions.
+# See /docs/AGENT_PERMISSIONS.md for full documentation.
+#
+# Schema Version: 1.0.0
+
+version: "1.0.0"
+
+# Permission tier definitions reference
+# T0: Read-only (auto-allow)
+# T1: Safe write (auto-allow)
+# T2: Reversible write (session-once prompt)
+# T3: Destructive (always prompt)
+
+# Permission level definitions
+# READ-ONLY: T0 only
+# WRITE-LIMITED: T0-T1 (+ specific T2 for defined paths)
+# WRITE-FULL: T0-T2 (T3 requires explicit user context)
+
+agents:
+  # ============================================
+  # Product & Planning Agents
+  # ============================================
+
+  product-spec-ux:
+    display_name: "Product Spec & UX Agent"
+    max_tier: T1
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths:
+      - "docs/**/*.md"
+      - "specs/**/*.md"
+      - "docs/specs/**"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - pr.create
+      - file.write.src
+      - file.write.scripts
+    notes: "Can only write to documentation and specification files"
+
+  architect:
+    display_name: "Architect Agent"
+    max_tier: T1
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths:
+      - "docs/**/*.md"
+      - "docs/architecture/**"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - pr.create
+      - file.write.src
+      - file.write.scripts
+    notes: "Designs architecture, writes to docs only"
+
+  security-iam-design:
+    display_name: "Security & IAM Design Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "docs/security/**"
+      - "config/security/**"
+      - "scripts/security/**"
+      - ".github/workflows/*security*"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+    requires_review_for:
+      - "**/*.env*"
+      - "**/secrets/**"
+      - "**/credentials/**"
+    notes: "Can write security infrastructure code, requires review for secrets"
+
+  data-storage:
+    display_name: "Data & Storage Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "migrations/**"
+      - "src/models/**"
+      - "src/schemas/**"
+      - "database/**"
+      - "docs/data/**"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+      - database.drop
+      - database.truncate
+    notes: "Can write migrations and models, blocked from destructive DB ops"
+
+  pm-orchestrator:
+    display_name: "PM / Orchestrator Agent"
+    max_tier: T1
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths:
+      - "docs/plans/**"
+      - "docs/roadmaps/**"
+      - ".sprint-state.json"
+    blocked_operations:
+      - file.write.src
+      - file.write.scripts
+      - issue.close
+      - pr.merge
+      - pr.create
+      - git.commit
+      - git.push
+    notes: "Coordinates agents, cannot write production code. Delegates to WRITE-FULL agents."
+
+  # ============================================
+  # Financial Specialist Agents
+  # ============================================
+
+  options-strategy-analyst:
+    display_name: "Options Strategy Analyst"
+    max_tier: T1
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths:
+      - "docs/calculations/**"
+      - "docs/validation/**"
+    blocked_operations:
+      - file.write.src
+      - issue.close
+      - pr.merge
+    requires_model: sonnet
+    notes: "Reviews financial calculations, writes validation docs only"
+
+  financial-security-auditor:
+    display_name: "Financial Security Auditor"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    can_block_pr: true
+    requires_model: sonnet
+    notes: "Read-only review, can block PRs touching financial code"
+
+  financial-test-engineer:
+    display_name: "Financial Test Engineer"
+    max_tier: T2
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "tests/**"
+      - "test/**"
+      - "**/*.test.*"
+      - "**/*.spec.*"
+    blocked_operations:
+      - file.write.src
+      - issue.close
+      - pr.merge
+    notes: "Can only write test files"
+
+  fintech-data-engineer:
+    display_name: "Fintech Data Engineer"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "src/data/**"
+      - "src/adapters/**"
+      - "src/etl/**"
+      - "migrations/**"
+      - "scripts/data/**"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+    notes: "Implements data pipelines, adapters, and schemas"
+
+  # ============================================
+  # Development Agents
+  # ============================================
+
+  backend-developer:
+    display_name: "Backend Developer Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - github.write
+      - git.read
+      - git.write
+    allowed_paths:
+      - "src/**"
+      - "scripts/**"
+      - "config/**"
+      - "tests/**"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+    requires_review_from:
+      - financial-security-auditor  # For financial code
+    notes: "Full write access to source code, cannot close issues or merge"
+
+  frontend-developer:
+    display_name: "Frontend Developer Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - github.write
+      - git.read
+      - git.write
+    allowed_paths:
+      - "src/components/**"
+      - "src/pages/**"
+      - "src/views/**"
+      - "src/ui/**"
+      - "src/styles/**"
+      - "public/**"
+      - "tests/**"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+      - file.write.backend  # Cannot write to API/service code
+    notes: "Full write access to UI code only"
+
+  code-reviewer:
+    display_name: "Code Reviewer Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    notes: "Read-only code review, provides feedback only"
+
+  bug:
+    display_name: "Bug Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    notes: "Analyzes and triages bugs, provides diagnosis only"
+
+  # ============================================
+  # Pre-PR Quality Agents
+  # ============================================
+
+  test-qa:
+    display_name: "Test & QA Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - github.write
+      - git.read
+      - git.write
+    allowed_paths:
+      - "tests/**"
+      - "test/**"
+      - "**/*.test.*"
+      - "**/*.spec.*"
+      - "cypress/**"
+      - "playwright/**"
+    blocked_operations:
+      - file.write.src  # Only test files
+      - issue.close
+      - pr.merge
+    notes: "Creates and maintains tests, can create PRs"
+
+  security-iam-prepr:
+    display_name: "Security & IAM Agent (Pre-PR)"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    can_block_pr: true
+    requires_model: sonnet
+    notes: "Deep security review, blocks PRs with vulnerabilities"
+
+  documentation:
+    display_name: "Documentation Agent"
+    max_tier: T2
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "docs/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "**/*.md"
+    blocked_operations:
+      - file.write.src
+      - file.write.scripts
+      - issue.close
+      - pr.merge
+    notes: "Writes documentation only"
+
+  # ============================================
+  # PR Review Agents
+  # ============================================
+
+  pr-code-reviewer:
+    display_name: "PR Code Reviewer Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    can_request_changes: true
+    notes: "Formal PR review, provides feedback only"
+
+  pr-security-iam:
+    display_name: "PR Security & IAM Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    can_block_pr: true
+    notes: "Final security review before merge"
+
+  pr-test:
+    display_name: "PR Test Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    notes: "Validates test coverage in PRs"
+
+  pr-documentation:
+    display_name: "PR Documentation Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    notes: "Validates documentation in PRs"
+
+  # ============================================
+  # Infrastructure & Governance
+  # ============================================
+
+  cicd-workflow:
+    display_name: "CI/CD Workflow Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - github.write
+      - git.read
+      - git.write
+    allowed_paths:
+      - ".github/workflows/**"
+      - "Makefile"
+      - "scripts/ci/**"
+      - "scripts/deploy/**"
+      - "docker/**"
+      - "Dockerfile*"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+    notes: "Manages CI/CD pipelines and deployment configs"
+
+  guardrails-policy:
+    display_name: "Guardrails & Policy Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    can_block_pr: true
+    notes: "Enforces standards and policies, can block non-compliant PRs"
+
+  documentation-librarian:
+    display_name: "Documentation Librarian Agent"
+    max_tier: T2
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "docs/**"
+      - "CLAUDE.md"
+      - "INSTRUCTIONS.md"
+      - "CONTRIBUTING.md"
+      - "**/*.md"
+    blocked_operations:
+      - file.write.src
+      - file.write.scripts
+      - issue.close
+      - pr.merge
+    notes: "Maintains global documentation and standards"
+
+  repo-workflow:
+    display_name: "Repo Workflow / Issue Manager Agent"
+    max_tier: T3
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - github.read
+      - github.write
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - force-push
+      - repo.delete
+    allowed_t3_operations:
+      - issue.close
+      - issue.reopen
+      - pr.merge   # Only when all checks pass
+      - milestone.close
+    requires_user_context: true
+    notes: "Full GitHub access, only when explicitly invoked by user/PM"
+
+  # ============================================
+  # Optional Engineering Specialties
+  # ============================================
+
+  deployment:
+    display_name: "Deployment Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "deploy/**"
+      - "infrastructure/**"
+      - "k8s/**"
+      - "terraform/**"
+      - ".github/workflows/*deploy*"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+    notes: "Manages deployment configurations"
+
+  performance-engineering:
+    display_name: "Performance Engineering Agent"
+    max_tier: T0
+    permission_level: READ-ONLY
+    allowed_categories:
+      - file.read
+      - github.read
+      - git.read
+    allowed_paths: []
+    blocked_operations:
+      - file.write
+      - git.commit
+      - git.push
+      - issue.close
+      - pr.merge
+    notes: "Reviews code for performance, provides recommendations only"
+
+  refactoring-specialist:
+    display_name: "Refactoring Specialist Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "src/**"
+      - "tests/**"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+    notes: "Refactors code while maintaining behavior"
+
+  dependency-manager:
+    display_name: "Dependency Manager Agent"
+    max_tier: T2
+    permission_level: WRITE-FULL
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "package.json"
+      - "package-lock.json"
+      - "requirements.txt"
+      - "Pipfile*"
+      - "poetry.lock"
+      - "pyproject.toml"
+      - "go.mod"
+      - "go.sum"
+      - "Cargo.toml"
+      - "Cargo.lock"
+    blocked_operations:
+      - issue.close
+      - pr.merge
+      - force-push
+    notes: "Manages dependencies and upgrades"
+
+  api-designer:
+    display_name: "API Designer Agent"
+    max_tier: T1
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - file.write
+      - github.read
+      - git.read
+      - git.write
+    allowed_paths:
+      - "docs/api/**"
+      - "openapi/**"
+      - "swagger/**"
+      - "graphql/**"
+      - "**/*.graphql"
+    blocked_operations:
+      - file.write.src
+      - issue.close
+      - pr.merge
+    notes: "Designs APIs, writes specs only"
+
+  milestone-manager:
+    display_name: "Milestone Manager Agent"
+    max_tier: T2
+    permission_level: WRITE-LIMITED
+    allowed_categories:
+      - file.read
+      - github.read
+      - github.write
+      - git.read
+    allowed_paths:
+      - "docs/milestones/**"
+      - ".sprint-state.json"
+    blocked_operations:
+      - file.write.src
+      - file.write.scripts
+      - issue.close
+      - pr.merge
+      - force-push
+    allowed_t2_operations:
+      - milestone.create
+      - milestone.edit
+      - issue.edit.labels
+      - issue.edit.milestone
+    notes: "Manages milestones and sprint planning"
+
+# ============================================
+# Enforcement Configuration
+# ============================================
+
+enforcement:
+  # Default behavior for unknown agents
+  default_max_tier: T0
+  default_permission_level: READ-ONLY
+
+  # Escape hatch configuration
+  user_override:
+    enabled: true
+    requires_confirmation: true
+    log_overrides: true
+
+  # Logging configuration
+  logging:
+    log_all_checks: false  # Only log denials by default
+    log_denials: true
+    log_path: ".claude-logs/permission-denials.jsonl"
+    include_context: true
+
+# ============================================
+# Category Definitions
+# ============================================
+
+categories:
+  file.read:
+    description: "Read files from filesystem"
+    tier: T0
+
+  file.write:
+    description: "Write files to filesystem"
+    tier: T2
+
+  file.write.src:
+    description: "Write to source code files"
+    tier: T2
+    paths: ["src/**", "lib/**"]
+
+  file.write.scripts:
+    description: "Write to script files"
+    tier: T2
+    paths: ["scripts/**", "bin/**"]
+
+  file.write.backend:
+    description: "Write to backend/API code"
+    tier: T2
+    paths: ["src/api/**", "src/services/**", "src/controllers/**"]
+
+  github.read:
+    description: "Read from GitHub API (issues, PRs, etc.)"
+    tier: T0
+
+  github.write:
+    description: "Write to GitHub (comments, labels, etc.)"
+    tier: T2
+
+  git.read:
+    description: "Read git state (log, status, diff)"
+    tier: T0
+
+  git.write:
+    description: "Write git state (commit, push)"
+    tier: T2
+
+# ============================================
+# Operation Definitions
+# ============================================
+
+operations:
+  issue.close:
+    tier: T3
+    category: github.write
+    description: "Close a GitHub issue"
+
+  issue.reopen:
+    tier: T2
+    category: github.write
+    description: "Reopen a GitHub issue"
+
+  pr.merge:
+    tier: T3
+    category: github.write
+    description: "Merge a pull request"
+
+  pr.create:
+    tier: T2
+    category: github.write
+    description: "Create a pull request"
+
+  force-push:
+    tier: T3
+    category: git.write
+    description: "Force push to remote"
+
+  repo.delete:
+    tier: T3
+    category: github.write
+    description: "Delete repository"
+    blocked_for_all: true
+
+  database.drop:
+    tier: T3
+    category: database
+    description: "Drop database or table"
+
+  database.truncate:
+    tier: T3
+    category: database
+    description: "Truncate table data"
+
+  milestone.close:
+    tier: T3
+    category: github.write
+    description: "Close a milestone"
+
+  milestone.create:
+    tier: T2
+    category: github.write
+    description: "Create a milestone"
+
+  milestone.edit:
+    tier: T2
+    category: github.write
+    description: "Edit milestone details"

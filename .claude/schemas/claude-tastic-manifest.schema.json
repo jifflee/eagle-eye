@@ -1,0 +1,209 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/claude-tastic-manifest.schema.json",
+  "title": "Claude-tastic Installation Manifest",
+  "description": "Tracks installed framework version, packs, and customizations",
+  "type": "object",
+  "required": [
+    "framework_version",
+    "installed_at",
+    "profile",
+    "packs_installed"
+  ],
+  "properties": {
+    "framework_version": {
+      "type": "string",
+      "description": "Installed framework version (semver)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0", "1.2.3", "2.0.0"]
+    },
+    "installed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the framework was installed (ISO 8601)",
+      "examples": ["2026-02-20T10:30:00Z"]
+    },
+    "profile": {
+      "type": "object",
+      "description": "Installation profile configuration",
+      "required": ["visibility", "execution_mode", "branch_strategy"],
+      "properties": {
+        "visibility": {
+          "type": "string",
+          "enum": ["public", "private"],
+          "description": "Repository visibility type"
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": ["local", "hosted", "hybrid"],
+          "description": "How sprint work is executed"
+        },
+        "branch_strategy": {
+          "type": "string",
+          "enum": ["main-only", "dev-qa-main"],
+          "description": "Branch deployment strategy"
+        }
+      }
+    },
+    "packs_installed": {
+      "type": "array",
+      "description": "List of installed feature packs",
+      "items": {
+        "type": "string",
+        "enum": [
+          "core",
+          "agents-full",
+          "agents-minimal",
+          "skills-sprint",
+          "skills-capture",
+          "skills-pr",
+          "skills-audit",
+          "skills-release",
+          "scripts-ci",
+          "scripts-container",
+          "scripts-validation",
+          "hooks",
+          "config-templates",
+          "skills-worktree",
+          "skills-milestone",
+          "skills-issue",
+          "skills-repo"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "packs_skipped": {
+      "type": "array",
+      "description": "Packs available but not installed",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "customizations": {
+      "type": "object",
+      "description": "Files that have been customized (protected from overwrites)",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["modified", "generated", "custom"],
+        "description": "Type of customization"
+      },
+      "examples": [
+        {
+          "repo-profile.yaml": "modified",
+          "CLAUDE.md": "generated",
+          ".claude/settings.json": "custom"
+        }
+      ],
+      "default": {}
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the framework was last updated (ISO 8601)",
+      "examples": ["2026-02-20T15:30:00Z"]
+    },
+    "update_history": {
+      "type": "array",
+      "description": "History of framework updates",
+      "items": {
+        "type": "object",
+        "required": ["from_version", "to_version", "updated_at"],
+        "properties": {
+          "from_version": {
+            "type": "string",
+            "description": "Previous version",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "to_version": {
+            "type": "string",
+            "description": "New version",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the update occurred"
+          },
+          "conflicts": {
+            "type": "array",
+            "description": "Files that had conflicts during update",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "auto_applied": {
+            "type": "boolean",
+            "description": "Whether update was fully automatic",
+            "default": true
+          }
+        }
+      },
+      "default": []
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "GitHub repository (owner/repo)",
+          "pattern": "^[^/]+/[^/]+$",
+          "examples": ["jifflee/my-project"]
+        },
+        "installed_by": {
+          "type": "string",
+          "description": "GitHub username who installed",
+          "examples": ["jifflee"]
+        },
+        "init_command": {
+          "type": "string",
+          "description": "Command used to initialize",
+          "enum": ["npx claude-tastic init", "/repo-init-claudetastic"],
+          "default": "npx claude-tastic init"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "framework_version": "1.2.0",
+      "installed_at": "2026-02-20T10:30:00Z",
+      "profile": {
+        "visibility": "private",
+        "execution_mode": "local",
+        "branch_strategy": "dev-qa-main"
+      },
+      "packs_installed": [
+        "core",
+        "agents-full",
+        "skills-sprint",
+        "skills-capture",
+        "skills-pr",
+        "skills-audit",
+        "skills-release",
+        "scripts-ci",
+        "scripts-validation",
+        "hooks",
+        "config-templates"
+      ],
+      "packs_skipped": [
+        "scripts-container"
+      ],
+      "customizations": {
+        "repo-profile.yaml": "modified",
+        "CLAUDE.md": "generated"
+      },
+      "last_updated": "2026-02-20T10:30:00Z",
+      "update_history": [],
+      "metadata": {
+        "repository": "jifflee/my-project",
+        "installed_by": "jifflee",
+        "init_command": "npx claude-tastic init"
+      }
+    }
+  ]
+}

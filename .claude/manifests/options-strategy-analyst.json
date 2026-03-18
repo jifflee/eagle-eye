@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "options-strategy-analyst",
+  "display_name": "Options Strategy Analyst",
+  "version": "1.0.0",
+  "description": "Validates covered call & cash-secured put logic, reviews Greeks calculations and yield formulas.",
+  "trust_tier": "T1",
+  "permission_level": "WRITE-LIMITED",
+  "model": "sonnet",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": ["docs/calculations/**", "docs/validation/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["file.write.src", "issue.close", "pr.merge"]
+  },
+  "metadata": {
+    "sdlc_phase": "review",
+    "agent_category": "financial"
+  }
+}

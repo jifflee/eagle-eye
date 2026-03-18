@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "fintech-data-engineer",
+  "display_name": "Fintech Data Engineer",
+  "version": "1.0.0",
+  "description": "Implements CSV ingestion, API adapters, database schema implementation, and RLS policies.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-FULL",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "git.read", "git.write", "database.read", "database.write"],
+    "allowed_paths": ["src/data/**", "src/adapters/**", "src/etl/**", "migrations/**", "scripts/data/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "force-push"]
+  },
+  "metadata": {
+    "sdlc_phase": "implementation",
+    "agent_category": "financial"
+  }
+}

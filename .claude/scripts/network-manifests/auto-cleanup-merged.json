@@ -1,0 +1,14 @@
+{
+  "script": "auto-cleanup-merged.sh",
+  "description": "Cleanup merged branches and worktrees",
+  "network_calls": [
+    {
+      "host": "api.github.com",
+      "purpose": "GitHub API calls to check PR merge status",
+      "required": true,
+      "tool": "gh",
+      "scope": "github_repo only"
+    }
+  ],
+  "tags": ["cleanup", "github", "automation"]
+}

@@ -1,0 +1,208 @@
+# Public Release Sensitivity Scan Allowlist
+# Defines patterns that are safe to include in public (external) repos
+# Used to suppress false positives during sensitivity scanning
+#
+# Related: Issue #934 (public/private repo detection)
+
+version: "1.0.0"
+
+# Allowlist for credentials and secrets
+credentials:
+  # Placeholder values (obviously fake)
+  placeholders:
+    - "your-api-key-here"
+    - "YOUR_API_KEY"
+    - "INSERT_API_KEY_HERE"
+    - "REPLACE_WITH_YOUR_KEY"
+    - "api_key_placeholder"
+    - "secret_placeholder"
+    - "token_placeholder"
+    - "password_placeholder"
+    - "your-token-here"
+    - "example-token-12345"
+    - "test-api-key-12345"
+    - "dummy-secret-key"
+    - "fake-password-123"
+
+  # Documentation examples with clearly synthetic credentials
+  documentation_examples:
+    - "ghp_exampletoken1234567890abcdefghijklmn"  # GitHub token example format
+    - "sk-proj-example1234567890abcdefghij"       # OpenAI key example format
+    - "xoxb-example-slack-token-12345"           # Slack token example
+    - "AKIA-EXAMPLE-AWS-KEY-1234"                # AWS key example
+
+  # Test fixture synthetic data
+  test_fixtures:
+    - "test-api-key"
+    - "test-secret"
+    - "test-token"
+    - "mock-api-key"
+    - "fixture-token"
+    - "unit-test-secret"
+
+# Allowlist for internal URLs
+internal_urls:
+  # Example domains used in documentation
+  safe_domains:
+    - "example.com"
+    - "example.org"
+    - "localhost"
+    - "127.0.0.1"
+    - "0.0.0.0"
+    - "test.local"
+    - "demo.local"
+
+  # Documentation/tutorial URLs that happen to match patterns
+  documentation_urls:
+    - "https://internal-api.example.com"  # Example in docs
+    - "http://192.168.1.1"                # Router example in networking docs
+
+# Allowlist for internal paths
+internal_paths:
+  # Example paths used in documentation
+  safe_paths:
+    - "/path/to/your/project"
+    - "/home/user/project"
+    - "/Users/username/project"
+    - "C:\\Users\\Example\\project"
+    - "~/project"
+    - "$HOME/project"
+    - "/tmp/"
+    - "/var/tmp/"
+
+  # Template placeholders
+  placeholders:
+    - "{USERNAME}"
+    - "{USER}"
+    - "{HOME}"
+    - "$USER"
+    - "$USERNAME"
+    - "$HOME"
+
+# Allowlist for environment files
+env_files:
+  # .env.example files (templates with placeholders)
+  safe_env_files:
+    - ".env.example"
+    - ".env.template"
+    - ".env.sample"
+    - "env.example"
+    - "config.example.yml"
+    - "config.template.yaml"
+
+  # Placeholder patterns in env files
+  safe_env_patterns:
+    - "=your-"
+    - "=YOUR_"
+    - "=example-"
+    - "=EXAMPLE_"
+    - "=placeholder"
+    - "=PLACEHOLDER"
+    - "=changeme"
+    - "=CHANGEME"
+
+# Allowlist for PII (documentation examples)
+pii:
+  # Example emails used in documentation
+  safe_emails:
+    - "user@example.com"
+    - "test@example.com"
+    - "admin@example.com"
+    - "support@example.com"
+    - "noreply@example.com"
+    - "hello@example.org"
+    - "contact@test.com"
+
+  # Example names in test fixtures
+  safe_names:
+    - "John Doe"
+    - "Jane Doe"
+    - "Test User"
+    - "Example User"
+    - "Demo User"
+    - "Sample User"
+
+# Allowlist for internal issue references
+internal_issues:
+  # Examples in documentation showing issue reference format
+  safe_issue_refs:
+    - "owner/repo#123"        # Example in docs about issue linking
+    - "example-repo#456"      # Tutorial example
+
+# Allowlist for license headers
+license:
+  # Common open-source licenses (safe for public repos)
+  safe_license_patterns:
+    - "MIT License"
+    - "Apache License"
+    - "BSD License"
+    - "GPL"
+    - "ISC License"
+    - "Creative Commons"
+
+# Allowlist for orchestration/automation
+orchestration:
+  # Example webhook URLs in documentation
+  safe_webhook_patterns:
+    - "https://hooks.example.com"
+    - "https://webhook.example.org"
+    - "https://n8n.example.com"
+
+# File patterns to exclude from scanning
+excluded_files:
+  # Test fixtures and example files
+  patterns:
+    - "**/*.example"
+    - "**/*.template"
+    - "**/*.sample"
+    - "**/examples/**"
+    - "**/fixtures/**"
+    - "**/test-data/**"
+    - "**/mocks/**"
+    - "**/__mocks__/**"
+    - "**/docs/**/*.md"      # Documentation files (but still scan code blocks)
+    - "**/README.md"
+    - "**/CONTRIBUTING.md"
+    - "**/LICENSE"
+    - "**/CHANGELOG.md"
+
+# Directory patterns to exclude
+excluded_directories:
+  - "node_modules"
+  - ".git"
+  - "vendor"
+  - "dist"
+  - "build"
+  - "coverage"
+  - ".cache"
+
+# Custom allowlist entries (add project-specific safe patterns here)
+custom:
+  # Project-specific patterns that are safe to release publicly
+  patterns: []
+
+  # Justification for custom entries (for audit trail)
+  justifications: {}
+
+# Metadata
+metadata:
+  schema_version: "1.0.0"
+  created_by: "/repo-init"
+  last_updated: ""
+  description: "Allowlist for public release sensitivity scanning to suppress false positives"
+
+# Usage notes
+# ------------
+# This allowlist is referenced by scripts/ci/sensitivity-scan.sh
+# during /pr-to-main for external repos and dual-repo sync operations.
+#
+# When a pattern is detected by the sensitivity scanner:
+# 1. Scanner checks if it matches any allowlist pattern
+# 2. If match found, finding is suppressed (not reported)
+# 3. If no match, finding is reported and blocks promotion
+#
+# To add a safe pattern:
+# 1. Identify the category (credentials, urls, paths, etc.)
+# 2. Add the pattern to the appropriate section
+# 3. If project-specific, add to 'custom.patterns' with justification
+# 4. Commit the updated allowlist to the repo

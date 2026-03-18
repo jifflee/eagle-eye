@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "architect",
+  "display_name": "Architect Agent",
+  "version": "1.0.0",
+  "description": "Designs architecture, module boundaries, and system diagrams.",
+  "trust_tier": "T1",
+  "permission_level": "WRITE-LIMITED",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "git.read"],
+    "allowed_paths": ["docs/**/*.md", "docs/architecture/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "pr.create", "file.write.src", "file.write.scripts"]
+  },
+  "metadata": {
+    "sdlc_phase": "design",
+    "agent_category": "planning"
+  }
+}

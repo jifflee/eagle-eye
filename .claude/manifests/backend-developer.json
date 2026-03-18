@@ -1,0 +1,22 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "backend-developer",
+  "display_name": "Backend Developer Agent",
+  "version": "1.0.0",
+  "description": "Implements backend logic following architecture and standards.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-FULL",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "file.write.src", "github.read", "github.write", "git.read", "git.write"],
+    "allowed_paths": ["src/**", "scripts/**", "config/error-solutions.yml", "tests/**"]
+  },
+  "constraints": {
+    "blocked_operations": ["issue.close", "pr.merge", "force-push"],
+    "requires_review_from": ["financial-security-auditor"]
+  },
+  "metadata": {
+    "sdlc_phase": "implementation",
+    "agent_category": "development"
+  }
+}

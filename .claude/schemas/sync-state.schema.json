@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/sync-state.schema.json",
+  "title": "Sync State",
+  "description": "Schema for ~/.claude-tastic/.sync-state.json - tracks configuration sync state",
+  "type": "object",
+  "required": ["schema_version", "initialized_at", "applied_versions", "sync_enabled"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Version of this schema (e.g., '1.0')"
+    },
+    "initialized_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the deployment was initialized"
+    },
+    "last_sync": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the last successful sync operation"
+    },
+    "applied_versions": {
+      "type": "object",
+      "description": "Tracks the currently applied version of each synced component",
+      "required": ["agents", "n8n-workflows", "settings"],
+      "properties": {
+        "agents": {
+          "type": ["string", "null"],
+          "description": "Git commit hash or version tag of applied agent definitions"
+        },
+        "n8n-workflows": {
+          "type": ["string", "null"],
+          "description": "Git commit hash or version tag of applied n8n workflows"
+        },
+        "settings": {
+          "type": ["string", "null"],
+          "description": "Git commit hash or version tag of applied settings"
+        }
+      },
+      "additionalProperties": {
+        "type": ["string", "null"],
+        "description": "Additional synced components"
+      }
+    },
+    "sync_enabled": {
+      "type": "boolean",
+      "description": "Whether automatic syncing is enabled for this deployment",
+      "default": false
+    },
+    "sync_source": {
+      "type": ["object", "null"],
+      "description": "Configuration for the sync source repository",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["git", "s3", "http"],
+          "description": "Type of sync source"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL or path to sync source"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Git branch to sync from (for git sources)",
+          "default": "main"
+        },
+        "auth_method": {
+          "type": "string",
+          "enum": ["none", "ssh", "token", "oauth"],
+          "description": "Authentication method for sync source"
+        }
+      },
+      "required": ["type", "url"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata about the deployment environment",
+      "properties": {
+        "hostname": {
+          "type": "string",
+          "description": "Hostname of the deployment machine"
+        },
+        "init_script_version": {
+          "type": "string",
+          "description": "Version of init-deployment.sh that initialized this deployment"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Operating system platform",
+          "enum": ["linux", "darwin", "windows", "unknown"]
+        },
+        "deployment_id": {
+          "type": "string",
+          "description": "Unique identifier for this deployment instance"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "User-defined tags for deployment categorization"
+        }
+      },
+      "additionalProperties": true
+    },
+    "sync_history": {
+      "type": "array",
+      "description": "History of sync operations (for auditing)",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "component", "from_version", "to_version", "status"],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the sync occurred"
+          },
+          "component": {
+            "type": "string",
+            "description": "Which component was synced"
+          },
+          "from_version": {
+            "type": ["string", "null"],
+            "description": "Previous version"
+          },
+          "to_version": {
+            "type": "string",
+            "description": "New version after sync"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["success", "failed", "partial"],
+            "description": "Outcome of the sync operation"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if sync failed"
+          }
+        }
+      },
+      "maxItems": 100
+    },
+    "overrides": {
+      "type": "object",
+      "description": "Track which files have local overrides",
+      "properties": {
+        "agents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of agent filenames with local overrides"
+        },
+        "workflows": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of workflow filenames with local overrides"
+        }
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "schema_version": "1.0",
+      "initialized_at": "2026-01-31T20:00:00Z",
+      "last_sync": null,
+      "applied_versions": {
+        "agents": null,
+        "n8n-workflows": null,
+        "settings": null
+      },
+      "sync_enabled": false,
+      "metadata": {
+        "hostname": "dev-machine",
+        "init_script_version": "1.0.0",
+        "platform": "darwin"
+      }
+    }
+  ]
+}

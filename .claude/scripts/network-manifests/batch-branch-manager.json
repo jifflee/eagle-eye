@@ -1,0 +1,21 @@
+{
+  "script": "batch-branch-manager.sh",
+  "description": "Manage multiple branches in batch operations",
+  "network_calls": [
+    {
+      "host": "api.github.com",
+      "purpose": "GitHub API calls for branch and PR management",
+      "required": true,
+      "tool": "gh",
+      "scope": "github_repo only"
+    },
+    {
+      "host": "github.com",
+      "purpose": "Git remote operations (push/pull)",
+      "required": true,
+      "tool": "git",
+      "scope": "github_repo only"
+    }
+  ],
+  "tags": ["branch-management", "github", "batch-operations"]
+}

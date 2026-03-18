@@ -1,0 +1,387 @@
+# Error Solutions Database
+# Pattern-based mappings of known errors to their resolutions
+#
+# Each entry contains:
+#   - error_pattern: regex or keyword pattern to match error messages
+#   - description: human-readable description of the error
+#   - resolution_steps: ordered list of steps to resolve
+#   - auto_fixable: boolean indicating if automated fix is possible
+#   - fix_command: command to execute for auto-fix (if auto_fixable: true)
+#   - confidence_threshold: minimum confidence (0-100) required for auto-fix
+#   - tags: categorization tags for filtering
+
+solutions:
+  - id: oom_kill
+    error_pattern: "(exit code 137|OOMKilled|Out of memory|killed by signal 9)"
+    description: "Out of Memory (OOM) kill - process exceeded memory limits"
+    resolution_steps:
+      - "Identify memory-intensive processes or containers"
+      - "Increase memory limits in deployment configuration"
+      - "Add memory requests/limits to resource specifications"
+      - "Consider optimizing code for lower memory usage"
+    auto_fixable: true
+    fix_command: |
+      # Increase memory limit by 50%
+      if [ -f "deployment.yml" ]; then
+        sed -i 's/memory: "\([0-9]*\)Mi"/memory: "$((\1 * 3 / 2))Mi"/' deployment.yml
+      fi
+      if [ -f "docker-compose.yml" ]; then
+        sed -i 's/mem_limit: \([0-9]*\)m/mem_limit: $((\1 * 3 / 2))m/' docker-compose.yml
+      fi
+    confidence_threshold: 80
+    tags: ["resource", "memory", "infrastructure"]
+
+  - id: auth_token_expired
+    error_pattern: "(401 Unauthorized|token expired|authentication failed|invalid token|TokenExpiredError)"
+    description: "Authentication token has expired and needs renewal"
+    resolution_steps:
+      - "Refresh authentication token"
+      - "Re-authenticate with the service"
+      - "Update token in environment variables or secrets"
+      - "Check token expiration policies"
+    auto_fixable: true
+    fix_command: |
+      # Refresh token if refresh script exists
+      if [ -f "scripts/refresh-token.sh" ]; then
+        bash scripts/refresh-token.sh
+      elif [ -n "$TOKEN_REFRESH_URL" ]; then
+        curl -X POST "$TOKEN_REFRESH_URL" -H "Authorization: Bearer $REFRESH_TOKEN"
+      fi
+    confidence_threshold: 85
+    tags: ["auth", "security", "api"]
+
+  - id: merge_conflict
+    error_pattern: "(CONFLICT|merge conflict|Automatic merge failed|both modified)"
+    description: "Git merge conflict detected during branch merge or rebase"
+    resolution_steps:
+      - "Abort current merge: git merge --abort"
+      - "Update local branch: git fetch origin"
+      - "Rebase on target branch: git rebase origin/main"
+      - "Resolve conflicts manually or use merge tools"
+      - "Continue rebase after resolution: git rebase --continue"
+    auto_fixable: false
+    fix_command: |
+      # Abort merge and prepare for manual resolution
+      git merge --abort 2>/dev/null || git rebase --abort 2>/dev/null
+      git fetch origin
+      echo "Manual conflict resolution required"
+    confidence_threshold: 90
+    tags: ["git", "merge", "vcs"]
+
+  - id: rate_limit
+    error_pattern: "(429 Too Many Requests|rate limit exceeded|API rate limit|quota exceeded)"
+    description: "API rate limit reached - too many requests in time window"
+    resolution_steps:
+      - "Wait for rate limit window to reset"
+      - "Implement exponential backoff in retry logic"
+      - "Add rate limiting to client requests"
+      - "Consider upgrading API tier or requesting higher limits"
+    auto_fixable: true
+    fix_command: |
+      # Wait and retry with exponential backoff
+      WAIT_TIME=${RATE_LIMIT_WAIT:-60}
+      echo "Rate limit hit, waiting ${WAIT_TIME}s before retry..."
+      sleep $WAIT_TIME
+      # Retry last failed command if available
+      if [ -n "$LAST_COMMAND" ]; then
+        eval "$LAST_COMMAND"
+      fi
+    confidence_threshold: 90
+    tags: ["api", "rate-limiting", "network"]
+
+  - id: missing_dependency
+    error_pattern: "(ModuleNotFoundError|cannot find module|dependency not found|package not found|ImportError)"
+    description: "Required dependency or package is not installed"
+    resolution_steps:
+      - "Identify missing package from error message"
+      - "Install dependency using package manager"
+      - "Update requirements.txt or package.json"
+      - "Verify installation and re-run"
+    auto_fixable: true
+    fix_command: |
+      # Auto-install dependencies based on project type
+      if [ -f "requirements.txt" ]; then
+        pip install -r requirements.txt
+      elif [ -f "package.json" ]; then
+        npm install
+      elif [ -f "Gemfile" ]; then
+        bundle install
+      elif [ -f "go.mod" ]; then
+        go mod download
+      fi
+    confidence_threshold: 75
+    tags: ["dependency", "build", "package-manager"]
+
+  - id: permission_denied
+    error_pattern: "(Permission denied|EACCES|Access denied|Forbidden|403 Forbidden)"
+    description: "Insufficient permissions to access file, directory, or resource"
+    resolution_steps:
+      - "Check file/directory permissions"
+      - "Verify user has appropriate access rights"
+      - "Update permissions: chmod or chown as needed"
+      - "Check service account or API permissions"
+    auto_fixable: true
+    fix_command: |
+      # Fix common permission issues
+      if [ -n "$PERMISSION_TARGET" ]; then
+        chmod +x "$PERMISSION_TARGET" 2>/dev/null || \
+        sudo chmod +x "$PERMISSION_TARGET"
+      fi
+      # Fix script permissions
+      find . -name "*.sh" -type f -exec chmod +x {} \; 2>/dev/null
+    confidence_threshold: 70
+    tags: ["permissions", "filesystem", "access"]
+
+  - id: timeout_error
+    error_pattern: "(timeout|timed out|ETIMEDOUT|connection timeout|request timeout|deadline exceeded)"
+    description: "Operation exceeded time limit before completion"
+    resolution_steps:
+      - "Increase timeout configuration value"
+      - "Check network connectivity and latency"
+      - "Optimize slow operations or queries"
+      - "Implement retry logic with backoff"
+    auto_fixable: true
+    fix_command: |
+      # Increase timeout values in common config files
+      if [ -f ".env" ]; then
+        sed -i 's/TIMEOUT=\([0-9]*\)/TIMEOUT=$((\1 * 2))/' .env
+      fi
+      # Retry with longer timeout if command available
+      if [ -n "$LAST_COMMAND" ]; then
+        timeout ${TIMEOUT_OVERRIDE:-300} $LAST_COMMAND
+      fi
+    confidence_threshold: 80
+    tags: ["timeout", "network", "performance"]
+
+  - id: disk_space_full
+    error_pattern: "(No space left on device|disk full|ENOSPC|storage quota exceeded)"
+    description: "Disk storage capacity has been exhausted"
+    resolution_steps:
+      - "Check disk usage: df -h"
+      - "Identify large files/directories: du -sh *"
+      - "Clean up temporary files and logs"
+      - "Remove old Docker images/containers"
+      - "Increase disk allocation if in cloud environment"
+    auto_fixable: true
+    fix_command: |
+      # Clean up common space-consuming items
+      # Remove old logs
+      find /var/log -type f -name "*.log" -mtime +30 -delete 2>/dev/null
+      find . -name "*.log" -size +100M -delete 2>/dev/null
+      # Clean Docker resources
+      docker system prune -af --volumes 2>/dev/null
+      # Clean package manager caches
+      apt-get clean 2>/dev/null || yum clean all 2>/dev/null
+      npm cache clean --force 2>/dev/null
+    confidence_threshold: 85
+    tags: ["disk", "storage", "cleanup"]
+
+  - id: port_already_in_use
+    error_pattern: "(address already in use|port.*already in use|EADDRINUSE|bind.*failed)"
+    description: "Network port is already bound by another process"
+    resolution_steps:
+      - "Identify process using port: lsof -i :PORT or netstat"
+      - "Stop conflicting process or service"
+      - "Change port configuration to use alternative port"
+      - "Kill process if safe: kill -9 PID"
+    auto_fixable: true
+    fix_command: |
+      # Extract port from error and kill process
+      PORT=$(echo "$ERROR_MESSAGE" | grep -oP ':\K\d+' | head -1)
+      if [ -n "$PORT" ]; then
+        PID=$(lsof -ti:$PORT 2>/dev/null)
+        if [ -n "$PID" ]; then
+          kill -9 $PID
+          echo "Killed process $PID on port $PORT"
+        fi
+      fi
+    confidence_threshold: 75
+    tags: ["network", "port", "process"]
+
+  - id: certificate_error
+    error_pattern: "(certificate.*expired|SSL certificate|CERT_HAS_EXPIRED|certificate verify failed|TLS handshake)"
+    description: "SSL/TLS certificate validation failed or expired"
+    resolution_steps:
+      - "Check certificate expiration date"
+      - "Renew certificate if expired"
+      - "Update certificate in configuration"
+      - "Verify certificate chain is complete"
+      - "Check system time/date is correct"
+    auto_fixable: true
+    fix_command: |
+      # Renew Let's Encrypt certificates if certbot available
+      if command -v certbot >/dev/null 2>&1; then
+        certbot renew --quiet --non-interactive
+      fi
+      # Update CA certificates
+      update-ca-certificates 2>/dev/null || \
+      update-ca-trust 2>/dev/null
+    confidence_threshold: 70
+    tags: ["ssl", "certificate", "security", "network"]
+
+  - id: database_connection_failed
+    error_pattern: "(database connection failed|could not connect to.*database|ECONNREFUSED.*database|connection refused.*:5432|connection refused.*:3306)"
+    description: "Unable to establish connection to database server"
+    resolution_steps:
+      - "Verify database service is running"
+      - "Check connection string and credentials"
+      - "Verify network connectivity to database host"
+      - "Check firewall rules and security groups"
+      - "Ensure database is accepting connections"
+    auto_fixable: true
+    fix_command: |
+      # Restart database service if running locally
+      if systemctl is-active postgresql >/dev/null 2>&1; then
+        systemctl restart postgresql
+      elif systemctl is-active mysql >/dev/null 2>&1; then
+        systemctl restart mysql
+      elif docker ps | grep -q postgres; then
+        docker restart $(docker ps -q -f name=postgres)
+      elif docker ps | grep -q mysql; then
+        docker restart $(docker ps -q -f name=mysql)
+      fi
+    confidence_threshold: 65
+    tags: ["database", "connection", "network"]
+
+  - id: npm_peer_dependency
+    error_pattern: "(ERESOLVE|peer dependency|unable to resolve dependency tree|conflicting peer dependency)"
+    description: "NPM peer dependency conflict preventing installation"
+    resolution_steps:
+      - "Review dependency conflict details"
+      - "Update conflicting packages to compatible versions"
+      - "Use --legacy-peer-deps flag as temporary workaround"
+      - "Consider updating to latest versions"
+    auto_fixable: true
+    fix_command: |
+      # Retry npm install with legacy peer deps flag
+      npm install --legacy-peer-deps
+    confidence_threshold: 80
+    tags: ["npm", "dependency", "javascript", "build"]
+
+  - id: docker_image_not_found
+    error_pattern: "(manifest.*not found|image.*not found|pull access denied|repository does not exist)"
+    description: "Docker image not found in registry or access denied"
+    resolution_steps:
+      - "Verify image name and tag are correct"
+      - "Check if image exists in specified registry"
+      - "Authenticate to private registry if needed"
+      - "Build image locally if not available"
+      - "Check registry URL and permissions"
+    auto_fixable: true
+    fix_command: |
+      # Try to build image if Dockerfile exists
+      if [ -f "Dockerfile" ]; then
+        IMAGE_NAME=$(grep -oP 'FROM \K[^\s]+' Dockerfile | head -1)
+        docker build -t "$IMAGE_NAME" .
+      fi
+      # Login to registry if credentials available
+      if [ -n "$DOCKER_REGISTRY_USER" ] && [ -n "$DOCKER_REGISTRY_PASS" ]; then
+        echo "$DOCKER_REGISTRY_PASS" | docker login -u "$DOCKER_REGISTRY_USER" --password-stdin
+      fi
+    confidence_threshold: 70
+    tags: ["docker", "registry", "build", "image"]
+
+  - id: container_generic_failure
+    error_pattern: "(exit code [1-9]|exited with code [1-9]|container.*failed|container.*exited|non-zero exit)"
+    description: "Container exited with non-zero exit code indicating a failure"
+    resolution_steps:
+      - "Check container logs: docker logs <container_id>"
+      - "Inspect container exit code for specific meaning"
+      - "Review entrypoint/command for errors"
+      - "Check environment variables and mounted volumes"
+      - "Retry with increased resources if exit code suggests resource issues"
+    auto_fixable: false
+    fix_command: ""
+    confidence_threshold: 65
+    tags: ["container", "docker", "exit-code"]
+
+  - id: container_timeout
+    error_pattern: "(container.*timeout|execution.*timeout|hard timeout|container.*exceeded.*time|watchdog.*timeout)"
+    description: "Container execution exceeded the configured time limit"
+    resolution_steps:
+      - "Increase container timeout configuration"
+      - "Check if the task is genuinely long-running or stuck"
+      - "Review container health checks and watchdog settings"
+      - "Consider breaking the task into smaller units"
+    auto_fixable: true
+    fix_command: |
+      # Increase container timeout by doubling
+      if [ -n "$CONTAINER_TIMEOUT" ]; then
+        export CONTAINER_TIMEOUT=$((CONTAINER_TIMEOUT * 2))
+        echo "Increased container timeout to ${CONTAINER_TIMEOUT}s"
+      fi
+    confidence_threshold: 75
+    tags: ["container", "timeout", "docker"]
+
+  - id: claude_api_token_limit
+    error_pattern: "(token limit|context.*too long|max.*tokens.*exceeded|prompt.*too large|context window|token.*exceeded)"
+    description: "Claude API request exceeded the maximum token limit"
+    resolution_steps:
+      - "Reduce the size of the input prompt or context"
+      - "Split the request into smaller chunks"
+      - "Summarize or truncate long inputs before sending"
+      - "Use a model with a larger context window if available"
+    auto_fixable: true
+    fix_command: |
+      # Clear context between phases to reduce token count
+      echo "Token limit exceeded. Consider clearing context or splitting input."
+      if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
+        # Truncate context to last 50% of content
+        LINES=$(wc -l < "$CONTEXT_FILE")
+        HALF=$((LINES / 2))
+        tail -n "$HALF" "$CONTEXT_FILE" > "${CONTEXT_FILE}.tmp"
+        mv "${CONTEXT_FILE}.tmp" "$CONTEXT_FILE"
+        echo "Context truncated to last $HALF lines"
+      fi
+    confidence_threshold: 80
+    tags: ["claude", "api", "token-limit"]
+
+  - id: claude_api_timeout
+    error_pattern: "(claude.*timeout|anthropic.*timeout|api.*request.*timed out|claude.*timed out|model.*timeout)"
+    description: "Claude API request timed out before receiving a response"
+    resolution_steps:
+      - "Retry the request with exponential backoff"
+      - "Reduce the complexity of the prompt"
+      - "Check Anthropic API status page for outages"
+      - "Increase the request timeout configuration"
+    auto_fixable: true
+    fix_command: |
+      # Retry with backoff
+      RETRY_WAIT=${CLAUDE_RETRY_WAIT:-30}
+      echo "Claude API timeout. Waiting ${RETRY_WAIT}s before retry..."
+      sleep $RETRY_WAIT
+    confidence_threshold: 80
+    tags: ["claude", "api", "timeout"]
+
+  - id: claude_api_rate_limit
+    error_pattern: "(anthropic.*rate limit|claude.*rate limit|anthropic.*429|overloaded_error)"
+    description: "Claude API rate limit or overload - too many requests"
+    resolution_steps:
+      - "Wait for the rate limit window to reset"
+      - "Implement request queuing with backoff"
+      - "Reduce concurrent API calls"
+      - "Check API tier and request higher limits if needed"
+    auto_fixable: true
+    fix_command: |
+      WAIT_TIME=${CLAUDE_RATE_LIMIT_WAIT:-60}
+      echo "Claude API rate limited. Waiting ${WAIT_TIME}s..."
+      sleep $WAIT_TIME
+    confidence_threshold: 85
+    tags: ["claude", "api", "rate-limit"]
+
+# Configuration for solution matching
+config:
+  # Minimum confidence score to suggest a solution
+  suggestion_threshold: 60
+
+  # Minimum confidence score to enable auto-fix
+  autofix_threshold: 80
+
+  # Maximum number of solutions to return
+  max_solutions: 3
+
+  # Enable fuzzy matching for error patterns
+  fuzzy_matching: true
+
+  # Pattern matching is case-insensitive
+  case_insensitive: true

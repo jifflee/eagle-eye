@@ -1,0 +1,295 @@
+# Package Reputation Policy Configuration
+# Defines trusted registries, blocked packages, and allowlists for package operations
+#
+# Related: Issue #979 - Package reputation and supply chain security validation
+# Related: Issue #968 - Local CI dependency scanning
+#
+# Schema Version: 1.0.0
+
+version: "1.0.0"
+
+# =============================================================================
+# TRUSTED REGISTRIES
+# =============================================================================
+# Only packages from these registries are permitted
+# Packages from other registries will trigger blocking errors
+
+trusted_registries:
+  - https://registry.npmjs.org
+  - https://npm.pkg.github.com
+
+# =============================================================================
+# BLOCKED PACKAGES
+# =============================================================================
+# Packages known to be malicious, compromised, or deprecated
+# Installation attempts will be blocked
+
+blocked_packages:
+  # Known compromised packages
+  - event-stream              # 2018 Bitcoin wallet stealer incident
+  - flatmap-stream            # Malicious dependency of event-stream
+  - eslint-scope              # 2018 credential theft incident
+  - getcookies                # Malicious package
+  - http-proxy-agent          # Often typosquatted
+
+  # Typosquatting variants of popular packages
+  - crossenv                  # Typosquat of cross-env
+  - cross-env.js              # Typosquat of cross-env
+  - d3.js                     # Typosquat of d3
+  - fabric-js                 # Typosquat of fabric
+  - ffmepg                    # Typosquat of ffmpeg
+  - gruntcli                  # Typosquat of grunt-cli
+  - mongose                   # Typosquat of mongoose
+  - node-fabric               # Typosquat of fabric
+  - node-opencv               # Typosquat of opencv
+  - noderequest               # Typosquat of request
+  - nodefabric                # Typosquat of fabric
+  - proxy-agent               # Often typosquatted
+
+  # Deprecated or abandoned packages with known security issues
+  - request                   # Deprecated, use alternatives
+  - node-uuid                 # Deprecated, use uuid instead
+
+# =============================================================================
+# ALLOWED INSTALL SCRIPTS
+# =============================================================================
+# Packages permitted to run preinstall/install/postinstall scripts
+# All other packages with install scripts will trigger warnings
+
+allowed_install_scripts:
+  # Native module compilation
+  - node-gyp
+  - node-pre-gyp
+  - prebuild-install
+  - '@mapbox/node-pre-gyp'
+
+  # Binary downloads
+  - esbuild
+  - puppeteer
+  - playwright
+  - playwright-core
+  - cypress
+  - electron
+  - chromedriver
+  - geckodriver
+
+  # Git hooks and tooling
+  - husky
+  - yorkie
+  - pre-commit
+
+  # Common packages with legitimate install scripts
+  - core-js
+  - protobufjs
+  - grpc
+  - sqlite3
+  - bcrypt
+  - sharp
+  - canvas
+  - node-sass
+  - fsevents
+
+# =============================================================================
+# PACKAGE AGE THRESHOLDS
+# =============================================================================
+# Packages newer than this threshold will trigger warnings
+# Helps detect newly published malicious packages
+
+reputation_thresholds:
+  # Maximum age in days for "new package" warnings
+  max_package_age_days: 30
+
+  # Minimum weekly downloads to avoid "low adoption" warnings
+  min_weekly_downloads: 100
+
+  # Minimum maintainer count (packages with 1 maintainer are higher risk)
+  min_maintainer_count: 1
+
+  # Maximum acceptable severity for install scripts
+  # Options: allow_all, warn_on_any, block_critical
+  install_script_policy: warn_on_any
+
+# =============================================================================
+# TYPOSQUATTING DETECTION
+# =============================================================================
+# Popular package names to check for typosquatting attempts
+
+popular_packages:
+  # React ecosystem
+  - react
+  - react-dom
+  - react-router
+  - react-router-dom
+  - redux
+  - react-redux
+
+  # Build tools
+  - webpack
+  - vite
+  - rollup
+  - esbuild
+  - babel-core
+  - '@babel/core'
+
+  # Utilities
+  - lodash
+  - underscore
+  - moment
+  - axios
+  - request
+
+  # Node.js frameworks
+  - express
+  - koa
+  - fastify
+  - nest
+
+  # TypeScript
+  - typescript
+  - ts-node
+  - '@types/node'
+
+  # Testing
+  - jest
+  - mocha
+  - chai
+  - vitest
+  - playwright
+
+  # Linting
+  - eslint
+  - prettier
+  - stylelint
+
+  # Common dependencies
+  - commander
+  - chalk
+  - debug
+  - dotenv
+  - uuid
+
+# Similarity threshold for typosquatting detection (0-100)
+# Packages with similarity > threshold will trigger alerts
+typosquatting_similarity_threshold: 80
+
+# =============================================================================
+# REGISTRY SIGNATURE VERIFICATION
+# =============================================================================
+# Configuration for npm audit signatures
+
+signature_verification:
+  enabled: true
+  require_signatures: false  # Set to true to enforce signed packages
+  fail_on_invalid: true      # Fail if any package has invalid signature
+  fail_on_missing: false     # Fail if any package lacks signature (too strict for most repos)
+
+# =============================================================================
+# PACKAGE ATTESTATION & PROVENANCE VERIFICATION
+# =============================================================================
+# Configuration for package provenance attestations and SLSA verification
+# Related: Issue #1031 - Add package attestation and provenance validation
+
+attestation_verification:
+  enabled: true
+
+  # NPM provenance attestations (Sigstore-based, npm 9+)
+  npm_provenance:
+    enabled: true
+    fail_on_missing: false   # Set to true to block packages without provenance
+    fail_on_invalid: true    # Always fail on invalid provenance
+
+  # SLSA (Supply-chain Levels for Software Artifacts) verification
+  slsa:
+    enabled: false           # Requires slsa-verifier tool
+    minimum_level: 1         # Minimum SLSA level (1-4)
+    fail_below_minimum: false
+
+  # Sigstore/cosign verification for artifacts
+  sigstore:
+    enabled: false           # Requires cosign tool
+    verify_containers: true  # Verify container image signatures
+    verify_artifacts: true   # Verify release artifact signatures
+
+  # GitHub Artifact Attestations
+  github_attestations:
+    enabled: true            # Requires gh CLI
+    verify_github_packages: true
+
+# =============================================================================
+# UNATTESTED PACKAGE ALLOWLIST
+# =============================================================================
+# Packages allowed without provenance attestations
+# Use this for trusted packages that don't yet support npm provenance
+
+unattested_allowlist:
+  # Core development tools (not yet supporting provenance)
+  - node-gyp
+  - node-pre-gyp
+  - prebuild-install
+
+  # Legacy packages (trusted but no provenance)
+  - core-js
+  - regenerator-runtime
+
+  # Testing frameworks (add as needed)
+  # - jest
+  # - mocha
+
+  # Build tools (add as needed)
+  # - webpack
+  # - esbuild
+
+# =============================================================================
+# SUPPLY CHAIN INTEGRATION
+# =============================================================================
+# External tools for enhanced supply chain analysis
+
+integrations:
+  # Socket.dev CLI integration (https://socket.dev)
+  socket:
+    enabled: false
+    cli_path: socket          # Path to socket CLI (or 'socket' if in PATH)
+    fail_on_critical: true
+    fail_on_high: false
+
+  # Snyk integration (https://snyk.io)
+  snyk:
+    enabled: false
+    cli_path: snyk
+    fail_on_critical: true
+    fail_on_high: false
+
+  # OSSF Scorecard (https://github.com/ossf/scorecard)
+  ossf_scorecard:
+    enabled: false
+    cli_path: scorecard
+    min_score: 5              # Minimum acceptable scorecard score (0-10)
+
+# =============================================================================
+# ENFORCEMENT MODE
+# =============================================================================
+# How to handle policy violations
+
+enforcement:
+  mode: warn                  # Options: strict (block), warn (log only), advisory (report only)
+  audit_log: ~/.claude-tastic/package-audit.log
+
+# =============================================================================
+# METADATA
+# =============================================================================
+
+metadata:
+  schema_version: "1.1.0"
+  created_date: "2026-02-20"
+  last_modified: "2026-02-22"
+  authors:
+    - "CI/CD & Security Team"
+  related_issues:
+    - "#979"  # feat: Add package reputation and supply chain security validation
+    - "#968"  # feat: Add local CI dependency scanning
+    - "#1031" # feat: Add package attestation and provenance validation
+  related_docs:
+    - "docs/standards/CI_PIPELINE.md"
+    - "scripts/ci/runners/package-reputation.sh"
+    - "scripts/ci/validators/dep-audit.sh"
+    - "scripts/ci/validators/package-attestation.sh"

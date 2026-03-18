@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# {{NAME}}.sh
+# TODO: Add description
+
+set -euo pipefail
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Log file
+LOG_FILE="${HOME}/.claude-tastic/hooks/{{NAME}}.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+
+# Log function
+log_hook() {
+    local level="$1"
+    local message="$2"
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [$level] $message" >> "$LOG_FILE"
+}
+
+log_hook "INFO" "Hook started: {{NAME}}"
+
+# Main hook logic
+main() {
+    # TODO: Implement your hook logic here
+
+    # Return 0 for success, non-zero for failure
+    return 0
+}
+
+# Execute main
+if main "$@"; then
+    log_hook "INFO" "Hook completed successfully"
+    exit 0
+else
+    log_hook "ERROR" "Hook failed"
+    exit 1
+fi

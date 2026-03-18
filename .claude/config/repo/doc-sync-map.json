@@ -1,0 +1,226 @@
+{
+  "_comment": "File-to-documentation mapping for pre-commit documentation sync (Issue #844).",
+  "_description": "Maps source file path patterns (glob-style) to related documentation files that should be reviewed/updated when those source files change.",
+  "_version": "1.0.0",
+  "_threshold": {
+    "min_changed_lines": 5,
+    "excluded_patterns": [
+      "*.test.*",
+      "*.spec.*",
+      "tests/**",
+      "*.lock",
+      "*.json.bak"
+    ]
+  },
+  "mappings": [
+    {
+      "pattern": "scripts/hooks/**",
+      "docs": [
+        "docs/HOOKS.md",
+        "docs/PRE_COMMIT_HOOKS.md",
+        "docs/GIT_HOOKS_INTEGRATION.md"
+      ],
+      "description": "Git hook scripts"
+    },
+    {
+      "pattern": "scripts/hooks/pre-commit*",
+      "docs": [
+        "docs/HOOKS.md",
+        "docs/PRE_COMMIT_HOOKS.md"
+      ],
+      "description": "Pre-commit hook scripts"
+    },
+    {
+      "pattern": "scripts/hooks/pre-commit-doc-sync.sh",
+      "docs": [
+        "docs/PRE_COMMIT_DOC_SYNC.md",
+        "docs/HOOKS.md"
+      ],
+      "description": "Documentation sync hook"
+    },
+    {
+      "pattern": "scripts/ci/**",
+      "docs": [
+        "docs/LOCAL_VALIDATION.md",
+        "docs/CI_WORKFLOW_EVALUATION.md"
+      ],
+      "description": "CI check scripts"
+    },
+    {
+      "pattern": "scripts/container-*.sh",
+      "docs": [
+        "docs/CONTAINER_OPERATIONS.md",
+        "docs/CONTAINERIZED_WORKFLOW.md"
+      ],
+      "description": "Container management scripts"
+    },
+    {
+      "pattern": "scripts/canary-*.sh",
+      "docs": [
+        "docs/CANARY_DEPLOYMENT_PLAYBOOK.md"
+      ],
+      "description": "Canary deployment scripts"
+    },
+    {
+      "pattern": "scripts/audit/**",
+      "docs": [
+        "docs/CAPABILITY_AUDIT.md",
+        "docs/AUDIT_LOGGING.md"
+      ],
+      "description": "Audit scripts"
+    },
+    {
+      "pattern": "scripts/scan-docs.sh",
+      "docs": [
+        "docs/DOCUMENTATION_SCANNER.md"
+      ],
+      "description": "Documentation scanner"
+    },
+    {
+      "pattern": "scripts/generate-manifest.sh",
+      "docs": [
+        "AUTOMATED-SYNC.md"
+      ],
+      "description": "Sync manifest generator"
+    },
+    {
+      "pattern": "scripts/arch-scan.*",
+      "docs": [
+        "docs/ARCHITECTURE_VALIDATION.md"
+      ],
+      "description": "Architecture scanner"
+    },
+    {
+      "pattern": "scripts/dep-scan.*",
+      "docs": [
+        "docs/CODE_QUALITY_SCANNER.md"
+      ],
+      "description": "Dependency scanner"
+    },
+    {
+      "pattern": ".claude/agents/**",
+      "docs": [
+        "AGENTS.md",
+        "docs/AGENT_PERMISSIONS.md",
+        "docs/AGENT_OPTIMIZATION.md"
+      ],
+      "description": "Agent definition files"
+    },
+    {
+      "pattern": ".claude/commands/**",
+      "docs": [
+        "docs/OVERRIDE_SYSTEM.md"
+      ],
+      "description": "Claude command files"
+    },
+    {
+      "pattern": "config/agents/**",
+      "docs": [
+        "AGENTS.md",
+        "docs/CONSUMER_REPO_INTEGRATION.md"
+      ],
+      "description": "Agent configuration files"
+    },
+    {
+      "pattern": "config/commands/**",
+      "docs": [
+        "docs/OVERRIDE_SYSTEM.md",
+        "docs/OVERRIDE_GUIDE.md"
+      ],
+      "description": "Command configuration files"
+    },
+    {
+      "pattern": "config/repo/doc-sync-map.json",
+      "docs": [
+        "docs/PRE_COMMIT_DOC_SYNC.md"
+      ],
+      "description": "Documentation sync mapping configuration"
+    },
+    {
+      "pattern": "docs/BRANCHING_STRATEGY.md",
+      "docs": [
+        "CONTRIBUTING.md"
+      ],
+      "description": "Branching strategy doc"
+    },
+    {
+      "pattern": "scripts/auto-promote-to-qa*.sh",
+      "docs": [
+        "docs/AUTO_PR_CREATION.md",
+        "PR-WORKFLOWS.md"
+      ],
+      "description": "QA promotion scripts"
+    },
+    {
+      "pattern": "scripts/batch-branch-manager.sh",
+      "docs": [
+        "docs/BATCH_BRANCH_WORKFLOW.md"
+      ],
+      "description": "Batch branch manager"
+    },
+    {
+      "pattern": "scripts/container-launch.sh",
+      "docs": [
+        "docs/CONTAINER_SETUP.md",
+        "docs/CONTAINER_OPERATIONS.md"
+      ],
+      "description": "Container launch script"
+    },
+    {
+      "pattern": "scripts/cloud-container-launch.sh",
+      "docs": [
+        "docs/CLOUD_DEPLOYMENT.md",
+        "docs/DEPLOYMENT_GUIDE.md"
+      ],
+      "description": "Cloud container launch script"
+    },
+    {
+      "pattern": "scripts/action-log.sh",
+      "docs": [
+        "docs/AUDIT_LOGGING.md",
+        "docs/ACTION_AUDIT_POLICY.md"
+      ],
+      "description": "Action audit logging script"
+    },
+    {
+      "pattern": "CLAUDE.md",
+      "docs": [
+        "docs/OVERRIDE_SYSTEM.md",
+        "docs/CONSUMER_REPO_INTEGRATION.md",
+        "CONTRIBUTING.md"
+      ],
+      "description": "Main Claude configuration"
+    },
+    {
+      "pattern": "CONTRIBUTING.md",
+      "docs": [
+        "docs/HOOKS.md",
+        "docs/PRE_COMMIT_HOOKS.md"
+      ],
+      "description": "Contribution guidelines"
+    },
+    {
+      "pattern": "scripts/n8n-*.sh",
+      "docs": [
+        "docs/N8N_SETUP_GUIDE.md",
+        "docs/N8N_WORKFLOWS.md"
+      ],
+      "description": "n8n integration scripts"
+    },
+    {
+      "pattern": "scripts/dev/setup-hooks.sh",
+      "docs": [
+        "docs/HOOKS.md",
+        "docs/GIT_HOOKS_INTEGRATION.md"
+      ],
+      "description": "Developer hook setup script"
+    },
+    {
+      "pattern": "schemas/**",
+      "docs": [
+        "docs/BASELINE_SCHEMA.md"
+      ],
+      "description": "JSON schemas"
+    }
+  ]
+}

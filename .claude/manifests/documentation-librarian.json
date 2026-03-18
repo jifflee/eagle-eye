@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "documentation-librarian",
+  "display_name": "Documentation Librarian Agent",
+  "version": "1.0.0",
+  "description": "Maintains INSTRUCTIONS.md, repo-context.yaml, coding standards, and guardrails.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-LIMITED",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "git.read", "git.write"],
+    "allowed_paths": ["docs/**", "CLAUDE.md", "INSTRUCTIONS.md", "CONTRIBUTING.md", "**/*.md"]
+  },
+  "constraints": {
+    "blocked_operations": ["file.write.src", "file.write.scripts", "issue.close", "pr.merge"]
+  },
+  "metadata": {
+    "sdlc_phase": "governance",
+    "agent_category": "governance"
+  }
+}

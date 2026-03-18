@@ -1,0 +1,82 @@
+# GitHub Actions Workflow Template: Test Suite
+#
+# PURPOSE: Run the full test suite on PRs and pushes to main/dev.
+#          Executes: agent validation, shell unit tests, and Python tests.
+#
+# TO ACTIVATE: Copy this file to .github/workflows/test-suite.yml
+#   cp scripts/ci/workflows/test-suite.yml .github/workflows/test-suite.yml
+#
+# NOTE: The local equivalent is:
+#   make test-local           # Full local validation
+#   make test-ci              # In Docker (Ubuntu 24.04)
+#   ./scripts/ci/run-tests.sh # Direct script
+#
+# Issue: #1202
+
+name: Test Suite
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+jobs:
+  agents:
+    name: Agent Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run agent validation
+        run: |
+          chmod +x scripts/ci/run-tests.sh
+          ./scripts/ci/run-tests.sh --suite=agents
+
+  shell-tests:
+    name: Shell Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run shell unit tests
+        run: |
+          chmod +x scripts/ci/run-tests.sh
+          ./scripts/ci/run-tests.sh --suite=shell
+
+  python-tests:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pytest
+        run: |
+          chmod +x scripts/ci/run-tests.sh
+          ./scripts/ci/run-tests.sh --suite=python
+
+  test-ci-docker:
+    name: CI (Docker Ubuntu 24.04)
+    runs-on: ubuntu-latest
+    # Full Docker-based CI — same as `make test-ci`
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run make test-ci in Docker
+        run: make test-ci

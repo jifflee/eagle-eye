@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# {{NAME}}.sh
+# {{DESCRIPTION}}
+
+set -euo pipefail
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source common utilities
+# shellcheck source=scripts/lib/common.sh
+source "$(dirname "${SCRIPT_DIR}")/../scripts/lib/common.sh" 2>/dev/null || {
+    echo "Warning: common.sh not found, using fallback functions"
+    log_info() { echo "[INFO] $*" >&2; }
+    log_warn() { echo "[WARN] $*" >&2; }
+    log_error() { echo "[ERROR] $*" >&2; }
+    log_success() { echo "[SUCCESS] $*" >&2; }
+}
+
+# Configuration
+REPORT_DIR="${REPO_ROOT:-./}/reports"
+REPORT_FILE="${REPORT_DIR}/{{NAME}}-$(date +%Y%m%d-%H%M%S).md"
+
+# Ensure report directory exists
+mkdir -p "$REPORT_DIR"
+
+# Usage information
+usage() {
+    cat <<EOF
+Usage: {{NAME}}.sh [OPTIONS]
+
+{{DESCRIPTION}}
+
+OPTIONS:
+    -o, --output FILE   Output report file (default: ${REPORT_FILE})
+    -f, --format FMT    Output format: markdown, json, text (default: markdown)
+    -h, --help          Show this help message
+
+EXAMPLES:
+    {{NAME}}.sh
+    {{NAME}}.sh --output my-report.md
+    {{NAME}}.sh --format json
+
+EOF
+    exit 0
+}
+
+# Generate report header
+report_header() {
+    local format="$1"
+
+    if [ "$format" = "markdown" ]; then
+        cat <<EOF
+# {{NAME}} Audit Report
+
+**Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+---
+
+## Summary
+
+EOF
+    elif [ "$format" = "json" ]; then
+        cat <<EOF
+{
+  "audit": "{{NAME}}",
+  "generated": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "findings": [
+EOF
+    fi
+}
+
+# Generate report footer
+report_footer() {
+    local format="$1"
+    local issues_count="$2"
+    local warnings_count="$3"
+
+    if [ "$format" = "markdown" ]; then
+        cat <<EOF
+
+---
+
+## Results
+
+- **Issues Found:** ${issues_count}
+- **Warnings:** ${warnings_count}
+- **Status:** $([ $issues_count -eq 0 ] && echo "✅ PASS" || echo "❌ FAIL")
+
+EOF
+    elif [ "$format" = "json" ]; then
+        cat <<EOF
+  ],
+  "summary": {
+    "issues": ${issues_count},
+    "warnings": ${warnings_count},
+    "status": "$([ $issues_count -eq 0 ] && echo "PASS" || echo "FAIL")"
+  }
+}
+EOF
+    fi
+}
+
+# Perform audit
+perform_audit() {
+    log_info "Performing audit..."
+
+    local issues=0
+    local warnings=0
+
+    # TODO: Implement audit logic here
+    # Example:
+    # - Check files
+    # - Validate configurations
+    # - Scan for issues
+    # - Generate findings
+
+    log_info "Audit scan complete"
+
+    echo "$issues" "$warnings"
+}
+
+# Main logic
+main() {
+    local output_file="$REPORT_FILE"
+    local format="markdown"
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -o|--output)
+                output_file="$2"
+                shift 2
+                ;;
+            -f|--format)
+                format="$2"
+                shift 2
+                ;;
+            -h|--help)
+                usage
+                ;;
+            *)
+                echo "Unknown option: $1"
+                usage
+                ;;
+        esac
+    done
+
+    log_info "Running {{NAME}} audit..."
+    log_info "Output: ${output_file}"
+    log_info "Format: ${format}"
+
+    # Generate report
+    {
+        report_header "$format"
+
+        # Perform audit and capture results
+        read -r issues warnings < <(perform_audit)
+
+        report_footer "$format" "$issues" "$warnings"
+    } > "$output_file"
+
+    log_success "Audit report generated: ${output_file}"
+
+    # Display summary
+    if [ "$issues" -eq 0 ]; then
+        log_success "✅ Audit passed with no issues"
+    else
+        log_warn "❌ Audit found ${issues} issue(s) and ${warnings} warning(s)"
+        log_info "Review the report for details: ${output_file}"
+    fi
+}
+
+# Run main
+main "$@"

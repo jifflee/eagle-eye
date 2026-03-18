@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/your-org/project/schemas/network-manifest.json",
+  "title": "Network Manifest",
+  "description": "Schema for declaring network dependencies in scripts and skills",
+  "type": "object",
+  "required": ["script", "network_calls"],
+  "properties": {
+    "script": {
+      "type": "string",
+      "description": "Name of the script file (e.g., 'sprint-orchestrator.sh')",
+      "pattern": "^[a-zA-Z0-9_-]+\\.(sh|bash)$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of what the script does"
+    },
+    "network_calls": {
+      "type": "array",
+      "description": "Array of network call declarations",
+      "items": {
+        "type": "object",
+        "required": ["host", "purpose", "required"],
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "Target hostname (e.g., 'api.github.com')",
+            "pattern": "^[a-zA-Z0-9.-]+$"
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Why this connection is needed"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether script can function without this connection"
+          },
+          "tool": {
+            "type": "string",
+            "description": "Network tool used (gh, curl, git, etc.)",
+            "enum": ["gh", "curl", "wget", "git", "docker", "claude", "other"]
+          },
+          "scope": {
+            "type": "string",
+            "description": "Scope or constraints for this connection (e.g., 'github_repo only')"
+          }
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for categorizing the script",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

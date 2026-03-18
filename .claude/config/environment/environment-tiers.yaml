@@ -1,0 +1,261 @@
+# Environment Tier Configuration
+# Defines what tooling and processes are permitted in each SDLC environment
+#
+# Related: Issue #933 (environment-tiered SDLC)
+#          Issue #934 (public/private repo detection)
+#          Issue #936 (commit promotion strategy)
+
+version: "1.0.0"
+
+# Repository visibility determines deployment architecture
+# - Private (internal) repos: Full dev/qa/prod pipeline
+# - Public (external) repos: Production-only deployment
+#
+# Configured in: config/repo-profile.yaml
+# Enforced during: /repo-init, /pr-to-qa, /pr-to-main
+
+# Environment definitions
+environments:
+  dev:
+    branch: dev
+    tier: development
+    description: "Full development environment with all agents and tooling"
+    purpose: "Active feature development, testing, refactoring"
+    visibility_required: "private"  # Only available in private repos
+
+  qa:
+    branch: qa
+    tier: validation
+    description: "QA/staging environment for integration testing and validation"
+    purpose: "QA validation, integration testing, pre-production verification"
+    visibility_required: "private"  # Only available in private repos
+
+  prod:
+    branch: main
+    tier: production
+    description: "Production environment with minimal deployment tooling"
+    purpose: "Production releases, monitoring, incident response"
+    visibility_required: "any"  # Available in both private and public repos
+
+# Tier permissions
+# Each tier defines what categories of tooling are allowed
+# For public repos: only production tier is available
+tier_permissions:
+  development:
+    allowed_categories:
+      - development_agents      # backend-developer, frontend-developer, etc.
+      - testing_agents          # test-qa, test-runner, etc.
+      - refactoring_agents      # refactoring-specialist
+      - documentation_agents    # documentation, pr-documentation
+      - security_agents         # security-iam-design, security-iam-prepr
+      - code_review_agents      # code-reviewer, pr-code-reviewer
+      - deployment_agents       # deployment
+      - scaffolding_tools       # scaffold-*, generator scripts
+      - testing_tools           # test scripts, test fixtures
+      - linting_tools           # linters, formatters
+      - ci_tools                # CI validation scripts
+      - monitoring_tools        # Observability and metrics
+      - all_commands            # All slash commands available
+
+    description: "Dev has full access to all SDLC tooling"
+
+  validation:
+    allowed_categories:
+      - testing_agents          # test-qa for validation
+      - documentation_agents    # documentation verification
+      - security_agents         # security validation
+      - code_review_agents      # PR review in QA
+      - deployment_agents       # Deploy to staging
+      - testing_tools           # Integration tests, smoke tests
+      - ci_tools                # CI validation
+      - monitoring_tools        # QA environment monitoring
+      - qa_commands             # Limited command set for QA
+
+    blocked_categories:
+      - development_agents      # No active development in QA
+      - refactoring_agents      # No refactoring in QA
+      - scaffolding_tools       # No scaffolding in QA
+      - linting_tools           # Linting done in dev
+
+    description: "QA focuses on validation, removes development tooling"
+
+  production:
+    allowed_categories:
+      - deployment_agents       # deployment only
+      - monitoring_tools        # Production monitoring
+      - incident_response_tools # Hotfix capabilities
+      - prod_commands           # Minimal command set
+
+    blocked_categories:
+      - development_agents      # No development in prod
+      - testing_agents          # No testing in prod (tested in qa)
+      - refactoring_agents      # No refactoring in prod
+      - code_review_agents      # Code reviewed before prod
+      - scaffolding_tools       # No scaffolding in prod
+      - testing_tools           # No test scripts in prod
+      - linting_tools           # No linting in prod
+      - ci_tools                # CI done before prod
+
+    description: "Prod is minimal - only deployment and monitoring"
+
+# Category definitions
+# Maps categories to specific files/patterns
+category_patterns:
+  development_agents:
+    - ".claude/agents/backend-developer.md"
+    - ".claude/agents/frontend-developer.md"
+    - ".claude/agents/architect.md"
+    - ".claude/agents/api-designer.md"
+    - "packs/*/agents/backend-developer.md"
+    - "packs/*/agents/frontend-developer.md"
+
+  testing_agents:
+    - ".claude/agents/test-qa.md"
+    - ".claude/agents/pr-test.md"
+    - "packs/*/agents/test-*.md"
+
+  refactoring_agents:
+    - ".claude/agents/refactoring-specialist.md"
+    - "packs/*/agents/refactoring-specialist.md"
+
+  documentation_agents:
+    - ".claude/agents/documentation.md"
+    - ".claude/agents/pr-documentation.md"
+    - "packs/docs/agents/*.md"
+
+  security_agents:
+    - ".claude/agents/security-*.md"
+    - "packs/security/agents/*.md"
+
+  code_review_agents:
+    - ".claude/agents/code-reviewer.md"
+    - ".claude/agents/pr-code-reviewer.md"
+    - "packs/pr-review/agents/*.md"
+
+  deployment_agents:
+    - ".claude/agents/deployment.md"
+    - "packs/devops/agents/deployment.md"
+
+  scaffolding_tools:
+    - "scripts/scaffold-*.sh"
+    - "scripts/generator-*.sh"
+    - "scripts/dev-tools/**"
+
+  testing_tools:
+    - "scripts/test-*.sh"
+    - "tests/**"
+    - "scripts/ci/test-*.sh"
+
+  linting_tools:
+    - "scripts/lint-*.sh"
+    - "scripts/ci/refactor-lint.sh"
+    - ".eslintrc*"
+    - ".prettierrc*"
+
+  ci_tools:
+    - "scripts/ci/**"
+    - "scripts/validate-*.sh"
+
+  monitoring_tools:
+    - "scripts/monitor-*.sh"
+    - "scripts/health-*.sh"
+    - "scripts/metrics-*.sh"
+
+  incident_response_tools:
+    - "scripts/rollback-*.sh"
+    - "scripts/emergency-*.sh"
+
+  all_commands:
+    - ".claude/commands/**"
+
+  qa_commands:
+    - ".claude/commands/pr-to-main.md"
+    - ".claude/commands/issue-*.md"
+    - ".claude/commands/audit-*.md"
+
+  prod_commands:
+    - ".claude/commands/pr-to-main.md"
+
+# Promotion validation rules
+# Defines what checks run during each promotion
+# For public repos: sensitivity scan added to qa_to_prod
+promotion_validations:
+  dev_to_qa:
+    tier_check: true
+    blocked_patterns:
+      - "scripts/scaffold-*"
+      - "scripts/dev-tools/**"
+      - ".claude/agents/*refactor*"
+    validation_script: "scripts/ci/validate-environment-tier.sh qa"
+    blocking: true
+    description: "Validate no dev-only tools in QA promotion"
+
+  qa_to_prod:
+    tier_check: true
+    blocked_patterns:
+      - "scripts/test-*"
+      - "scripts/scaffold-*"
+      - "scripts/dev-tools/**"
+      - ".claude/agents/*developer*"
+      - ".claude/agents/*refactor*"
+      - ".claude/agents/test-*"
+      - "tests/**"
+    validation_script: "scripts/ci/validate-environment-tier.sh prod"
+    blocking: true
+    description: "Validate only deployment tools in prod promotion"
+
+    # Public repo sensitivity scan
+    sensitivity_scan:
+      enabled_for: "public"  # Only runs for public repos
+      script: "scripts/ci/sensitivity-scan.sh"
+      blocking: true
+      description: "Scan for sensitive data before public release"
+      categories:
+        - "credentials"
+        - "private_keys"
+        - "internal_urls"
+        - "internal_paths"
+        - "env_files"
+        - "internal_config"
+        - "keychain_refs"
+        - "internal_issues"
+        - "pii"
+        - "license"
+        - "orchestration"
+
+# Enforcement configuration
+enforcement:
+  enabled: false  # Planned for issue #933 - currently in design phase
+  mode: "warning"  # Options: "warning" (log only), "blocking" (fail PR)
+
+  # When to enforce
+  enforce_on:
+    - "pull_request"  # During PR creation/update
+    - "pre_merge"     # Before merge completes
+
+  # Exceptions (emergency bypass)
+  allow_override: true
+  override_label: "tier-override-approved"  # PR label to bypass enforcement
+  override_approvers:  # Who can approve override
+    - "senior-engineer"
+    - "tech-lead"
+
+# Rollback support
+rollback:
+  preserve_artifacts: true  # Keep deployment artifacts for quick rollback
+  artifact_retention_days: 30
+
+  # Rollback scripts per tier
+  scripts:
+    qa: "scripts/rollback-qa.sh"
+    prod: "scripts/rollback-production.sh"
+
+# Related documentation
+documentation:
+  strategy: "docs/COMMIT_PROMOTION_STRATEGY.md"
+  branching: "docs/BRANCHING_STRATEGY.md"
+  release_readiness: "docs/RELEASE_READINESS.md"
+  deployment_architecture: "docs/PUBLIC_PRIVATE_DEPLOYMENT.md"
+  parent_issue: "https://github.com/owner/repo/issues/933"
+  implementation_issue: "https://github.com/owner/repo/issues/936"
+  visibility_issue: "https://github.com/owner/repo/issues/934"

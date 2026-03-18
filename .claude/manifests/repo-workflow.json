@@ -1,0 +1,23 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "repo-workflow",
+  "display_name": "Repo Workflow / Issue Manager Agent",
+  "version": "1.0.0",
+  "description": "Manages GitHub issues, labels, backlog, milestones, and workflow transitions. Only agent with T3 access.",
+  "trust_tier": "T3",
+  "permission_level": "MANAGED",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "github.read", "github.write", "git.read"],
+    "allowed_paths": []
+  },
+  "constraints": {
+    "blocked_operations": ["force-push", "repo.delete"],
+    "requires_user_context": true,
+    "allowed_t3_operations": ["issue.close", "issue.reopen", "pr.merge", "milestone.close"]
+  },
+  "metadata": {
+    "sdlc_phase": "governance",
+    "agent_category": "governance"
+  }
+}

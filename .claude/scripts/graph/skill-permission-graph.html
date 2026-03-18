@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Skill Permission Graph</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f1117;color:#e2e8f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:#1a1d27;border-bottom:1px solid #2d3148;flex-shrink:0}
+header h1{font-size:18px;font-weight:600;color:#7c85f5}
+header span{font-size:12px;color:#64748b}
+#toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:14px;padding:8px 20px;background:#161820;border-bottom:1px solid #2d3148;flex-shrink:0;font-size:12px}
+.lg{display:flex;align-items:center;gap:5px;color:#94a3b8}
+.lg b{color:#94a3b8;font-weight:500;margin-right:2px}
+.ld{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15)}
+.ld.diamond{border-radius:2px;transform:rotate(45deg);width:10px;height:10px}
+.ll{display:inline-block;width:20px;height:2px;vertical-align:middle}
+.sep{width:1px;height:20px;background:#2d3148;margin:0 4px}
+#si{background:#1a1d27;border:1px solid #2d3148;border-radius:6px;color:#e2e8f0;font-size:13px;padding:4px 10px;outline:none;width:200px}
+#si:focus{border-color:#7c85f5}
+#tf{background:#1a1d27;border:1px solid #2d3148;border-radius:6px;color:#e2e8f0;font-size:12px;padding:4px 10px;cursor:pointer;outline:none}
+#tf:focus{border-color:#7c85f5}
+button{background:#1a1d27;border:1px solid #2d3148;border-radius:6px;color:#cbd5e1;cursor:pointer;font-size:12px;padding:4px 10px}
+button:hover{background:#252840}
+button.active{background:#2d3148;border-color:#7c85f5;color:#a5b4fc}
+#main{display:flex;flex:1;overflow:hidden}
+#gc{flex:1;position:relative;overflow:hidden}
+svg#g{width:100%;height:100%;cursor:grab}
+svg#g:active{cursor:grabbing}
+#sp{width:290px;background:#1a1d27;border-left:1px solid #2d3148;overflow-y:auto;padding:16px;flex-shrink:0;display:none}
+#sp.open{display:block}
+#sp h2{font-size:15px;font-weight:600;color:#a5b4fc;margin-bottom:12px}
+.pr{display:flex;gap:6px;margin-bottom:8px;font-size:12px}
+.pk{color:#64748b;min-width:110px}
+.pv{color:#e2e8f0;word-break:break-word}
+/* Tier badges */
+.bt0{background:#1e3a2f;color:#86efac;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bt1{background:#1e2e5a;color:#93c5fd;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bt2{background:#3b2e10;color:#fcd34d;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bt3{background:#3b1818;color:#f87171;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+/* Permission level badges */
+.bp-ro{background:#1e3a2f;color:#86efac;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bp-wl{background:#1e2e5a;color:#93c5fd;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bp-wf{background:#3b2e10;color:#fcd34d;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bp-pr{background:#3b1818;color:#f87171;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.tl{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.tag{background:#252840;color:#94a3b8;border-radius:4px;padding:1px 6px;font-size:10px}
+.rs{margin-top:14px}
+.rs h3{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ri{display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:5px;padding:4px 8px;background:#0f1117;border-radius:6px;cursor:pointer}
+.ri:hover{background:#1e2235}
+.cb{float:right;background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;line-height:1}
+.cb:hover{color:#e2e8f0}
+/* Graph elements */
+.node{cursor:pointer}
+.node circle,.node rect,.node polygon{stroke-width:1.5;transition:filter .15s}
+.node circle:hover,.node rect:hover,.node polygon:hover{filter:brightness(1.3)}
+.node.selected circle,.node.selected rect,.node.selected polygon{stroke-width:3;filter:brightness(1.5)}
+.node text{font-size:10px;fill:#e2e8f0;pointer-events:none;text-anchor:middle;dominant-baseline:middle;font-weight:500}
+.link{stroke-opacity:.5;fill:none}
+.link-label{font-size:8px;fill:#4b5563;pointer-events:none}
+.arrowhead{fill-opacity:.7}
+.node.dimmed circle,.node.dimmed rect,.node.dimmed polygon,.node.dimmed text{opacity:.15}
+.link.dimmed,.link-label.dimmed{opacity:.08}
+/* Privilege ring */
+.priv-ring{fill:none;stroke:#f87171;stroke-width:2.5;stroke-dasharray:4,2;opacity:.7;pointer-events:none}
+</style>
+</head>
+<body>
+<header>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c85f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="5" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/>
+    <path d="M12 7v4M7 16l4-4M17 16l-4-4"/>
+    <circle cx="12" cy="12" r="1.5" fill="#7c85f5"/>
+  </svg>
+  <h1>Skill Permission Graph</h1>
+  <span id="gs">Loading…</span>
+</header>
+<div id="toolbar">
+  <!-- Tier legend -->
+  <div class="lg"><b>Skill Tier:</b>
+    <span class="ld" style="background:#10b981"></span>T0 safe
+    <span class="ld" style="background:#3b82f6"></span>T1 write
+    <span class="ld" style="background:#f59e0b"></span>T2 elevated
+    <span class="ld" style="background:#ef4444"></span>T3 privileged
+  </div>
+  <div class="sep"></div>
+  <!-- Capability legend -->
+  <div class="lg"><b>Capability:</b>
+    <span class="ld diamond" style="background:#6366f1"></span>node (diamond)
+  </div>
+  <div class="sep"></div>
+  <!-- Edge legend -->
+  <div class="lg"><b>Edges:</b>
+    <span class="ll" style="background:#64748b"></span>has-permission
+    <span class="ll" style="background:#f87171;border-top:2px dashed #f87171;height:0"></span>escalates
+  </div>
+  <div class="sep"></div>
+  <select id="tf">
+    <option value="all">All tiers</option>
+    <option value="T0">T0 only</option>
+    <option value="T1">T1 only</option>
+    <option value="T2">T2 only</option>
+    <option value="T3">T3 only</option>
+    <option value="T2T3">T2 + T3 (elevated)</option>
+  </select>
+  <input id="si" type="text" placeholder="Search skills / capabilities…"/>
+  <button id="br">Reset zoom</button>
+  <button id="bl">Hide labels</button>
+  <button id="bt3" class="active" title="Highlight T3 privileged skills">Highlight T3</button>
+</div>
+<div id="main">
+  <div id="gc"><svg id="g"></svg></div>
+  <div id="sp">
+    <button class="cb" id="pc">&times;</button>
+    <h2 id="pn">Node</h2>
+    <div id="pcontent"></div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Color schemes
+// ---------------------------------------------------------------------------
+const TIER_COLOR = {T0:'#10b981', T1:'#3b82f6', T2:'#f59e0b', T3:'#ef4444'};
+const TIER_STROKE = {T0:'#34d399', T1:'#60a5fa', T2:'#fbbf24', T3:'#f87171'};
+const EDGE_COLOR  = {HAS_PERMISSION:'#475569', INVOKES:'#f87171'};
+const CAT_COLOR   = {
+  github:'#6366f1', filesystem:'#8b5cf6', git:'#0ea5e9',
+  ci:'#10b981', audit:'#64748b', infrastructure:'#f59e0b',
+  deployment:'#ef4444', release:'#f43f5e', security:'#dc2626', unknown:'#64748b'
+};
+
+// Node radii: skills sized by tier, capabilities fixed size
+const SKILL_RADIUS = {T0:14, T1:17, T2:20, T3:24};
+const CAP_HALF = 12;  // half-width of diamond
+
+// ---------------------------------------------------------------------------
+// Fallback dataset when JSON file is unavailable (used for standalone viewing)
+// ---------------------------------------------------------------------------
+const FALLBACK = {
+  meta:{skill_count:5,capability_count:7,node_count:12,edge_count:10},
+  nodes:[
+    {id:'audit:code',label:'audit:code',tier:'T0',permission_level:'READ-ONLY',category:'audit',node_type:'skill',description:'Analyze code patterns (READ-ONLY)'},
+    {id:'issue:create',label:'issue:create',tier:'T1',permission_level:'WRITE-LIMITED',category:'issue',node_type:'skill',description:'Create GitHub issues'},
+    {id:'pr:merge-batch',label:'pr:merge-batch',tier:'T3',permission_level:'PRIVILEGED',category:'pr',node_type:'skill',description:'Batch merge PRs'},
+    {id:'release:promote-main',label:'release:promote-main',tier:'T3',permission_level:'PRIVILEGED',category:'release',node_type:'skill',description:'Promote QA to main'},
+    {id:'sprint:work-auto',label:'sprint:work-auto',tier:'T0',permission_level:'READ-ONLY',category:'sprint',node_type:'skill',description:'Sprint orchestration'},
+    {id:'cap:file.read',label:'File Read',tier:'T0',category:'filesystem',node_type:'capability',cap_name:'file.read'},
+    {id:'cap:issue.read',label:'Issue Read',tier:'T0',category:'github',node_type:'capability',cap_name:'issue.read'},
+    {id:'cap:issue.create',label:'Issue Create',tier:'T1',category:'github',node_type:'capability',cap_name:'issue.create'},
+    {id:'cap:pr.create',label:'PR Create',tier:'T2',category:'github',node_type:'capability',cap_name:'pr.create'},
+    {id:'cap:pr.merge',label:'PR Merge',tier:'T3',category:'github',node_type:'capability',cap_name:'pr.merge'},
+    {id:'cap:release.tag',label:'Release Tag',tier:'T3',category:'release',node_type:'capability',cap_name:'release.tag'},
+    {id:'cap:deploy.prod',label:'Deploy (Prod)',tier:'T3',category:'deployment',node_type:'capability',cap_name:'deploy.prod'},
+  ],
+  edges:[
+    {source:'audit:code',target:'cap:file.read',type:'HAS_PERMISSION',label:'can file.read'},
+    {source:'audit:code',target:'cap:issue.read',type:'HAS_PERMISSION',label:'can issue.read'},
+    {source:'issue:create',target:'cap:file.read',type:'HAS_PERMISSION',label:'can file.read'},
+    {source:'issue:create',target:'cap:issue.create',type:'HAS_PERMISSION',label:'can issue.create'},
+    {source:'pr:merge-batch',target:'cap:file.read',type:'HAS_PERMISSION',label:'can file.read'},
+    {source:'pr:merge-batch',target:'cap:pr.merge',type:'HAS_PERMISSION',label:'can pr.merge'},
+    {source:'release:promote-main',target:'cap:pr.merge',type:'HAS_PERMISSION',label:'can pr.merge'},
+    {source:'release:promote-main',target:'cap:release.tag',type:'HAS_PERMISSION',label:'can release.tag'},
+    {source:'release:promote-main',target:'cap:deploy.prod',type:'HAS_PERMISSION',label:'can deploy.prod'},
+    {source:'sprint:work-auto',target:'cap:file.read',type:'HAS_PERMISSION',label:'can file.read'},
+  ]
+};
+
+// ---------------------------------------------------------------------------
+// Load data
+// ---------------------------------------------------------------------------
+async function loadData(){
+  try{const r=await fetch('skill-permission-graph-data.json');if(r.ok)return await r.json();}
+  catch(_){}
+  return FALLBACK;
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+async function main(){
+  const data = await loadData();
+  let {nodes, edges, meta} = data;
+
+  document.getElementById('gs').textContent =
+    `${meta?.skill_count ?? '?'} skills · ${meta?.capability_count ?? '?'} capabilities · ${meta?.edge_count ?? edges.length} edges`;
+
+  const svg = d3.select('#g');
+  const cont = document.getElementById('gc');
+  let W = cont.clientWidth, H = cont.clientHeight;
+  svg.attr('viewBox', `0 0 ${W} ${H}`);
+
+  const g = svg.append('g');
+  const zoom = d3.zoom().scaleExtent([.1, 5]).on('zoom', e => g.attr('transform', e.transform));
+  svg.call(zoom);
+  document.getElementById('br').addEventListener('click', () =>
+    svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity));
+
+  // Arrowhead markers
+  const defs = svg.append('defs');
+  Object.entries(EDGE_COLOR).forEach(([t,c]) => {
+    defs.append('marker').attr('id', `arr-${t}`)
+      .attr('viewBox','0 -5 10 10').attr('refX', 24).attr('refY', 0)
+      .attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
+      .append('path').attr('d','M0,-5L10,0L0,5').attr('class','arrowhead').attr('fill',c);
+  });
+
+  const nm = new Map(nodes.map(n => [n.id, n]));
+  let ld = edges.map(e => ({...e}));
+
+  // ---------------------------------------------------------------------------
+  // Force simulation
+  // ---------------------------------------------------------------------------
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(ld).id(d => d.id).distance(d => {
+      // Skills to capabilities: shorter. Skills to skills: longer.
+      const tNode = nm.get(d.target?.id || d.target);
+      return tNode?.node_type === 'capability' ? 110 : 180;
+    }).strength(.45))
+    .force('charge', d3.forceManyBody().strength(d =>
+      d.node_type === 'skill' ? -350 : -150))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collision', d3.forceCollide().radius(d =>
+      d.node_type === 'capability' ? CAP_HALF + 14 : (SKILL_RADIUS[d.tier] || 14) + 16))
+    .alphaDecay(.025);
+
+  // ---------------------------------------------------------------------------
+  // Draw links
+  // ---------------------------------------------------------------------------
+  const link = g.append('g').selectAll('path').data(ld).enter().append('path')
+    .attr('class','link')
+    .attr('stroke', d => EDGE_COLOR[d.type] || '#475569')
+    .attr('stroke-width', 1.2)
+    .attr('stroke-dasharray', d => d.type === 'INVOKES' ? '5,3' : null)
+    .attr('marker-end', d => `url(#arr-${d.type})`);
+
+  const ll = g.append('g').selectAll('text').data(ld).enter().append('text')
+    .attr('class','link-label').text(d => d.label || d.type);
+
+  // ---------------------------------------------------------------------------
+  // Draw nodes
+  // ---------------------------------------------------------------------------
+  const drag = d3.drag()
+    .on('start', (e,d) => { if(!e.active) sim.alphaTarget(.3).restart(); d.fx=d.x; d.fy=d.y; })
+    .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+    .on('end',   (e,d) => { if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; });
+
+  const nodeG = g.append('g').selectAll('g').data(nodes).enter().append('g')
+    .attr('class','node')
+    .call(drag)
+    .on('click', onClick);
+
+  // T3 "danger ring" drawn behind node for T3 skills
+  nodeG.filter(d => d.node_type === 'skill' && d.tier === 'T3')
+    .append('circle')
+    .attr('class','priv-ring')
+    .attr('r', d => (SKILL_RADIUS[d.tier] || 14) + 6);
+
+  // Skill nodes → circles
+  nodeG.filter(d => d.node_type === 'skill')
+    .append('circle')
+    .attr('r', d => SKILL_RADIUS[d.tier] || 14)
+    .attr('fill', d => TIER_COLOR[d.tier] || '#64748b')
+    .attr('stroke', d => TIER_STROKE[d.tier] || '#94a3b8');
+
+  // Capability nodes → diamonds (rotated rects via polygon)
+  nodeG.filter(d => d.node_type === 'capability')
+    .append('polygon')
+    .attr('points', d => {
+      const h = CAP_HALF;
+      return `0,${-h} ${h},0 0,${h} ${-h},0`;
+    })
+    .attr('fill', d => CAT_COLOR[d.category] || '#6366f1')
+    .attr('stroke', d => d3.color(CAT_COLOR[d.category] || '#6366f1').brighter(.8));
+
+  // Labels inside skill circles (abbrev)
+  nodeG.filter(d => d.node_type === 'skill')
+    .append('text')
+    .attr('dy','.35em')
+    .text(d => {
+      const parts = d.id.split(':');
+      return parts.length > 1 ? parts[1].slice(0,4) : d.id.slice(0,4);
+    });
+
+  // Labels inside capability diamonds
+  nodeG.filter(d => d.node_type === 'capability')
+    .append('text')
+    .attr('dy','.35em')
+    .style('font-size','8px')
+    .text(d => (d.cap_name || d.label || d.id).split('.').map(p=>p[0]).join('.'));
+
+  // Name labels below nodes
+  const nameLabels = nodeG.append('text')
+    .attr('dy', d => d.node_type === 'capability' ? CAP_HALF + 12 : (SKILL_RADIUS[d.tier]||14) + 13)
+    .style('font-size','9px')
+    .style('fill','#94a3b8')
+    .style('text-anchor','middle')
+    .text(d => d.node_type === 'capability' ? (d.label || d.cap_name) : d.id);
+
+  // ---------------------------------------------------------------------------
+  // Simulation tick
+  // ---------------------------------------------------------------------------
+  sim.on('tick', () => {
+    link.attr('d', d => {
+      const sx = d.source.x, sy = d.source.y;
+      const tx = d.target.x, ty = d.target.y;
+      if(sx===tx && sy===ty) return `M${sx},${sy}A40,40 0 1,1 ${tx+1},${ty}`;
+      const dx = tx-sx, dy2 = ty-sy;
+      const dr = Math.sqrt(dx*dx+dy2*dy2) * (d.type==='INVOKES' ? 2.2 : 0);
+      return dr > 0
+        ? `M${sx},${sy}A${dr},${dr} 0 0,1 ${tx},${ty}`
+        : `M${sx},${sy}L${tx},${ty}`;
+    });
+    ll.attr('x', d => (d.source.x+d.target.x)/2).attr('y', d => (d.source.y+d.target.y)/2);
+    nodeG.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Label toggle
+  // ---------------------------------------------------------------------------
+  let labvis = true;
+  document.getElementById('bl').addEventListener('click', function(){
+    labvis = !labvis;
+    nameLabels.style('display', labvis ? null : 'none');
+    ll.style('display', labvis ? null : 'none');
+    this.textContent = labvis ? 'Hide labels' : 'Show labels';
+  });
+
+  // ---------------------------------------------------------------------------
+  // T3 highlight toggle
+  // ---------------------------------------------------------------------------
+  let t3Highlight = true;
+  document.getElementById('bt3').addEventListener('click', function(){
+    t3Highlight = !t3Highlight;
+    this.classList.toggle('active', t3Highlight);
+    g.selectAll('.priv-ring').style('display', t3Highlight ? null : 'none');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tier filter
+  // ---------------------------------------------------------------------------
+  document.getElementById('tf').addEventListener('change', function(){
+    const val = this.value;
+    if(val === 'all'){
+      nodeG.style('display', null);
+      link.style('display', null);
+      ll.style('display', labvis ? null : 'none');
+      return;
+    }
+    const allowed = val === 'T2T3' ? new Set(['T2','T3']) : new Set([val]);
+    const visNodes = new Set(nodes.filter(n => {
+      if(n.node_type === 'capability') return allowed.has(n.tier);
+      return allowed.has(n.tier);
+    }).map(n => n.id));
+
+    nodeG.style('display', d => visNodes.has(d.id) ? null : 'none');
+    link.style('display', d => {
+      const s = d.source.id || d.source, t = d.target.id || d.target;
+      return visNodes.has(s) && visNodes.has(t) ? null : 'none';
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Search
+  // ---------------------------------------------------------------------------
+  document.getElementById('si').addEventListener('input', function(){
+    const q = this.value.trim().toLowerCase();
+    if(!q){
+      nodeG.classed('dimmed',false).classed('selected',false);
+      link.classed('dimmed',false); ll.classed('dimmed',false);
+      return;
+    }
+    const m = new Set(nodes.filter(n =>
+      n.id.toLowerCase().includes(q) ||
+      (n.label||'').toLowerCase().includes(q) ||
+      (n.description||'').toLowerCase().includes(q) ||
+      (n.cap_name||'').toLowerCase().includes(q)
+    ).map(n => n.id));
+    nodeG.classed('dimmed', d => !m.has(d.id)).classed('selected', d => m.has(d.id));
+    link.classed('dimmed', d => !m.has(d.source.id||d.source) && !m.has(d.target.id||d.target));
+    ll.classed('dimmed',   d => !m.has(d.source.id||d.source) && !m.has(d.target.id||d.target));
+  });
+
+  // ---------------------------------------------------------------------------
+  // Node click / panel
+  // ---------------------------------------------------------------------------
+  let sel = null;
+
+  function deselect(){
+    sel = null;
+    nodeG.classed('selected',false).classed('dimmed',false);
+    link.classed('dimmed',false); ll.classed('dimmed',false);
+    document.getElementById('sp').classList.remove('open');
+  }
+
+  function onClick(ev, d){
+    ev.stopPropagation();
+    if(sel === d.id){ deselect(); return; }
+    sel = d.id;
+    const nb = new Set([d.id]);
+    ld.forEach(l => {
+      const s = l.source.id||l.source, t = l.target.id||l.target;
+      if(s===d.id) nb.add(t);
+      if(t===d.id) nb.add(s);
+    });
+    nodeG.classed('selected', n => n.id===d.id).classed('dimmed', n => !nb.has(n.id));
+    link.classed('dimmed', l => { const s=l.source.id||l.source, t=l.target.id||l.target; return s!==d.id&&t!==d.id; });
+    ll.classed('dimmed',   l => { const s=l.source.id||l.source, t=l.target.id||l.target; return s!==d.id&&t!==d.id; });
+    showPanel(d);
+  }
+
+  svg.on('click', deselect);
+  document.getElementById('pc').addEventListener('click', deselect);
+
+  function tierBadge(t){
+    return `<span class="bt${(t||'0').slice(1)}">${t||'T0'}</span>`;
+  }
+
+  function permBadge(p){
+    const cls = {
+      'READ-ONLY':'ro','WRITE-LIMITED':'wl','WRITE-FULL':'wf','PRIVILEGED':'pr'
+    }[p] || 'ro';
+    return `<span class="bp-${cls}">${p||'READ-ONLY'}</span>`;
+  }
+
+  function showPanel(d){
+    document.getElementById('sp').classList.add('open');
+    document.getElementById('pn').textContent = d.label || d.id;
+
+    const out = ld.filter(l => (l.source.id||l.source) === d.id);
+    const inn = ld.filter(l => (l.target.id||l.target) === d.id);
+
+    const mkR = (arr, dir) => arr.map(l => {
+      const rid = dir==='out' ? (l.target.id||l.target) : (l.source.id||l.source);
+      const rn = nm.get(rid);
+      const ec = EDGE_COLOR[l.type]||'#4b5563';
+      const lbl = l.label || l.type;
+      return `<div class="ri" data-node="${rid}">
+        <span style="color:#4b5563">${dir==='out'?'→':'←'}</span>
+        <span style="color:${ec};font-size:10px">${lbl}</span>
+        <span>${rn?.label||rid}</span>
+      </div>`;
+    }).join('');
+
+    const isSkill = d.node_type === 'skill';
+    const isCap   = d.node_type === 'capability';
+
+    let html = '';
+
+    if(isSkill){
+      html += `
+        <div class="pr"><span class="pk">Skill ID</span><span class="pv">${d.id}</span></div>
+        <div class="pr"><span class="pk">Tier</span>${tierBadge(d.tier)}</div>
+        <div class="pr"><span class="pk">Permission</span>${permBadge(d.permission_level)}</div>
+        <div class="pr"><span class="pk">Category</span><span class="pv">${d.category||'—'}</span></div>
+        ${d.description ? `<div class="pr" style="flex-direction:column"><span class="pk">Description</span><span class="pv" style="color:#94a3b8;font-size:11px">${d.description}</span></div>` : ''}
+        ${out.length ? `<div class="rs"><h3>Authorized capabilities (${out.filter(l=>l.type==='HAS_PERMISSION').length})</h3>${mkR(out.filter(l=>l.type==='HAS_PERMISSION'),'out')}</div>` : ''}
+        ${out.filter(l=>l.type==='INVOKES').length ? `<div class="rs"><h3>Invokes (escalation)</h3>${mkR(out.filter(l=>l.type==='INVOKES'),'out')}</div>` : ''}
+        ${inn.length ? `<div class="rs"><h3>Invoked by</h3>${mkR(inn,'in')}</div>` : ''}
+      `;
+    } else if(isCap){
+      const skillsWithCap = inn.filter(l => l.type === 'HAS_PERMISSION');
+      // Group skills by tier
+      const byTier = {T0:[],T1:[],T2:[],T3:[]};
+      skillsWithCap.forEach(l => {
+        const sid = l.source.id || l.source;
+        const sn = nm.get(sid);
+        const t = sn?.tier || 'T0';
+        (byTier[t] || byTier['T0']).push(sid);
+      });
+      html += `
+        <div class="pr"><span class="pk">Capability</span><span class="pv">${d.cap_name || d.id}</span></div>
+        <div class="pr"><span class="pk">Required tier</span>${tierBadge(d.tier)}</div>
+        <div class="pr"><span class="pk">Category</span><span class="pv">${d.category||'—'}</span></div>
+        <div class="rs"><h3>Skills with this permission (${skillsWithCap.length})</h3>
+      `;
+      ['T3','T2','T1','T0'].forEach(t => {
+        if(byTier[t].length){
+          html += `<div style="margin-bottom:4px;font-size:11px;color:#64748b">${tierBadge(t)}</div>`;
+          html += byTier[t].map(sid => {
+            const sn = nm.get(sid);
+            return `<div class="ri" data-node="${sid}"><span>${sn?.label||sid}</span></div>`;
+          }).join('');
+        }
+      });
+      html += `</div>`;
+    }
+
+    document.getElementById('pcontent').innerHTML = html;
+    document.querySelectorAll('.ri[data-node]').forEach(el =>
+      el.addEventListener('click', ev => {
+        ev.stopPropagation();
+        const t = nm.get(el.dataset.node);
+        if(t) onClick({stopPropagation:()=>{}}, t);
+      })
+    );
+  }
+}
+
+main().catch(console.error);
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "documentation",
+  "display_name": "Documentation Agent",
+  "version": "1.0.0",
+  "description": "Writes documentation, README updates, API docs, and module-level docs.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-LIMITED",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "git.read", "git.write"],
+    "allowed_paths": ["docs/**", "README.md", "CHANGELOG.md", "**/*.md"]
+  },
+  "constraints": {
+    "blocked_operations": ["file.write.src", "file.write.scripts", "issue.close", "pr.merge"]
+  },
+  "metadata": {
+    "sdlc_phase": "implementation",
+    "agent_category": "governance"
+  }
+}

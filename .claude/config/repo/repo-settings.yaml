@@ -1,0 +1,272 @@
+# Repository Settings Configuration
+# Defines desired GitHub repository settings for drift detection and enforcement
+#
+# This configuration file specifies the expected state for repo-level settings
+# including branch protections, PR requirements, merge strategies, and more.
+#
+# Related: Issue #940 (repo settings drift detection)
+#          Issue #934 (public/private repo detection)
+#          Issue #933 (environment-tiered SDLC)
+
+version: "1.0.0"
+
+# Profile-based configuration
+# Settings are loaded based on repo visibility type from config/repo-profile.yaml
+# - private repos: full SDLC workflow with dev/qa/main branches
+# - public repos: production-only workflow with main branch
+
+# ============================================================================
+# Private Repository Settings (source-* repos)
+# ============================================================================
+private:
+  # Repository-level settings
+  repository:
+    # Allow auto-merge for PRs
+    allow_auto_merge: false
+
+    # Merge methods allowed
+    allow_merge_commit: true
+    allow_squash_merge: true
+    allow_rebase_merge: true
+
+    # Delete head branches after merge
+    delete_branch_on_merge: true
+
+    # Default branch name
+    default_branch: "main"
+
+    # Allow forking
+    allow_forking: true
+
+    # Require linear history
+    # allow_update_branch: true  # Not available via API
+
+  # Branch protection rules
+  branch_protection:
+    # Main branch protection (production)
+    main:
+      required_status_checks:
+        strict: true  # Require branches to be up to date before merging
+        contexts:     # Required CI checks
+          - "CI / validate"
+          # - "CI / test"  # Add when tests are implemented
+
+      enforce_admins: false  # Allow admins to bypass
+
+      required_pull_request_reviews:
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+        required_approving_review_count: 1
+        require_last_push_approval: false
+
+      restrictions: null  # No user/team restrictions
+
+      required_linear_history: false
+      allow_force_pushes: false
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: true
+      lock_branch: false
+      allow_fork_syncing: true
+
+    # QA branch protection
+    qa:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "CI / validate"
+          # - "CI / test"
+
+      enforce_admins: false
+
+      required_pull_request_reviews:
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+        required_approving_review_count: 1
+        require_last_push_approval: false
+
+      restrictions: null
+
+      required_linear_history: false
+      allow_force_pushes: false
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: true
+      lock_branch: false
+      allow_fork_syncing: true
+
+    # Dev branch protection (lighter restrictions)
+    dev:
+      required_status_checks:
+        strict: false  # Don't require up-to-date for dev
+        contexts:
+          - "CI / validate"
+
+      enforce_admins: false
+
+      required_pull_request_reviews:
+        dismiss_stale_reviews: false
+        require_code_owner_reviews: false
+        required_approving_review_count: 0  # No required approvals for dev
+        require_last_push_approval: false
+
+      restrictions: null
+
+      required_linear_history: false
+      allow_force_pushes: false  # Still protect against force pushes
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: false  # More relaxed for dev
+      lock_branch: false
+      allow_fork_syncing: true
+
+  # Pull request settings
+  pull_requests:
+    # Require PR for all changes to protected branches
+    require_pr: true
+
+    # Default PR settings
+    default_merge_method: "merge"  # merge, squash, or rebase
+
+  # Required checks configuration
+  # These checks must pass before PR can be merged
+  required_checks:
+    - name: "CI / validate"
+      description: "Local validation checks"
+      required_for_branches:
+        - "main"
+        - "qa"
+        - "dev"
+
+# ============================================================================
+# Public Repository Settings (external-* repos)
+# ============================================================================
+public:
+  # Repository-level settings (more restrictive for public repos)
+  repository:
+    allow_auto_merge: false
+    allow_merge_commit: true
+    allow_squash_merge: true
+    allow_rebase_merge: false  # Disable rebase for public repos
+    delete_branch_on_merge: true
+    default_branch: "main"
+    allow_forking: true
+
+  # Branch protection rules (main branch only for public repos)
+  branch_protection:
+    main:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "CI / validate"
+          - "CI / security-scan"  # Required for public repos
+          - "CI / sensitivity-scan"  # Check for leaked internal data
+
+      enforce_admins: false
+
+      required_pull_request_reviews:
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true  # Require code owner review for public
+        required_approving_review_count: 2  # Higher bar for public repos
+        require_last_push_approval: true
+
+      restrictions: null
+
+      required_linear_history: true  # Enforce linear history for public
+      allow_force_pushes: false
+      allow_deletions: false
+      block_creations: false
+      required_conversation_resolution: true
+      lock_branch: false
+      allow_fork_syncing: true
+
+  # Pull request settings
+  pull_requests:
+    require_pr: true
+    default_merge_method: "squash"  # Prefer squash for public repos
+
+  # Required checks (more extensive for public repos)
+  required_checks:
+    - name: "CI / validate"
+      description: "Local validation checks"
+      required_for_branches:
+        - "main"
+    - name: "CI / security-scan"
+      description: "Security vulnerability scanning"
+      required_for_branches:
+        - "main"
+    - name: "CI / sensitivity-scan"
+      description: "Scan for internal data leakage"
+      required_for_branches:
+        - "main"
+
+# ============================================================================
+# Drift Detection Configuration
+# ============================================================================
+drift_detection:
+  # Enable drift detection
+  enabled: true
+
+  # Enforcement mode
+  # - advisory: Warn about drift but don't block
+  # - strict: Block PRs when drift is detected
+  mode: "advisory"
+
+  # Which settings to check for drift
+  check_settings:
+    - repository.allow_auto_merge
+    - repository.allow_merge_commit
+    - repository.allow_squash_merge
+    - repository.allow_rebase_merge
+    - repository.delete_branch_on_merge
+    - repository.default_branch
+    - branch_protection.main
+    - branch_protection.qa      # Only for private repos
+    - branch_protection.dev     # Only for private repos
+
+  # When to check for drift
+  check_on:
+    - pre_pr_creation    # Before creating PR
+    - pre_merge          # Before merging PR
+    - on_demand          # Via manual script execution
+
+  # Drift remediation
+  remediation:
+    # Auto-fix drift (requires admin permissions)
+    auto_fix: false
+
+    # Report drift to GitHub issue
+    create_issue: false
+
+    # Labels to apply to drift issues
+    drift_issue_labels:
+      - "needs-attention"
+      - "tech-debt"
+
+# ============================================================================
+# Validation Hook Configuration
+# ============================================================================
+validation_hook:
+  # Enable PR validation hook
+  enabled: true
+
+  # Hook script location
+  script: ".claude/hooks/repo-settings-drift-hook.sh"
+
+  # Fail PR creation on drift detection
+  fail_on_drift: false  # Set to true for strict mode
+
+  # Validation runner script
+  runner_script: "scripts/ci/validate-repo-settings.sh"
+
+# ============================================================================
+# Metadata
+# ============================================================================
+metadata:
+  schema_version: "1.0.0"
+  created_by: "feat/issue-940"
+  last_updated: ""
+  related_issues:
+    - "https://github.com/jifflee/claude-tastic/issues/940"  # Repo settings drift detection
+    - "https://github.com/jifflee/claude-tastic/issues/934"  # Public/private repo detection
+    - "https://github.com/jifflee/claude-tastic/issues/933"  # Environment-tiered SDLC

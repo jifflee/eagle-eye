@@ -1,0 +1,21 @@
+{
+  "$schema": "../schemas/agent-manifest.schema.json",
+  "name": "financial-test-engineer",
+  "display_name": "Financial Test Engineer",
+  "version": "1.0.0",
+  "description": "Creates known-answer tests, property-based tests, and regression suites for financial calculations.",
+  "trust_tier": "T2",
+  "permission_level": "WRITE-LIMITED",
+  "model": "haiku",
+  "capabilities": {
+    "domains": ["file.read", "file.write", "github.read", "git.read", "git.write"],
+    "allowed_paths": ["tests/**", "test/**", "**/*.test.*", "**/*.spec.*"]
+  },
+  "constraints": {
+    "blocked_operations": ["file.write.src", "issue.close", "pr.merge"]
+  },
+  "metadata": {
+    "sdlc_phase": "testing",
+    "agent_category": "financial"
+  }
+}

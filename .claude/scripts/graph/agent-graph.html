@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Relationship Graph</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0f1117;color:#e2e8f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:#1a1d27;border-bottom:1px solid #2d3148;flex-shrink:0}
+header h1{font-size:18px;font-weight:600;color:#7c85f5}
+header span{font-size:12px;color:#64748b}
+#toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:16px;padding:8px 20px;background:#161820;border-bottom:1px solid #2d3148;flex-shrink:0;font-size:12px}
+.lg{display:flex;align-items:center;gap:6px;color:#94a3b8}
+.lg b{color:#94a3b8;font-weight:500;margin-right:2px}
+.ld{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15)}
+.ll{display:inline-block;width:20px;height:2px;vertical-align:middle}
+.sep{width:1px;height:20px;background:#2d3148;margin:0 4px}
+#si{background:#1a1d27;border:1px solid #2d3148;border-radius:6px;color:#e2e8f0;font-size:13px;padding:4px 10px;outline:none;width:200px}
+#si:focus{border-color:#7c85f5}
+button{background:#1a1d27;border:1px solid #2d3148;border-radius:6px;color:#cbd5e1;cursor:pointer;font-size:12px;padding:4px 10px}
+button:hover{background:#252840}
+#main{display:flex;flex:1;overflow:hidden}
+#gc{flex:1;position:relative;overflow:hidden}
+svg#g{width:100%;height:100%;cursor:grab}
+svg#g:active{cursor:grabbing}
+#sp{width:280px;background:#1a1d27;border-left:1px solid #2d3148;overflow-y:auto;padding:16px;flex-shrink:0;display:none}
+#sp.open{display:block}
+#sp h2{font-size:15px;font-weight:600;color:#a5b4fc;margin-bottom:12px}
+.pr{display:flex;gap:6px;margin-bottom:8px;font-size:12px}
+.pk{color:#64748b;min-width:110px}
+.pv{color:#e2e8f0;word-break:break-word}
+.bm-haiku{background:#1e3a5f;color:#7dd3fc;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bm-sonnet{background:#3b2a5f;color:#c4b5fd;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bm-opus{background:#3b1f2b;color:#fda4af;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bp-ro{background:#1e3a2f;color:#86efac;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bp-wl{background:#3b2e10;color:#fcd34d;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bp-wf{background:#3b1e10;color:#fb923c;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.bp-mg{background:#3b1818;color:#f87171;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600}
+.tl{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.tag{background:#252840;color:#94a3b8;border-radius:4px;padding:1px 6px;font-size:10px}
+.rs{margin-top:16px}
+.rs h3{font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.ri{display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:6px;padding:4px 8px;background:#0f1117;border-radius:6px;cursor:pointer}
+.ri:hover{background:#1e2235}
+.cb{float:right;background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;line-height:1}
+.cb:hover{color:#e2e8f0}
+.node circle{stroke-width:2;cursor:pointer;transition:filter .15s}
+.node circle:hover{filter:brightness(1.3)}
+.node.selected circle{stroke-width:3;filter:brightness(1.4)}
+.node text{font-size:11px;fill:#e2e8f0;pointer-events:none;text-anchor:middle;dominant-baseline:middle;font-weight:500}
+.link{stroke-opacity:.55;fill:none}
+.link-label{font-size:9px;fill:#4b5563;pointer-events:none}
+.arrowhead{fill-opacity:.7}
+.node.dimmed circle,.node.dimmed text{opacity:.2}
+.link.dimmed,.link-label.dimmed{opacity:.1}
+</style>
+</head>
+<body>
+<header>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c85f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="12" cy="12" r="2"/>
+    <circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+    <line x1="7" y1="5" x2="17" y2="5"/><line x1="5" y1="7" x2="5" y2="17"/>
+    <line x1="19" y1="7" x2="19" y2="17"/><line x1="7" y1="19" x2="17" y2="19"/>
+  </svg>
+  <h1>Agent Relationship Graph</h1>
+  <span id="gs">Loading…</span>
+</header>
+<div id="toolbar">
+  <div class="lg"><b>Phase:</b>
+    <span class="ld" style="background:#6366f1"></span>planning
+    <span class="ld" style="background:#8b5cf6"></span>design
+    <span class="ld" style="background:#0ea5e9"></span>implementation
+    <span class="ld" style="background:#10b981"></span>testing
+    <span class="ld" style="background:#f59e0b"></span>review
+    <span class="ld" style="background:#ef4444"></span>deployment
+    <span class="ld" style="background:#64748b"></span>governance
+  </div>
+  <div class="sep"></div>
+  <div class="lg"><b>Edges:</b>
+    <span class="ll" style="background:#6366f1"></span>delegates
+    <span class="ll" style="background:#a3e635"></span>precedes
+    <span class="ll" style="background:#f59e0b"></span>reviews
+    <span class="ll" style="background:none;border-top:2px dashed #f87171"></span>required-by
+  </div>
+  <div class="sep"></div>
+  <input id="si" type="text" placeholder="Search agents…"/>
+  <button id="br">Reset zoom</button>
+  <button id="bl">Hide labels</button>
+</div>
+<div id="main">
+  <div id="gc"><svg id="g"></svg></div>
+  <div id="sp">
+    <button class="cb" id="pc">&times;</button>
+    <h2 id="pn">Agent</h2>
+    <div id="pcontent"></div>
+  </div>
+</div>
+<script>
+const PC={planning:'#6366f1',design:'#8b5cf6',implementation:'#0ea5e9',testing:'#10b981',review:'#f59e0b',deployment:'#ef4444',governance:'#64748b'};
+const EC={DELEGATES_TO:'#6366f1',PRECEDES:'#a3e635',REVIEWS:'#f59e0b',REQUIRED_BY:'#f87171'};
+const NR={T0:16,T1:20,T2:26,T3:30};
+/* Fallback embedded dataset used when graph-data.json is unavailable */
+const FALLBACK={meta:{node_count:5,edge_count:4},nodes:[
+  {id:'pm-orchestrator',label:'PM / Orchestrator',model:'haiku',trust_tier:'T1',permission_level:'READ-ONLY',sdlc_phase:'planning',agent_category:'planning',domains:['file.read'],description:'Coordinates all agents.'},
+  {id:'architect',label:'Architect Agent',model:'haiku',trust_tier:'T1',permission_level:'WRITE-LIMITED',sdlc_phase:'design',agent_category:'planning',domains:['file.read'],description:'Designs architecture.'},
+  {id:'backend-developer',label:'Backend Developer',model:'haiku',trust_tier:'T2',permission_level:'WRITE-FULL',sdlc_phase:'implementation',agent_category:'development',domains:['file.read','file.write'],description:'Implements backend.'},
+  {id:'test-qa',label:'Test & QA',model:'haiku',trust_tier:'T2',permission_level:'WRITE-FULL',sdlc_phase:'testing',agent_category:'development',domains:['file.read','file.write'],description:'Writes tests.'},
+  {id:'pr-code-reviewer',label:'PR Code Reviewer',model:'haiku',trust_tier:'T0',permission_level:'READ-ONLY',sdlc_phase:'review',agent_category:'review',domains:['file.read'],description:'Reviews PRs.'}
+],edges:[
+  {source:'pm-orchestrator',target:'architect',type:'DELEGATES_TO',label:'delegates to'},
+  {source:'pm-orchestrator',target:'backend-developer',type:'DELEGATES_TO',label:'delegates to'},
+  {source:'architect',target:'backend-developer',type:'PRECEDES',label:'guides'},
+  {source:'backend-developer',target:'test-qa',type:'PRECEDES',label:'tested by'}
+]};
+
+async function loadData(){
+  try{const r=await fetch('graph-data.json');if(r.ok)return await r.json();}
+  catch(_){}
+  return FALLBACK;
+}
+
+async function main(){
+  const data=await loadData();
+  const{nodes,edges,meta}=data;
+  document.getElementById('gs').textContent=`${meta?.node_count??nodes.length} agents · ${meta?.edge_count??edges.length} relationships`;
+  const svg=d3.select('#g');
+  const cont=document.getElementById('gc');
+  const W=cont.clientWidth,H=cont.clientHeight;
+  svg.attr('viewBox',`0 0 ${W} ${H}`);
+  const g=svg.append('g');
+  const zoom=d3.zoom().scaleExtent([.2,4]).on('zoom',e=>g.attr('transform',e.transform));
+  svg.call(zoom);
+  document.getElementById('br').addEventListener('click',()=>svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity));
+  const defs=svg.append('defs');
+  Object.entries(EC).forEach(([t,c])=>{
+    defs.append('marker').attr('id',`a-${t}`).attr('viewBox','0 -5 10 10').attr('refX',22).attr('refY',0)
+      .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+      .append('path').attr('d','M0,-5L10,0L0,5').attr('class','arrowhead').attr('fill',c);
+  });
+  const nm=new Map(nodes.map(n=>[n.id,n]));
+  const ld=edges.map(e=>({...e}));
+  const sim=d3.forceSimulation(nodes)
+    .force('link',d3.forceLink(ld).id(d=>d.id).distance(140).strength(.4))
+    .force('charge',d3.forceManyBody().strength(-500))
+    .force('center',d3.forceCenter(W/2,H/2))
+    .force('collision',d3.forceCollide().radius(d=>(NR[d.trust_tier]||20)+18))
+    .alphaDecay(.03);
+  const link=g.append('g').selectAll('path').data(ld).enter().append('path')
+    .attr('class','link').attr('stroke',d=>EC[d.type]||'#4b5563').attr('stroke-width',1.5)
+    .attr('stroke-dasharray',d=>d.type==='REQUIRED_BY'?'5,3':null)
+    .attr('marker-end',d=>`url(#a-${d.type})`);
+  const ll=g.append('g').selectAll('text').data(ld).enter().append('text')
+    .attr('class','link-label').text(d=>d.label||d.type);
+  const node=g.append('g').selectAll('g').data(nodes).enter().append('g').attr('class','node')
+    .call(d3.drag()
+      .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+      .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+      .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}))
+    .on('click',onClick);
+  node.append('circle').attr('r',d=>NR[d.trust_tier]||20)
+    .attr('fill',d=>PC[d.sdlc_phase]||'#64748b')
+    .attr('stroke',d=>d3.color(PC[d.sdlc_phase]||'#64748b').brighter(1));
+  node.append('text').attr('dy','.35em')
+    .text(d=>d.id.split('-').map(w=>w[0].toUpperCase()).join('').slice(0,4));
+  const nl=node.append('text').attr('dy',d=>(NR[d.trust_tier]||20)+14)
+    .style('font-size','10px').style('fill','#94a3b8').style('text-anchor','middle').text(d=>d.id);
+  sim.on('tick',()=>{
+    link.attr('d',d=>{
+      const sx=d.source.x,sy=d.source.y,tx=d.target.x,ty=d.target.y;
+      if(sx===tx&&sy===ty)return`M${sx},${sy}A40,40 0 1,1 ${tx+1},${ty}`;
+      const dx=tx-sx,dy2=ty-sy,dr=Math.sqrt(dx*dx+dy2*dy2)*1.8;
+      return`M${sx},${sy}A${dr},${dr} 0 0,1 ${tx},${ty}`;
+    });
+    ll.attr('x',d=>(d.source.x+d.target.x)/2).attr('y',d=>(d.source.y+d.target.y)/2);
+    node.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+  let labvis=true;
+  document.getElementById('bl').addEventListener('click',function(){
+    labvis=!labvis;nl.style('display',labvis?null:'none');ll.style('display',labvis?null:'none');
+    this.textContent=labvis?'Hide labels':'Show labels';
+  });
+  document.getElementById('si').addEventListener('input',function(){
+    const q=this.value.trim().toLowerCase();
+    if(!q){node.classed('dimmed',false).classed('selected',false);link.classed('dimmed',false);ll.classed('dimmed',false);return;}
+    const m=new Set(nodes.filter(n=>n.id.toLowerCase().includes(q)||(n.label||'').toLowerCase().includes(q)).map(n=>n.id));
+    node.classed('dimmed',d=>!m.has(d.id)).classed('selected',d=>m.has(d.id));
+    link.classed('dimmed',d=>!m.has(d.source.id||d.source)&&!m.has(d.target.id||d.target));
+    ll.classed('dimmed',d=>!m.has(d.source.id||d.source)&&!m.has(d.target.id||d.target));
+  });
+  let sel=null;
+  function deselect(){
+    sel=null;node.classed('selected',false).classed('dimmed',false);
+    link.classed('dimmed',false);ll.classed('dimmed',false);
+    document.getElementById('sp').classList.remove('open');
+  }
+  function onClick(ev,d){
+    ev.stopPropagation();
+    if(sel===d.id){deselect();return;}
+    sel=d.id;
+    const nb=new Set([d.id]);
+    ld.forEach(l=>{const s=l.source.id||l.source,t=l.target.id||l.target;if(s===d.id)nb.add(t);if(t===d.id)nb.add(s);});
+    node.classed('selected',n=>n.id===d.id).classed('dimmed',n=>!nb.has(n.id));
+    link.classed('dimmed',l=>{const s=l.source.id||l.source,t=l.target.id||l.target;return s!==d.id&&t!==d.id;});
+    ll.classed('dimmed',l=>{const s=l.source.id||l.source,t=l.target.id||l.target;return s!==d.id&&t!==d.id;});
+    showPanel(d);
+  }
+  svg.on('click',deselect);
+  document.getElementById('pc').addEventListener('click',deselect);
+  function showPanel(d){
+    document.getElementById('sp').classList.add('open');
+    document.getElementById('pn').textContent=d.label||d.id;
+    const pk={READ_ONLY:'ro','READ-ONLY':'ro','WRITE-LIMITED':'wl','WRITE-FULL':'wf',MANAGED:'mg'}[d.permission_level]||'ro';
+    const out=ld.filter(l=>(l.source.id||l.source)===d.id);
+    const inn=ld.filter(l=>(l.target.id||l.target)===d.id);
+    const mkR=(arr,dir)=>arr.map(l=>{
+      const rid=dir==='out'?(l.target.id||l.target):(l.source.id||l.source);
+      const rn=nm.get(rid);
+      return`<div class="ri" data-node="${rid}"><span style="color:#4b5563">${dir==='out'?'→':'←'}</span><span style="color:${EC[l.type]||'#4b5563'}">${l.label||l.type}</span><span>${rn?.label||rid}</span></div>`;
+    }).join('');
+    document.getElementById('pcontent').innerHTML=`
+      <div class="pr"><span class="pk">ID</span><span class="pv">${d.id}</span></div>
+      <div class="pr"><span class="pk">Model</span><span class="bm-${d.model||'haiku'}">${d.model||'haiku'}</span></div>
+      <div class="pr"><span class="pk">Trust tier</span><span class="pv">${d.trust_tier}</span></div>
+      <div class="pr"><span class="pk">Permission</span><span class="bp-${pk}">${d.permission_level}</span></div>
+      <div class="pr"><span class="pk">SDLC phase</span><span class="pv" style="color:${PC[d.sdlc_phase]||'#64748b'}">${d.sdlc_phase}</span></div>
+      <div class="pr"><span class="pk">Category</span><span class="pv">${d.agent_category}</span></div>
+      ${d.description?`<div class="pr" style="flex-direction:column"><span class="pk">Description</span><span class="pv" style="color:#94a3b8;font-size:11px">${d.description}</span></div>`:''}
+      ${(d.domains||[]).length?`<div class="pr" style="flex-direction:column"><span class="pk">Domains</span><div class="tl">${d.domains.map(x=>`<span class="tag">${x}</span>`).join('')}</div></div>`:''}
+      ${out.length?`<div class="rs"><h3>Outgoing</h3>${mkR(out,'out')}</div>`:''}
+      ${inn.length?`<div class="rs"><h3>Incoming</h3>${mkR(inn,'in')}</div>`:''}`;
+    document.querySelectorAll('.ri[data-node]').forEach(el=>el.addEventListener('click',ev=>{
+      ev.stopPropagation();const t=nm.get(el.dataset.node);if(t)onClick({stopPropagation:()=>{}},t);
+    }));
+  }
+}
+main().catch(console.error);
+</script>
+</body>
+</html>

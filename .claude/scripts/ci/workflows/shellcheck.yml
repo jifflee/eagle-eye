@@ -1,0 +1,52 @@
+# GitHub Actions Workflow Template: ShellCheck
+#
+# PURPOSE: Run shellcheck on shell scripts changed in a PR.
+#
+# TO ACTIVATE: Copy this file to .github/workflows/shellcheck.yml
+#   cp scripts/ci/workflows/shellcheck.yml .github/workflows/shellcheck.yml
+#
+# NOTE: The local equivalent is scripts/ci/shellcheck.sh
+#   Run locally: ./scripts/ci/shellcheck.sh --changed-only
+#
+# Issue: #1202
+
+name: ShellCheck
+
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - '**/*.sh'
+      - '.shellcheckrc'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.sh'
+      - '.shellcheckrc'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+          shellcheck --version
+
+      - name: Run shellcheck (changed files on PR)
+        run: |
+          chmod +x scripts/ci/shellcheck.sh
+          ./scripts/ci/shellcheck.sh --changed-only
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}

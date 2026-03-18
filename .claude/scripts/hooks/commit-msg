@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# Commit-msg hook for conventional commit validation
+# Install with: ./scripts/hooks/install-hooks.sh
+#
+# Validates commit messages against Conventional Commits specification
+# before the commit is finalized.
+#
+
+set -e
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_DIR="$( cd "$SCRIPT_DIR/../.." && pwd )"
+
+COMMIT_MSG_FILE="$1"
+
+if [ ! -f "$COMMIT_MSG_FILE" ]; then
+    echo "Error: Commit message file not found: $COMMIT_MSG_FILE" >&2
+    exit 1
+fi
+
+# Run validation script
+if [ -f "$REPO_DIR/scripts/hooks/validate-commit-msg.sh" ]; then
+    "$REPO_DIR/scripts/hooks/validate-commit-msg.sh" --file "$COMMIT_MSG_FILE"
+    exit $?
+else
+    # Validator not found, allow commit
+    echo "Warning: validate-commit-msg.sh not found, skipping validation" >&2
+    exit 0
+fi

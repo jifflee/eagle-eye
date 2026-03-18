@@ -1,0 +1,80 @@
+{
+  "_comment": "Example CI configuration with SBOM generation enabled",
+  "_version": "2.0",
+  "_description": "CI pipeline configuration for local gate execution",
+
+  "parallel": true,
+
+  "modes": {
+    "pre-commit": {
+      "timeout_seconds": 120,
+      "checks": [
+        {"name": "naming-conventions", "script": "validators/check-naming-conventions.sh", "args": ""},
+        {"name": "script-sizes", "script": "validators/check-script-sizes.sh", "args": "--files"},
+        {"name": "structure", "script": "validators/check-structure.sh", "args": ""}
+      ]
+    },
+
+    "pre-pr": {
+      "timeout_seconds": 300,
+      "checks": [
+        {"name": "naming-conventions", "script": "validators/check-naming-conventions.sh", "args": ""},
+        {"name": "script-sizes", "script": "validators/check-script-sizes.sh", "args": ""},
+        {"name": "structure", "script": "validators/check-structure.sh", "args": ""},
+        {"name": "dependencies", "script": "validators/check-dependencies.sh", "args": ""},
+        {"name": "fixtures", "script": "validators/ci-validate-fixtures.sh", "args": ""},
+        {"name": "refactor-lint", "script": "validators/refactor-lint.sh", "args": "--scope changed --severity high"},
+        {"name": "design-compliance", "script": "validators/design-compliance.sh", "args": ""},
+        {"name": "sbom-generation", "script": "validators/generate-sbom.sh", "args": "--validate --quiet"}
+      ]
+    },
+
+    "pre-merge": {
+      "timeout_seconds": 300,
+      "checks": [
+        {"name": "naming-conventions", "script": "validators/check-naming-conventions.sh", "args": ""},
+        {"name": "script-sizes", "script": "validators/check-script-sizes.sh", "args": ""},
+        {"name": "structure", "script": "validators/check-structure.sh", "args": ""},
+        {"name": "dependencies", "script": "validators/check-dependencies.sh", "args": ""},
+        {"name": "fixtures", "script": "validators/ci-validate-fixtures.sh", "args": ""},
+        {"name": "refactor-lint", "script": "validators/refactor-lint.sh", "args": "--severity medium"},
+        {"name": "design-compliance", "script": "validators/design-compliance.sh", "args": ""},
+        {"name": "dep-audit", "script": "validators/dep-audit.sh", "args": "--full"},
+        {"name": "sbom-validation", "script": "validators/generate-sbom.sh", "args": "--validate"}
+      ]
+    },
+
+    "pre-release": {
+      "timeout_seconds": 600,
+      "checks": [
+        {"name": "naming-conventions", "script": "validators/check-naming-conventions.sh", "args": ""},
+        {"name": "script-sizes", "script": "validators/check-script-sizes.sh", "args": "--strict"},
+        {"name": "structure", "script": "validators/check-structure.sh", "args": ""},
+        {"name": "dependencies", "script": "validators/check-dependencies.sh", "args": ""},
+        {"name": "fixtures", "script": "validators/ci-validate-fixtures.sh", "args": ""},
+        {"name": "refactor-lint", "script": "validators/refactor-lint.sh", "args": "--severity low"},
+        {"name": "design-compliance", "script": "validators/design-compliance.sh", "args": "--verbose"},
+        {"name": "dep-audit", "script": "validators/dep-audit.sh", "args": "--full --strict"},
+        {"name": "security-scan", "script": "validators/security-scan.sh", "args": "--full"},
+        {"name": "sbom-release", "script": "validators/generate-sbom.sh", "args": "--validate --upload --formats spdx-json,cyclonedx-json,spdx,cyclonedx"}
+      ]
+    }
+  },
+
+  "_sbom_config": {
+    "enabled": true,
+    "formats": ["spdx-json", "cyclonedx-json"],
+    "ecosystems": ["npm", "python"],
+    "validate_on_pr": true,
+    "upload_on_release": true,
+    "output_dir": ".sbom"
+  },
+
+  "_dependency_scanning": {
+    "npm_audit": true,
+    "pip_audit": true,
+    "safety_check": true,
+    "fail_on_critical": true,
+    "fail_on_high": true
+  }
+}

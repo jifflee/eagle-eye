@@ -1,0 +1,594 @@
+# Security Policy Configuration
+# MCP Security Authorization Server - Policy-as-Code
+#
+# This file defines security policies for agent operations based on risk classification.
+# Each policy maps operation patterns to risk levels and defines authorization actions.
+#
+# Related: Epic #213 - MCP-based Security Authorization Server
+# Issue: #749 - Design security policy schema and risk classification model
+#
+# Schema Version: 1.0.0
+
+version: "1.0.0"
+
+# =============================================================================
+# RISK CLASSIFICATION MODEL
+# =============================================================================
+#
+# Risk Level Definitions:
+#   LOW:      Read-only operations, data queries, safe analysis
+#   MEDIUM:   Reversible write operations, state changes with audit trail
+#   HIGH:     Destructive operations, force operations, credential access
+#   CRITICAL: Production deployments, secret rotation, admin operations
+#
+# Action Definitions:
+#   auto_approve:           Allow operation without user interaction
+#   log_and_approve:        Log operation and allow (audit trail)
+#   require_approval:       Block until user explicitly approves
+#   multi_agent_consensus:  Require multiple agents to approve
+#
+# =============================================================================
+
+# Default action for operations not explicitly defined
+defaults:
+  default_risk_level: medium
+  default_action: log_and_approve
+  audit_all: true
+  audit_log_path: "~/.claude-tastic/security-audit"
+  audit_retention_days: 90
+
+# =============================================================================
+# LOW RISK POLICIES (auto_approve)
+# =============================================================================
+# Operations that are safe, read-only, or easily reversible
+# No user interaction required
+
+policies:
+  - id: read-only-operations
+    name: "Read-Only Operations"
+    priority: 10
+    risk_level: low
+    action: auto_approve
+    description: "Safe read operations that do not modify state"
+    patterns:
+      # Shell read commands
+      - "^(cat|grep|find|ls|tree|head|tail|less|more|wc)"
+      - "^git (status|log|diff|show|branch|tag|remote)"
+      # Data query scripts
+      - "scripts/.*-data\\.sh$"
+      - "scripts/read-.*\\.sh$"
+      # Sprint status queries
+      - "scripts/sprint-status.*\\.sh$"
+      - "scripts/milestone-audit.*\\.sh$"
+      - "scripts/repo-audit.*\\.sh$"
+      # GitHub read operations
+      - "^gh (issue|pr|api|repo|workflow|run) (list|view|show)"
+      # File operations
+      - "Read tool"
+      - "Glob tool"
+      - "Grep tool"
+    agent_operations:
+      - "file.read"
+      - "github.read"
+      - "git.read"
+      - "network.read"
+    notes: "Operations with zero risk of data loss or unintended changes"
+
+  - id: safe-analysis
+    name: "Safe Analysis Operations"
+    priority: 10
+    risk_level: low
+    action: auto_approve
+    description: "Code analysis, testing, and validation operations"
+    patterns:
+      - "^(pytest|jest|mocha|npm test|npm run test)"
+      - "^(eslint|flake8|mypy|black|prettier)"
+      - "^(shellcheck|yamllint|jsonlint)"
+    agent_operations:
+      - "shell.exec.test"
+      - "shell.exec.lint"
+    notes: "Testing and linting have no side effects on production state"
+
+  - id: documentation-reads
+    name: "Documentation Access"
+    priority: 10
+    risk_level: low
+    action: auto_approve
+    description: "Reading documentation and configuration files"
+    file_patterns:
+      - "docs/**/*.md"
+      - "README*.md"
+      - "CONTRIBUTING.md"
+      - "**/*.example"
+      - "config/**/*.yaml"
+      - "config/**/*.yml"
+      - "config/**/*.json"
+    notes: "Documentation is public knowledge, safe to read"
+
+# =============================================================================
+# MEDIUM RISK POLICIES (log_and_approve)
+# =============================================================================
+# Operations that modify state but are reversible or have audit trails
+# Automatically approved but logged for audit purposes
+
+  - id: git-safe-writes
+    name: "Git Safe Write Operations"
+    priority: 20
+    risk_level: medium
+    action: log_and_approve
+    description: "Standard git operations that can be reversed"
+    patterns:
+      - "^git (add|commit|checkout|stash|fetch|pull|merge|rebase)"
+      - "^git push(?!.*--force)"
+    agent_operations:
+      - "git.write"
+    excluded_patterns:
+      - "git push.*--force"
+      - "git push.*(main|master|production)"
+    notes: "Standard git workflow operations, reversible with git reset/revert"
+
+  - id: file-writes
+    name: "File Write Operations"
+    priority: 20
+    risk_level: medium
+    action: log_and_approve
+    description: "Writing or editing files in the repository"
+    patterns:
+      - "Write tool"
+      - "Edit tool"
+    agent_operations:
+      - "file.write"
+      - "file.write.src"
+      - "file.write.scripts"
+    file_patterns:
+      - "src/**/*"
+      - "scripts/**/*"
+      - "tests/**/*"
+      - "docs/**/*"
+      - "config/**/*"
+    excluded_patterns:
+      - "**/.env*"
+      - "**/secrets.*"
+      - "**/*credentials*"
+      - "**/*.pem"
+      - "**/*.key"
+    notes: "File changes are tracked in git, easily reversible"
+
+  - id: github-write-operations
+    name: "GitHub Write Operations"
+    priority: 20
+    risk_level: medium
+    action: log_and_approve
+    description: "Non-destructive GitHub operations"
+    patterns:
+      - "^gh issue edit"
+      - "^gh issue create"
+      - "^gh issue comment"
+      - "^gh pr create"
+      - "^gh pr review"
+      - "^gh pr comment"
+    agent_operations:
+      - "github.write"
+    excluded_operations:
+      - "issue.close"
+      - "pr.merge"
+      - "pr.close"
+      - "milestone.close"
+    notes: "GitHub operations that can be reversed or are non-destructive"
+
+  - id: package-management
+    name: "Package Manager Operations"
+    priority: 20
+    risk_level: medium
+    action: log_and_approve
+    description: "Package installation and updates"
+    patterns:
+      - "^(npm|yarn|pnpm) (install|add|remove|update|ci)"
+      - "^pip install"
+      - "^poetry (add|remove|update)"
+    agent_operations:
+      - "shell.exec.package"
+    notes: "Package changes tracked in lock files, reversible via git"
+
+  - id: development-builds
+    name: "Development Build Operations"
+    priority: 20
+    risk_level: medium
+    action: log_and_approve
+    description: "Building and compiling code"
+    patterns:
+      - "^(npm|yarn|pnpm) (run build|run dev|run start)"
+      - "^make (build|test|lint|clean|install)"
+      - "^docker build"
+      - "^docker-compose (up|down|build)"
+    agent_operations:
+      - "shell.exec.build"
+    notes: "Build operations create artifacts, do not affect source"
+
+  - id: test-writes
+    name: "Test File Modifications"
+    priority: 20
+    risk_level: medium
+    action: log_and_approve
+    description: "Writing or modifying test files"
+    file_patterns:
+      - "tests/**/*"
+      - "test/**/*"
+      - "**/*.test.*"
+      - "**/*.spec.*"
+      - "cypress/**/*"
+      - "playwright/**/*"
+    notes: "Test changes do not affect production code behavior"
+
+# =============================================================================
+# HIGH RISK POLICIES (require_approval)
+# =============================================================================
+# Operations that are destructive, irreversible, or affect critical systems
+# Require explicit user approval before execution
+
+  - id: force-operations
+    name: "Force Git Operations"
+    priority: 50
+    risk_level: high
+    action: require_approval
+    description: "Force push and destructive git operations"
+    patterns:
+      - "git push.*--force"
+      - "git push --force-with-lease"
+      - "git reset --hard"
+      - "git clean -f"
+      - "git branch -D"
+    agent_operations:
+      - "force-push"
+    approval_requirements:
+      - user_confirmation: true
+      - reason_required: true
+      - affected_branches: true
+    notes: "Force operations can permanently destroy work"
+
+  - id: delete-operations
+    name: "Delete Operations"
+    priority: 50
+    risk_level: high
+    action: require_approval
+    description: "File, directory, and resource deletion"
+    patterns:
+      - "^rm -rf"
+      - "^rm -r"
+      - "^git rm"
+      - "^gh (issue|pr) delete"
+      - "DELETE FROM.*WHERE"
+      - "TRUNCATE TABLE"
+    agent_operations:
+      - "file.delete"
+      - "database.truncate"
+    approval_requirements:
+      - user_confirmation: true
+      - dry_run_first: true
+      - affected_items_list: true
+    notes: "Deletion is often irreversible, especially for production data"
+
+  - id: protected-branch-operations
+    name: "Protected Branch Operations"
+    priority: 60
+    risk_level: high
+    action: require_approval
+    description: "Operations on main, master, or production branches"
+    patterns:
+      - "git push.*(main|master|production)"
+      - "gh pr merge"
+      - "^gh issue close"
+      - "^gh pr close"
+    agent_operations:
+      - "pr.merge"
+      - "issue.close"
+      - "pr.close"
+    approval_requirements:
+      - user_confirmation: true
+      - ci_checks_passed: true
+      - review_approved: true
+    notes: "Protected branches represent production or stable code"
+
+  - id: credential-access
+    name: "Credential and Secret Access"
+    priority: 70
+    risk_level: high
+    action: require_approval
+    description: "Operations involving credentials or secrets"
+    file_patterns:
+      - "**/.env*"
+      - "**/secrets.*"
+      - "**/*credentials*"
+      - "**/*.pem"
+      - "**/*.key"
+      - "**/.aws/**"
+      - "**/.ssh/**"
+    patterns:
+      - "export.*PASSWORD"
+      - "export.*SECRET"
+      - "export.*API_KEY"
+      - "export.*TOKEN"
+    approval_requirements:
+      - user_confirmation: true
+      - security_review: true
+      - audit_logged: true
+    notes: "Credential exposure is a critical security risk"
+
+  - id: database-destructive
+    name: "Destructive Database Operations"
+    priority: 50
+    risk_level: high
+    action: require_approval
+    description: "Operations that destroy database state"
+    patterns:
+      - "DROP DATABASE"
+      - "DROP TABLE"
+      - "TRUNCATE"
+      - "DELETE FROM.*WHERE 1"
+    agent_operations:
+      - "database.drop"
+      - "database.truncate"
+    approval_requirements:
+      - user_confirmation: true
+      - backup_verified: true
+      - dry_run_first: true
+    notes: "Database destruction can cause permanent data loss"
+
+  - id: milestone-management
+    name: "Milestone Management Operations"
+    priority: 50
+    risk_level: high
+    action: require_approval
+    description: "Closing or deleting milestones"
+    patterns:
+      - "^gh milestone close"
+      - "^gh milestone delete"
+    agent_operations:
+      - "milestone.close"
+    approval_requirements:
+      - user_confirmation: true
+      - all_issues_closed: true
+    notes: "Milestone closure affects project tracking and reporting"
+
+# =============================================================================
+# CRITICAL RISK POLICIES (multi_agent_consensus)
+# =============================================================================
+# Operations that affect production systems, security, or have irreversible impact
+# Require multiple approvals or consensus before execution
+
+  - id: production-deployment
+    name: "Production Deployment Operations"
+    priority: 100
+    risk_level: critical
+    action: multi_agent_consensus
+    description: "Deployments to production environments"
+    patterns:
+      - "deploy.*production"
+      - "kubectl apply.*production"
+      - "terraform apply.*production"
+      - "docker push.*:latest"
+      - "docker push.*:prod"
+    agent_operations:
+      - "deployment.production"
+    approval_requirements:
+      - user_confirmation: true
+      - ci_checks_passed: true
+      - security_scan_passed: true
+      - backup_verified: true
+      - consensus_agents:
+          - "security-iam-prepr"
+          - "test-qa"
+          - "backend-developer"
+      - minimum_approvals: 2
+    notes: "Production deployments affect live users and require careful validation"
+
+  - id: secret-rotation
+    name: "Secret Rotation Operations"
+    priority: 100
+    risk_level: critical
+    action: multi_agent_consensus
+    description: "Rotating production secrets and credentials"
+    patterns:
+      - "rotate.*secret"
+      - "rotate.*credential"
+      - "aws secretsmanager update-secret"
+      - "vault write"
+    agent_operations:
+      - "secret.rotate"
+    approval_requirements:
+      - user_confirmation: true
+      - security_review: true
+      - rollback_plan: true
+      - consensus_agents:
+          - "security-iam-design"
+          - "security-iam-prepr"
+      - minimum_approvals: 2
+    notes: "Secret rotation can break production services if not coordinated"
+
+  - id: infrastructure-changes
+    name: "Infrastructure Modification"
+    priority: 100
+    risk_level: critical
+    action: multi_agent_consensus
+    description: "Changes to infrastructure or cloud resources"
+    patterns:
+      - "terraform (apply|destroy)"
+      - "aws (cloudformation|ec2|rds|s3).*(delete|terminate)"
+      - "kubectl delete namespace"
+    agent_operations:
+      - "infrastructure.modify"
+      - "infrastructure.delete"
+    approval_requirements:
+      - user_confirmation: true
+      - dry_run_reviewed: true
+      - cost_estimate: true
+      - consensus_agents:
+          - "cicd-workflow"
+          - "security-iam-prepr"
+      - minimum_approvals: 2
+    notes: "Infrastructure changes can have wide-reaching impact and cost implications"
+
+  - id: admin-operations
+    name: "Administrative Operations"
+    priority: 100
+    risk_level: critical
+    action: multi_agent_consensus
+    description: "Administrative actions with system-wide impact"
+    patterns:
+      - "gh repo delete"
+      - "gh org"
+      - "sudo"
+    agent_operations:
+      - "repo.delete"
+      - "admin.operation"
+    approval_requirements:
+      - user_confirmation: true
+      - reason_required: true
+      - consensus_agents:
+          - "repo-workflow"
+          - "guardrails-policy"
+      - minimum_approvals: 2
+    notes: "Admin operations can affect entire organization or repository"
+
+# =============================================================================
+# AGENT OPERATION RISK MAPPING
+# =============================================================================
+# Maps agent operations (from agent-permissions.yaml) to risk levels
+
+agent_operation_risk_levels:
+  # Low Risk (T0) - Read-only operations
+  file.read: low
+  github.read: low
+  git.read: low
+  network.read: low
+  database.read: low
+
+  # Medium Risk (T1-T2) - Reversible writes
+  file.write: medium
+  file.write.src: medium
+  file.write.scripts: medium
+  file.write.backend: medium
+  github.write: medium
+  git.write: medium
+  git.commit: medium
+  git.push: medium
+  network.write: medium
+  database.write: medium
+  shell.exec: medium
+  shell.exec.build: medium
+  shell.exec.test: medium
+  shell.exec.lint: medium
+  shell.exec.package: medium
+  pr.create: medium
+  issue.create: medium
+  issue.edit: medium
+  milestone.create: medium
+  milestone.edit: medium
+
+  # High Risk (T2-T3) - Destructive or protected operations
+  force-push: high
+  file.delete: high
+  pr.merge: high
+  issue.close: high
+  pr.close: high
+  milestone.close: high
+  database.truncate: high
+
+  # Critical Risk (T3) - Production and admin operations
+  deployment.production: critical
+  secret.rotate: critical
+  infrastructure.modify: critical
+  infrastructure.delete: critical
+  repo.delete: critical
+  database.drop: critical
+  admin.operation: critical
+
+# =============================================================================
+# ENFORCEMENT CONFIGURATION
+# =============================================================================
+
+enforcement:
+  # Enable/disable policy enforcement
+  enabled: true
+
+  # Policy enforcement mode
+  # strict: Block operations that violate policy
+  # advisory: Warn but allow operations
+  # audit: Log only, no blocking
+  mode: strict
+
+  # User override configuration
+  user_override:
+    enabled: true
+    requires_confirmation: true
+    log_all_overrides: true
+
+  # Session caching for approved operations
+  session_cache:
+    enabled: true
+    ttl_hours: 8
+    max_entries: 1000
+
+  # Webhook integration for approvals
+  webhook:
+    enabled: false
+    # Set via environment: SECURITY_WEBHOOK_URL
+    timeout_seconds: 30
+    retry_count: 2
+    fallback_on_error: deny
+
+# =============================================================================
+# AUDIT CONFIGURATION
+# =============================================================================
+
+audit:
+  enabled: true
+  log_format: jsonl
+  log_path: "~/.claude-tastic/security-audit"
+  retention_days: 90
+
+  # What to log
+  log_operations:
+    allow: true          # Log allowed operations
+    deny: true           # Log denied operations
+    override: true       # Log user overrides
+    consensus: true      # Log consensus decisions
+
+  # What to include in logs
+  include_context:
+    agent_name: true
+    risk_level: true
+    policy_id: true
+    file_paths: true
+    command_pattern: true
+    timestamp: true
+    session_id: true
+    user_id: false       # Privacy consideration
+
+  # Sensitive data redaction
+  redact_patterns:
+    - "password"
+    - "secret"
+    - "api[_-]?key"
+    - "token"
+    - "credential"
+
+# =============================================================================
+# METADATA
+# =============================================================================
+
+metadata:
+  schema_version: "1.0.0"
+  created_date: "2026-02-15"
+  last_modified: "2026-02-15"
+  authors:
+    - "Security & IAM Design Agent"
+  related_issues:
+    - "#213"  # Epic: MCP-based Security Authorization Server
+    - "#749"  # feat: Design security policy schema
+  related_docs:
+    - "docs/security/risk-classification-model.md"
+    - "docs/security/security-policy-adr.md"
+    - "schemas/security-policy.schema.json"
+    - "config/agent-permissions.yaml"
+    - "docs/PERMISSION_TIERS.md"

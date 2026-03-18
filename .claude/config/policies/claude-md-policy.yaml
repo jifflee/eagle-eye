@@ -1,0 +1,186 @@
+# CLAUDE.md Change Control Policy
+# Defines guardrails and enforcement rules for CLAUDE.md modifications
+#
+# Issue: #840 - Add CLAUDE.md update guardrails and enforcement
+# Schema Version: 1.0.0
+
+version: "1.0.0"
+
+# =============================================================================
+# OVERVIEW
+# =============================================================================
+#
+# CLAUDE.md files contain project-level instructions for AI agents and tools.
+# Unauthorized or unvalidated changes can cause agents to behave incorrectly,
+# expose sensitive configuration, or violate governance policies.
+#
+# This policy defines:
+#   1. Which files are protected (patterns)
+#   2. Which agents/processes are authorized to modify them
+#   3. What validation must pass before changes are accepted
+#   4. How violations are reported
+#
+# =============================================================================
+
+# Protected file patterns (glob-style, relative to repo root)
+protected_files:
+  - "CLAUDE.md"
+  - "claude.md"
+  - "**/CLAUDE.md"
+  - "**/claude.md"
+
+# =============================================================================
+# AUTHORIZED MODIFIERS
+# =============================================================================
+# Agents and processes permitted to modify CLAUDE.md files.
+# The "source" field maps to git commit author patterns or env var identifiers.
+
+authorized_modifiers:
+  # Framework-managed agents (via claude-tastic tooling)
+  - id: documentation-librarian
+    description: "Documentation Librarian Agent - primary owner of CLAUDE.md"
+    commit_author_pattern: "documentation-librarian"
+    env_var: "CLAUDE_AGENT_ROLE=documentation-librarian"
+    allowed_operations:
+      - full_update
+      - section_update
+      - append
+
+  - id: repo-init
+    description: "Repo Init skill - creates initial CLAUDE.md during setup"
+    commit_author_pattern: "repo-init"
+    env_var: "CLAUDE_SKILL=repo-init"
+    allowed_operations:
+      - create
+      - full_update
+
+  - id: framework-update
+    description: "Framework Update skill - updates CLAUDE.md during version bumps"
+    commit_author_pattern: "framework-update"
+    env_var: "CLAUDE_SKILL=framework-update"
+    allowed_operations:
+      - section_update
+      - version_bump
+
+  - id: guardrails-policy
+    description: "Guardrails Policy Agent - may update compliance sections"
+    commit_author_pattern: "guardrails-policy"
+    env_var: "CLAUDE_AGENT_ROLE=guardrails-policy"
+    allowed_operations:
+      - section_update
+
+  # CI/CD and automation
+  - id: ci-automation
+    description: "CI/CD pipeline automated updates"
+    env_var: "CI=true"
+    commit_author_pattern: "github-actions"
+    allowed_operations:
+      - section_update
+      - append
+
+  # Human operators (explicit override)
+  - id: human-operator
+    description: "Human operator with explicit override flag"
+    env_var: "CLAUDE_MD_OVERRIDE=true"
+    allowed_operations:
+      - full_update
+      - section_update
+      - create
+      - delete
+
+# =============================================================================
+# VALIDATION RULES
+# =============================================================================
+# Rules that CLAUDE.md content must satisfy after modification.
+
+validation:
+  # Required sections that must always be present
+  required_sections:
+    - pattern: "^#\\s"
+      description: "Must have at least one top-level heading"
+      error: "CLAUDE.md must start with a markdown heading"
+
+  # Prohibited patterns (security-sensitive content)
+  prohibited_patterns:
+    - pattern: "(password|passwd|secret|api[_-]?key|token)\\s*[=:]\\s*[\"'][^\"']{8,}"
+      description: "No hardcoded secrets"
+      error: "CLAUDE.md must not contain hardcoded secrets or credentials"
+      case_insensitive: true
+      exclude_examples: true
+
+    - pattern: "BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY"
+      description: "No private keys"
+      error: "CLAUDE.md must not contain private keys"
+
+  # Maximum size limits
+  size_limits:
+    max_lines: 2000
+    warn_lines: 1000
+    max_bytes: 204800  # 200KB
+
+  # Required metadata (frontmatter or first-line markers)
+  metadata_checks:
+    warn_if_missing_version: true
+    warn_if_missing_owner: false
+
+# =============================================================================
+# ENFORCEMENT ACTIONS
+# =============================================================================
+
+enforcement:
+  # What to do when an unauthorized modifier is detected
+  on_unauthorized_modifier:
+    action: block          # block | warn | log_only
+    exit_code: 1
+    message: |
+      CLAUDE.md modification blocked: unauthorized modifier.
+
+      Only authorized agents/processes may modify CLAUDE.md files.
+      See config/claude-md-policy.yaml for the authorized modifier list.
+
+      To override (human operators only):
+        export CLAUDE_MD_OVERRIDE=true
+        git commit ...
+
+      Or bypass entirely (not recommended):
+        git commit --no-verify
+
+  # What to do when validation rules fail
+  on_validation_failure:
+    action: block          # block | warn | log_only
+    exit_code: 1
+
+  # What to do when size limits are exceeded
+  on_size_exceeded:
+    warn_threshold_action: warn
+    max_threshold_action: block
+
+  # Audit trail
+  audit:
+    enabled: true
+    log_path: "~/.claude-tastic/claude-md-audit"
+    log_all_changes: true
+    retention_days: 90
+
+# =============================================================================
+# DIFF REVIEW REQUIREMENTS
+# =============================================================================
+
+diff_review:
+  # Require explicit diff summary comment in commit message for large changes
+  large_change_threshold_lines: 50
+  require_pr_for_large_changes: true
+
+  # Sections that require elevated review
+  sensitive_sections:
+    - pattern: "NEVER|prohibited|forbidden|blocked|restricted"
+      description: "Guardrail restriction rules"
+      require_review: true
+
+    - pattern: "permission|authorization|auth|access"
+      description: "Permission and access control definitions"
+      require_review: true
+
+    - pattern: "secret|credential|password|token"
+      description: "Credential handling instructions"
+      require_review: true

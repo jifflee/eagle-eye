@@ -1,0 +1,152 @@
+# proxmox-n8n.yml
+# Configuration for n8n → Proxmox container integration (Issue #819)
+#
+# This file defines the network topology and settings for integrating
+# n8n (on Proxmox) with sprint-work containers (on docker-workers).
+#
+# Usage:
+#   - Referenced by scripts/n8n/proxmox-n8n-setup.sh
+#   - Referenced by scripts/container/container-proxmox-webhook.sh
+#   - Referenced by n8n-workflows/proxmox-*.json
+#
+# Environment variable overrides are supported for all values.
+
+---
+# Proxmox VM network topology
+network:
+  # n8n VM - where n8n runs and manages workflows
+  n8n_vm:
+    hostname: n8n
+    ip: "${N8N_HOST:-10.69.5.20}"
+    port: "${N8N_PORT:-5678}"
+    webhook_base_url: "http://${N8N_HOST:-10.69.5.20}:${N8N_PORT:-5678}"
+
+  # docker-workers VM - where sprint-work containers run
+  docker_workers:
+    hostname: docker-workers
+    ip: "${DOCKER_WORKERS_IP:-10.69.5.11}"
+    ssh_key: "${PROXMOX_SSH_KEY:-~/.ssh/id_ed25519_proxmox_bootstrap}"
+    ssh_user: "${REMOTE_SSH_USER:-ubuntu}"
+    env_file: "/opt/apps/claude-workers/.env"
+    max_containers: 3
+    container_prefix: "claude-tastic-issue"
+
+  # Observability VM - Grafana/Loki/Promtail
+  observability:
+    hostname: docker-obs
+    ip: "${OBS_IP:-10.69.5.10}"
+    grafana_port: 3000
+    loki_port: 3100
+    grafana_url: "http://${OBS_IP:-10.69.5.10}:3000"
+    loki_url: "http://${OBS_IP:-10.69.5.10}:3100"
+
+# n8n webhook endpoints (on the n8n VM)
+webhooks:
+  # Trigger a container launch on docker-workers
+  container_trigger: "/webhook/proxmox-container-trigger"
+
+  # Container reports its current status
+  container_status: "/webhook/container-status"
+
+  # Container sends periodic heartbeat (liveness)
+  container_heartbeat: "/webhook/container-heartbeat"
+
+  # Container reports completion (success/failure/timeout)
+  container_complete: "/webhook/container-complete"
+
+  # Existing PR auto-merge pipeline endpoint
+  pr_auto_merge: "/webhook/pr-auto-merge"
+
+# n8n workflow configurations
+workflows:
+  # Proxmox-specific workflows (Issue #819)
+  proxmox_trigger:
+    file: "n8n-workflows/proxmox-remote-container-trigger.json"
+    description: "Triggers containers on docker-workers from n8n on Proxmox"
+    schedule_interval_minutes: 15
+    active: false  # Set to true after import and validation
+
+  proxmox_status_receiver:
+    file: "n8n-workflows/proxmox-container-status-receiver.json"
+    description: "Receives status callbacks from containers on docker-workers"
+    active: false  # Set to true after import and validation
+
+# Container environment variables injected on docker-workers
+# These are added to /opt/apps/claude-workers/.env
+container_env:
+  # URL of n8n on Proxmox for webhook callbacks
+  N8N_PROXMOX_URL: "http://${N8N_HOST:-10.69.5.20}:${N8N_PORT:-5678}"
+
+  # Generic webhook base (may equal N8N_PROXMOX_URL)
+  WEBHOOK_URL: "http://${N8N_HOST:-10.69.5.20}:${N8N_PORT:-5678}"
+
+  # Heartbeat interval in seconds
+  HEARTBEAT_INTERVAL: 30
+
+  # Container timeout (30 minutes)
+  DEFAULT_TIMEOUT: 1800
+
+# SSH configuration for n8n → docker-workers access
+ssh:
+  key_path: "${PROXMOX_SSH_KEY:-~/.ssh/id_ed25519_proxmox_bootstrap}"
+  user: "${REMOTE_SSH_USER:-ubuntu}"
+  host: "${DOCKER_WORKERS_IP:-10.69.5.11}"
+  options:
+    StrictHostKeyChecking: "no"
+    ConnectTimeout: 10
+    BatchMode: "yes"
+
+# Observability configuration
+observability:
+  # Promtail on docker-workers ships container logs to Loki
+  promtail:
+    config_path: "/etc/promtail/config.yml"
+    job_name: "claude-containers"
+    log_path: "/var/lib/docker/containers/*/*.log"
+    labels:
+      job: "claude-sprint-workers"
+      host: "docker-workers"
+
+  # Grafana dashboards
+  grafana:
+    dashboards:
+      - name: "Claude Container Execution"
+        uid: "claude-containers"
+        description: "Sprint-work container metrics: launches, completions, durations"
+
+      - name: "n8n Execution Logs"
+        uid: "n8n-executions"
+        description: "n8n workflow execution history and performance"
+
+# Resilience configuration
+resilience:
+  # Fallback to local Docker if docker-workers unavailable
+  fallback_to_local: true
+
+  # Queue issues when docker-workers at capacity
+  queue_when_full: true
+  queue_retry_interval_minutes: 15
+
+  # n8n restart: re-import workflows
+  auto_reimport_on_restart: false
+
+  # Container timeout handling
+  container_timeout_seconds: 1800
+  heartbeat_stale_threshold_seconds: 300
+
+# Scripts used by the integration
+scripts:
+  # Setup and configuration
+  setup: "scripts/n8n/proxmox-n8n-setup.sh"
+
+  # Container launch on docker-workers (from n8n)
+  remote_launch: "scripts/container/remote-container-launch.sh"
+
+  # Container → n8n webhook (from containers on docker-workers)
+  container_webhook: "scripts/container/container-proxmox-webhook.sh"
+
+  # Container completion notification (existing, extended for Proxmox)
+  container_notifier: "scripts/container/container-complete-notifier.sh"
+
+  # Heartbeat (existing)
+  heartbeat: "scripts/container/container-heartbeat.sh"

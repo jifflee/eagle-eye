@@ -1,0 +1,16 @@
+{
+  "script": "sprint-orchestrator.sh",
+  "description": "Sprint workflow orchestration and automation",
+  "network_calls": [
+    {
+      "host": "api.github.com",
+      "purpose": "Issue and PR management, milestone tracking, sprint automation via GitHub API",
+      "required": true
+    },
+    {
+      "host": "api.anthropic.com",
+      "purpose": "LLM API calls for AI-assisted task breakdown and sprint planning",
+      "required": true
+    }
+  ]
+}

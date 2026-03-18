@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jifflee/claude-tastic/schemas/refactor-fix-plan.schema.json",
+  "title": "Refactor Fix Plan",
+  "description": "Structured plan produced by the PM orchestrator during Phase 2 of the scan→plan→fix→verify iteration protocol. Groups findings by owning agent, detects file overlaps, and sequences execution to prevent race conditions.",
+  "type": "object",
+  "required": [
+    "iteration",
+    "scan_id",
+    "created_at",
+    "groups",
+    "execution_order",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "Current iteration number (1-3). After 3 iterations, remaining findings are converted to GitHub issues."
+    },
+    "scan_id": {
+      "type": "string",
+      "description": "Unique identifier for the scan that produced these findings. Used to detect stale findings.",
+      "examples": ["scan-2026-02-18T00:00:00Z-abc123"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the fix plan was created by the PM orchestrator."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "in-progress", "completed", "failed", "max-iterations-reached"],
+      "description": "Current status of the fix plan execution."
+    },
+    "groups": {
+      "type": "array",
+      "description": "Findings grouped by owning agent, ordered by priority. Groups with parallel_safe=true can execute concurrently if they have no file conflicts.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["group_id", "agent", "findings", "parallel_safe"],
+        "additionalProperties": false,
+        "properties": {
+          "group_id": {
+            "type": "string",
+            "description": "Unique identifier for this group within the fix plan.",
+            "examples": ["group-1", "group-backend-high"]
+          },
+          "agent": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Owning agent responsible for fixing all findings in this group.",
+            "examples": ["backend-developer", "documentation", "architect"]
+          },
+          "findings": {
+            "type": "array",
+            "description": "List of finding IDs assigned to this group.",
+            "items": {
+              "type": "string",
+              "pattern": "^RF-[0-9]{3,}$"
+            },
+            "minItems": 1,
+            "uniqueItems": true,
+            "examples": [["RF-001", "RF-003"]]
+          },
+          "parallel_safe": {
+            "type": "boolean",
+            "description": "Whether this group can run concurrently with other parallel_safe groups. False when this group has file overlaps with other groups or has ordering dependencies."
+          },
+          "blocked_by": {
+            "type": "array",
+            "description": "Finding IDs that must be resolved before this group can start. Used to sequence conflicting findings.",
+            "items": {
+              "type": "string",
+              "pattern": "^RF-[0-9]{3,}$"
+            },
+            "uniqueItems": true
+          },
+          "conflicting_files": {
+            "type": "array",
+            "description": "Files that overlap with other groups, causing this group to be serialized.",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "severity_max": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"],
+            "description": "Highest severity finding in this group. Determines group priority."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in-progress", "completed", "partial", "rejected", "skipped"],
+            "description": "Execution status of this group.",
+            "default": "pending"
+          },
+          "agent_response": {
+            "type": "object",
+            "description": "Response from the owning agent after processing. Populated after execution.",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["completed", "partial", "rejected", "alternative"],
+                "description": "Overall outcome of the group's remediation attempt."
+              },
+              "finding_responses": {
+                "type": "object",
+                "description": "Per-finding responses keyed by finding ID.",
+                "additionalProperties": {
+                  "type": "object",
+                  "required": ["status"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["completed", "partial", "rejected", "alternative"]
+                    },
+                    "reason": {
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "actual_changes": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "commit_sha": {
+                "type": "string",
+                "description": "Git commit SHA of the fix commit, used for stale detection in subsequent iterations."
+              },
+              "completed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "execution_order": {
+      "type": "array",
+      "description": "Ordered sequence of group_ids defining execution order. Groups at the same index can run in parallel if parallel_safe=true.",
+      "items": {
+        "type": "array",
+        "description": "A batch of group_ids that can execute simultaneously.",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
+      "minItems": 1
+    },
+    "file_overlap_map": {
+      "type": "object",
+      "description": "Map of file paths to finding IDs that touch them. Used for overlap detection and serialization decisions.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^RF-[0-9]{3,}$"
+        },
+        "minItems": 1,
+        "uniqueItems": true
+      }
+    },
+    "summary": {
+      "type": "object",
+      "description": "Summary statistics for the fix plan.",
+      "additionalProperties": false,
+      "properties": {
+        "total_findings": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_groups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "parallel_groups": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of groups that can run concurrently."
+        },
+        "serialized_groups": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of groups that must run sequentially due to file conflicts."
+        },
+        "findings_by_severity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "critical": { "type": "integer", "minimum": 0 },
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "verify_result": {
+      "type": "object",
+      "description": "Result of the verify phase (Phase 4) after agents complete fixes.",
+      "additionalProperties": false,
+      "properties": {
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "changed_files": {
+          "type": "array",
+          "description": "Files modified by agent fixes. Re-scan is scoped to only these files.",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "remaining_findings": {
+          "type": "array",
+          "description": "Finding IDs that were not resolved and require another iteration.",
+          "items": {
+            "type": "string",
+            "pattern": "^RF-[0-9]{3,}$"
+          },
+          "uniqueItems": true
+        },
+        "new_findings": {
+          "type": "array",
+          "description": "New finding IDs introduced by the fixes. These enter Phase 2 of the next iteration.",
+          "items": {
+            "type": "string",
+            "pattern": "^RF-[0-9]{3,}$"
+          },
+          "uniqueItems": true
+        },
+        "fixed_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "proceed_to_next_iteration": {
+          "type": "boolean",
+          "description": "Whether to proceed to the next iteration based on remaining/new findings."
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata for tooling and tracking.",
+      "additionalProperties": false,
+      "properties": {
+        "epic_issue": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "GitHub issue number of the parent refactoring epic."
+        },
+        "scan_dimensions": {
+          "type": "array",
+          "description": "Dimensions that were scanned to produce these findings.",
+          "items": {
+            "type": "string",
+            "enum": ["code", "architecture", "dependencies", "documentation", "tests", "framework"]
+          },
+          "uniqueItems": true
+        },
+        "max_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3,
+          "description": "Maximum iterations before remaining findings are converted to GitHub issues."
+        },
+        "deferred_to_issues": {
+          "type": "array",
+          "description": "Finding IDs that were converted to GitHub issues after max iterations reached.",
+          "items": {
+            "type": "object",
+            "required": ["finding_id", "github_issue"],
+            "additionalProperties": false,
+            "properties": {
+              "finding_id": {
+                "type": "string",
+                "pattern": "^RF-[0-9]{3,}$"
+              },
+              "github_issue": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "iteration": 1,
+      "scan_id": "scan-2026-02-18T00:00:00Z-abc123",
+      "created_at": "2026-02-18T00:05:00Z",
+      "status": "pending",
+      "groups": [
+        {
+          "group_id": "group-1",
+          "agent": "backend-developer",
+          "findings": ["RF-001", "RF-003"],
+          "parallel_safe": true,
+          "severity_max": "high",
+          "status": "pending"
+        },
+        {
+          "group_id": "group-2",
+          "agent": "documentation",
+          "findings": ["RF-002"],
+          "parallel_safe": true,
+          "severity_max": "medium",
+          "status": "pending"
+        },
+        {
+          "group_id": "group-3",
+          "agent": "architect",
+          "findings": ["RF-004"],
+          "parallel_safe": false,
+          "blocked_by": ["RF-001"],
+          "conflicting_files": ["src/users/models.py"],
+          "severity_max": "critical",
+          "status": "pending"
+        }
+      ],
+      "execution_order": [
+        ["group-1", "group-2"],
+        ["group-3"]
+      ],
+      "file_overlap_map": {
+        "src/users/models.py": ["RF-001", "RF-004"]
+      },
+      "summary": {
+        "total_findings": 4,
+        "total_groups": 3,
+        "parallel_groups": 2,
+        "serialized_groups": 1,
+        "findings_by_severity": {
+          "critical": 1,
+          "high": 2,
+          "medium": 1,
+          "low": 0
+        }
+      },
+      "metadata": {
+        "epic_issue": 799,
+        "scan_dimensions": ["code", "architecture"],
+        "max_iterations": 3
+      }
+    }
+  ]
+}

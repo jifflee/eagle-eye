@@ -1,0 +1,3713 @@
+{
+  "meta": {
+    "generated_at": "2026-03-14T14:51:05Z",
+    "skill_count": 64,
+    "capability_count": 27,
+    "node_count": 91,
+    "edge_count": 418,
+    "description": "Skill permission graph: skills mapped to authorized capabilities"
+  },
+  "nodes": [
+    {
+      "id": "audit:code",
+      "label": "audit:code",
+      "description": "Analyze code patterns, module boundaries, coupling, and identify refactoring opportunities (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "audit:config",
+      "label": "audit:config",
+      "description": "Audit Claude Code configuration files for deprecated capabilities and misconfigurations",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "audit:epics",
+      "label": "audit:epics",
+      "description": "Audit all epics and milestones for completion correctness (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "audit:full",
+      "label": "audit:full",
+      "description": "Full comprehensive repository audit combining structure, code patterns, and health metrics (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "audit:milestone",
+      "label": "audit:milestone",
+      "description": "Analyze milestone health and surface issues needing attention (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "audit:regression",
+      "label": "audit:regression",
+      "description": "Run regression audit for skills, hooks, and actions (runtime behavioral verification)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "audit:structure",
+      "label": "audit:structure",
+      "description": "Analyze folder/file organization, project structure conventions, and architectural consistency (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "audit:ui-ux",
+      "label": "audit:ui-ux",
+      "description": "Audit UI/UX design standard compliance — tokens, components, accessibility, responsive design, and style profile consistency (READ-ONLY with delegation)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "audit",
+      "node_type": "skill"
+    },
+    {
+      "id": "delivery:audit",
+      "label": "delivery:audit",
+      "description": "Validate GitHub issue tracking against actual PR deliveries (READ-ONLY - audit only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "delivery",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:capture",
+      "label": "issue:capture",
+      "description": "Quick capture for bugs, features, and observations with intelligent triage",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:checkout",
+      "label": "issue:checkout",
+      "description": "Claim an issue for the current Claude instance to prevent parallel conflicts",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:close",
+      "label": "issue:close",
+      "description": "Close GitHub issue(s) using the repo-workflow agent (validates before closing)",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:create",
+      "label": "issue:create",
+      "description": "Create a GitHub issue using the repo-workflow agent (enforces conventions)",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:label",
+      "label": "issue:label",
+      "description": "Apply or remove labels on GitHub issues using the repo-workflow agent",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:locks",
+      "label": "issue:locks",
+      "description": "Show all currently checked-out issues across instances (READ-ONLY unless --clean flag)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:prioritize-4wm",
+      "label": "issue:prioritize-4wm",
+      "description": "Run the Four Wise Men decision framework to prioritize issues and reach consensus on scope, timing, need, and strategic fit (READ-ONLY - advisory only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:release",
+      "label": "issue:release",
+      "description": "Release a checked-out issue, removing the lock for other instances",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:triage-bulk",
+      "label": "issue:triage-bulk",
+      "description": "Review all open issues in the active milestone and apply intelligent labeling and prioritization",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "issue:triage-single",
+      "label": "issue:triage-single",
+      "description": "Review and improve issue quality with suggested enhancements",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "issue",
+      "node_type": "skill"
+    },
+    {
+      "id": "local:create-agent",
+      "label": "local:create-agent",
+      "description": "Scaffold a new agent with manifest, prompt, and config",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "local",
+      "node_type": "skill"
+    },
+    {
+      "id": "local:create-skill",
+      "label": "local:create-skill",
+      "description": "Scaffold a new skill using framework templates",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "local",
+      "node_type": "skill"
+    },
+    {
+      "id": "local:customize",
+      "label": "local:customize",
+      "description": "Interactive wizard to customize framework settings for this repo",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "local",
+      "node_type": "skill"
+    },
+    {
+      "id": "local:health",
+      "label": "local:health",
+      "description": "Quick health check for framework integration issues",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "local",
+      "node_type": "skill"
+    },
+    {
+      "id": "local:init",
+      "label": "local:init",
+      "description": "Initialize a repository for use with the Claude Agent Framework (claude-tastic consumer repo variant)",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "local",
+      "node_type": "skill"
+    },
+    {
+      "id": "local:review",
+      "label": "local:review",
+      "description": "Review existing CLAUDE.md after framework deployment and generate migration plan (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "local",
+      "node_type": "skill"
+    },
+    {
+      "id": "merge:resolve",
+      "label": "merge:resolve",
+      "description": "Interactive workflow for resolving PR conflicts and managing PRs needing attention",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "merge",
+      "node_type": "skill"
+    },
+    {
+      "id": "milestone:close-safe",
+      "label": "milestone:close-safe",
+      "description": "Close a milestone safely with validation and optional next milestone creation",
+      "tier": "T3",
+      "permission_level": "PRIVILEGED",
+      "category": "milestone",
+      "node_type": "skill"
+    },
+    {
+      "id": "milestone:complete-auto",
+      "label": "milestone:complete-auto",
+      "description": "Orchestrate milestone completion with MVP analysis, issue triage, and auto-transition",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "milestone",
+      "node_type": "skill"
+    },
+    {
+      "id": "milestone:create-new",
+      "label": "milestone:create-new",
+      "description": "Create a new GitHub milestone interactively",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "milestone",
+      "node_type": "skill"
+    },
+    {
+      "id": "milestone:epic-decompose",
+      "label": "milestone:epic-decompose",
+      "description": "milestone:epic-decompose",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "milestone",
+      "node_type": "skill"
+    },
+    {
+      "id": "milestone:list-all",
+      "label": "milestone:list-all",
+      "description": "Show current milestones and their status (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "milestone",
+      "node_type": "skill"
+    },
+    {
+      "id": "milestone:update-interactive",
+      "label": "milestone:update-interactive",
+      "description": "Interactive milestone updates based on audit recommendations",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "milestone",
+      "node_type": "skill"
+    },
+    {
+      "id": "ops:actions",
+      "label": "ops:actions",
+      "description": "Review action audit log - skill/agent operations, tier analysis, and policy recommendations",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "ops",
+      "node_type": "skill"
+    },
+    {
+      "id": "ops:agents",
+      "label": "ops:agents",
+      "description": "Audit skills/agents/frameworks for format compliance and quality improvements",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "ops",
+      "node_type": "skill"
+    },
+    {
+      "id": "ops:metrics",
+      "label": "ops:metrics",
+      "description": "Review agent performance metrics - token usage, execution timing, and model selection patterns (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "ops",
+      "node_type": "skill"
+    },
+    {
+      "id": "ops:models",
+      "label": "ops:models",
+      "description": "Audit agent model configurations for cost and efficiency optimization",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "ops",
+      "node_type": "skill"
+    },
+    {
+      "id": "ops:skill-deps",
+      "label": "ops:skill-deps",
+      "description": "Visualize skill dependencies, primitive usage, and permission tier inheritance (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "ops",
+      "node_type": "skill"
+    },
+    {
+      "id": "ops:skills",
+      "label": "ops:skills",
+      "description": "Audit skills for token efficiency improvements and identify scripting opportunities (READ-ONLY - query only)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "ops",
+      "node_type": "skill"
+    },
+    {
+      "id": "pr:dep-review-auto",
+      "label": "pr:dep-review-auto",
+      "description": "Analyze dependency PRs for breaking changes and produce merge verdicts",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "pr",
+      "node_type": "skill"
+    },
+    {
+      "id": "pr:iterate-auto",
+      "label": "pr:iterate-auto",
+      "description": "Automated review-fix iteration loop until PR is approved or max iterations reached",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "pr",
+      "node_type": "skill"
+    },
+    {
+      "id": "pr:merge-batch",
+      "label": "pr:merge-batch",
+      "description": "Batch merge mergeable PRs for milestone (validates before merging)",
+      "tier": "T3",
+      "permission_level": "PRIVILEGED",
+      "category": "pr",
+      "node_type": "skill"
+    },
+    {
+      "id": "pr:rebase-dev",
+      "label": "pr:rebase-dev",
+      "description": "Rebase a PR branch on dev to resolve conflicts",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "pr",
+      "node_type": "skill"
+    },
+    {
+      "id": "pr:review-local",
+      "label": "pr:review-local",
+      "description": "Run all PR review agents locally and write findings to pr-status.json",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "pr",
+      "node_type": "skill"
+    },
+    {
+      "id": "pr:route-fixes",
+      "label": "pr:route-fixes",
+      "description": "Route PR review findings to the agents that wrote the code for fixes",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "pr",
+      "node_type": "skill"
+    },
+    {
+      "id": "pr:status-check",
+      "label": "pr:status-check",
+      "description": "Check current PR review status and display actionable summary",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "pr",
+      "node_type": "skill"
+    },
+    {
+      "id": "release:promote-main",
+      "label": "release:promote-main",
+      "description": "Promote qa branch to main with release tagging and approval workflow",
+      "tier": "T3",
+      "permission_level": "PRIVILEGED",
+      "category": "release",
+      "node_type": "skill"
+    },
+    {
+      "id": "release:promote-qa",
+      "label": "release:promote-qa",
+      "description": "Promote dev branch to qa for QA validation",
+      "tier": "T3",
+      "permission_level": "PRIVILEGED",
+      "category": "release",
+      "node_type": "skill"
+    },
+    {
+      "id": "release:push",
+      "label": "release:push",
+      "description": "Push current branch to remote with state verification and auto-fix",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "release",
+      "node_type": "skill"
+    },
+    {
+      "id": "release:tag",
+      "label": "release:tag",
+      "description": "Create release/X.x branch from main or tag for LTS versions",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "release",
+      "node_type": "skill"
+    },
+    {
+      "id": "release:validate-qa",
+      "label": "release:validate-qa",
+      "description": "Validate release gates before deployment, ensuring quality and security standards are met",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "release",
+      "node_type": "skill"
+    },
+    {
+      "id": "repo:framework-update",
+      "label": "repo:framework-update",
+      "description": "Update an already-deployed Claude Agent Framework in a consumer repo to the latest version",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "repo",
+      "node_type": "skill"
+    },
+    {
+      "id": "repo:init-framework",
+      "label": "repo:init-framework",
+      "description": "Initialize a repository for use with the Claude Agent Framework",
+      "tier": "T1",
+      "permission_level": "WRITE-LIMITED",
+      "category": "repo",
+      "node_type": "skill"
+    },
+    {
+      "id": "repo:sync-origin",
+      "label": "repo:sync-origin",
+      "description": "Sync main repository to origin (reset-based safe sync)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "repo",
+      "node_type": "skill"
+    },
+    {
+      "id": "sprint:dispatch",
+      "label": "sprint:dispatch",
+      "description": "Lightweight dispatcher to launch workers (worktrees or containers) with optimized agent context",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "sprint",
+      "node_type": "skill"
+    },
+    {
+      "id": "sprint:refactor",
+      "label": "sprint:refactor",
+      "description": "Scan codebase for refactoring opportunities and delegate fixes to owning agents via PM (READ-ONLY observer with delegation)",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "sprint",
+      "node_type": "skill"
+    },
+    {
+      "id": "sprint:status-pm",
+      "label": "sprint:status-pm",
+      "description": "Sprint/milestone status with PM orchestration (READ-ONLY; --auto-merge enables PR merging)",
+      "tier": "T3",
+      "permission_level": "PRIVILEGED",
+      "category": "sprint",
+      "node_type": "skill"
+    },
+    {
+      "id": "sprint:work-auto",
+      "label": "sprint:work-auto",
+      "description": "Automatically work through milestone issues from backlog to completion following SDLC workflow",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "sprint",
+      "node_type": "skill"
+    },
+    {
+      "id": "tool:ci-status",
+      "label": "tool:ci-status",
+      "description": "Local CI status dashboard showing pass/fail per check, trends, and run history",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "tool",
+      "node_type": "skill"
+    },
+    {
+      "id": "tool:example",
+      "label": "tool:example",
+      "description": "Example slash command - customize or delete this",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "tool",
+      "node_type": "skill"
+    },
+    {
+      "id": "tool:skill-help",
+      "label": "tool:skill-help",
+      "description": "Interactive skill catalog - discover and explore available skills",
+      "tier": "T3",
+      "permission_level": "PRIVILEGED",
+      "category": "tool",
+      "node_type": "skill"
+    },
+    {
+      "id": "tool:skill-sync",
+      "label": "tool:skill-sync",
+      "description": "Sync skills and agents from the framework repo to ~/.claude/",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "tool",
+      "node_type": "skill"
+    },
+    {
+      "id": "tool:worktree-audit",
+      "label": "tool:worktree-audit",
+      "description": "Detect unpushed work in worktrees with risk assessment and remediation options",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "tool",
+      "node_type": "skill"
+    },
+    {
+      "id": "tool:worktree-cleanup",
+      "label": "tool:worktree-cleanup",
+      "description": "Clean up worktrees for closed issues with conflict detection",
+      "tier": "T2",
+      "permission_level": "WRITE-FULL",
+      "category": "tool",
+      "node_type": "skill"
+    },
+    {
+      "id": "validate:framework",
+      "label": "validate:framework",
+      "description": "Validate framework artifacts (skills, hooks, actions) for compliance with standards",
+      "tier": "T0",
+      "permission_level": "READ-ONLY",
+      "category": "validate",
+      "node_type": "skill"
+    },
+    {
+      "id": "cap:git.branch",
+      "label": "Git Branch",
+      "tier": "T1",
+      "category": "git",
+      "node_type": "capability",
+      "cap_name": "git.branch"
+    },
+    {
+      "id": "cap:deploy.prod",
+      "label": "Deploy (Prod)",
+      "tier": "T3",
+      "category": "deployment",
+      "node_type": "capability",
+      "cap_name": "deploy.prod"
+    },
+    {
+      "id": "cap:secret.manage",
+      "label": "Secret Manage",
+      "tier": "T3",
+      "category": "security",
+      "node_type": "capability",
+      "cap_name": "secret.manage"
+    },
+    {
+      "id": "cap:git.commit",
+      "label": "Git Commit",
+      "tier": "T1",
+      "category": "git",
+      "node_type": "capability",
+      "cap_name": "git.commit"
+    },
+    {
+      "id": "cap:pr.review",
+      "label": "PR Review",
+      "tier": "T2",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "pr.review"
+    },
+    {
+      "id": "cap:ci.read",
+      "label": "CI/CD Read",
+      "tier": "T0",
+      "category": "ci",
+      "node_type": "capability",
+      "cap_name": "ci.read"
+    },
+    {
+      "id": "cap:file.read",
+      "label": "File Read",
+      "tier": "T0",
+      "category": "filesystem",
+      "node_type": "capability",
+      "cap_name": "file.read"
+    },
+    {
+      "id": "cap:issue.label",
+      "label": "Issue Label",
+      "tier": "T1",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "issue.label"
+    },
+    {
+      "id": "cap:deploy.stage",
+      "label": "Deploy (Staging)",
+      "tier": "T2",
+      "category": "deployment",
+      "node_type": "capability",
+      "cap_name": "deploy.stage"
+    },
+    {
+      "id": "cap:milestone.read",
+      "label": "Milestone Read",
+      "tier": "T0",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "milestone.read"
+    },
+    {
+      "id": "cap:worktree.manage",
+      "label": "Worktree Manage",
+      "tier": "T2",
+      "category": "git",
+      "node_type": "capability",
+      "cap_name": "worktree.manage"
+    },
+    {
+      "id": "cap:milestone.close",
+      "label": "Milestone Close",
+      "tier": "T3",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "milestone.close"
+    },
+    {
+      "id": "cap:file.write",
+      "label": "File Write",
+      "tier": "T1",
+      "category": "filesystem",
+      "node_type": "capability",
+      "cap_name": "file.write"
+    },
+    {
+      "id": "cap:git.push",
+      "label": "Git Push",
+      "tier": "T2",
+      "category": "git",
+      "node_type": "capability",
+      "cap_name": "git.push"
+    },
+    {
+      "id": "cap:audit.read",
+      "label": "Audit Read",
+      "tier": "T0",
+      "category": "audit",
+      "node_type": "capability",
+      "cap_name": "audit.read"
+    },
+    {
+      "id": "cap:issue.comment",
+      "label": "Issue Comment",
+      "tier": "T1",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "issue.comment"
+    },
+    {
+      "id": "cap:branch.delete",
+      "label": "Branch Delete",
+      "tier": "T3",
+      "category": "git",
+      "node_type": "capability",
+      "cap_name": "branch.delete"
+    },
+    {
+      "id": "cap:pr.read",
+      "label": "PR Read",
+      "tier": "T0",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "pr.read"
+    },
+    {
+      "id": "cap:container.run",
+      "label": "Container Run",
+      "tier": "T2",
+      "category": "infrastructure",
+      "node_type": "capability",
+      "cap_name": "container.run"
+    },
+    {
+      "id": "cap:issue.close",
+      "label": "Issue Close",
+      "tier": "T3",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "issue.close"
+    },
+    {
+      "id": "cap:milestone.create",
+      "label": "Milestone Create",
+      "tier": "T1",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "milestone.create"
+    },
+    {
+      "id": "cap:pr.create",
+      "label": "PR Create",
+      "tier": "T2",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "pr.create"
+    },
+    {
+      "id": "cap:issue.create",
+      "label": "Issue Create",
+      "tier": "T1",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "issue.create"
+    },
+    {
+      "id": "cap:pr.merge",
+      "label": "PR Merge",
+      "tier": "T3",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "pr.merge"
+    },
+    {
+      "id": "cap:release.tag",
+      "label": "Release Tag",
+      "tier": "T3",
+      "category": "release",
+      "node_type": "capability",
+      "cap_name": "release.tag"
+    },
+    {
+      "id": "cap:issue.read",
+      "label": "Issue Read",
+      "tier": "T0",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "issue.read"
+    },
+    {
+      "id": "cap:repo.read",
+      "label": "Repo Read",
+      "tier": "T0",
+      "category": "github",
+      "node_type": "capability",
+      "cap_name": "repo.read"
+    }
+  ],
+  "edges": [
+    {
+      "source": "audit:code",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:code",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:code",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:code",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:code",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:config",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:config",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:config",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:config",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:config",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:epics",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:epics",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:epics",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:epics",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:epics",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:full",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:full",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:full",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:full",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:full",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:milestone",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:milestone",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:milestone",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:milestone",
+      "target": "cap:milestone.read",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:milestone",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:milestone",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:regression",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:regression",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:regression",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:regression",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:regression",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:structure",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:structure",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:structure",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:structure",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:structure",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:ui-ux",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:ui-ux",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:ui-ux",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:ui-ux",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "delivery:audit",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "delivery:audit",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "delivery:audit",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "delivery:audit",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:capture",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:capture",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:capture",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:capture",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:capture",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:capture",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:capture",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:checkout",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:checkout",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:close",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:close",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:close",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:close",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:close",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:create",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:create",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:create",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:create",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:create",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:label",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:label",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:label",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:label",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:locks",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:locks",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:locks",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:prioritize-4wm",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:prioritize-4wm",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:prioritize-4wm",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:release",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:release",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:issue.comment",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.comment",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-bulk",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-single",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-single",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-single",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-single",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "issue:triage-single",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:create-agent",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:create-agent",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:create-agent",
+      "target": "cap:pr.read",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:create-agent",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:create-skill",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:create-skill",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:create-skill",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:create-skill",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:customize",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:customize",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:customize",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:customize",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:customize",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:health",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:health",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:health",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:health",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:pr.read",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:init",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:review",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:review",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:review",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "local:review",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:pr.read",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "merge:resolve",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:deploy.stage",
+      "type": "HAS_PERMISSION",
+      "label": "can deploy.stage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:issue.close",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:milestone.close",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:milestone.read",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:pr.merge",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.merge",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:close-safe",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:complete-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:complete-auto",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:complete-auto",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:complete-auto",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:complete-auto",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:complete-auto",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:complete-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:create-new",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:create-new",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:epic-decompose",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:epic-decompose",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:epic-decompose",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:epic-decompose",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:epic-decompose",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:epic-decompose",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:epic-decompose",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:list-all",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:list-all",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:list-all",
+      "target": "cap:milestone.read",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:list-all",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:list-all",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:update-interactive",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:update-interactive",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:update-interactive",
+      "target": "cap:issue.comment",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.comment",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:update-interactive",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "milestone:update-interactive",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "milestone:update-interactive",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "milestone:update-interactive",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:actions",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:actions",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:actions",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:actions",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:agents",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:agents",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:agents",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:agents",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:metrics",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:metrics",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:metrics",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:metrics",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:metrics",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:models",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:models",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:models",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:skill-deps",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:skill-deps",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:skills",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:skills",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "ops:skills",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:dep-review-auto",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:dep-review-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:dep-review-auto",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:dep-review-auto",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:dep-review-auto",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:dep-review-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:container.run",
+      "type": "HAS_PERMISSION",
+      "label": "can container.run",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:iterate-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:branch.delete",
+      "type": "HAS_PERMISSION",
+      "label": "can branch.delete",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:container.run",
+      "type": "HAS_PERMISSION",
+      "label": "can container.run",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:deploy.prod",
+      "type": "HAS_PERMISSION",
+      "label": "can deploy.prod",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:issue.close",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:milestone.read",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:pr.merge",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.merge",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:secret.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can secret.manage",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:merge-batch",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:container.run",
+      "type": "HAS_PERMISSION",
+      "label": "can container.run",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:rebase-dev",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:review-local",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "pr:route-fixes",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:status-check",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:status-check",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:status-check",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:status-check",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "pr:status-check",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:deploy.prod",
+      "type": "HAS_PERMISSION",
+      "label": "can deploy.prod",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:deploy.stage",
+      "type": "HAS_PERMISSION",
+      "label": "can deploy.stage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:issue.close",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:milestone.close",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:milestone.read",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:pr.merge",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.merge",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:release.tag",
+      "type": "HAS_PERMISSION",
+      "label": "can release.tag",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:secret.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can secret.manage",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-main",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:deploy.prod",
+      "type": "HAS_PERMISSION",
+      "label": "can deploy.prod",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:deploy.stage",
+      "type": "HAS_PERMISSION",
+      "label": "can deploy.stage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:milestone.read",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:pr.merge",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.merge",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:pr.read",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:release.tag",
+      "type": "HAS_PERMISSION",
+      "label": "can release.tag",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:promote-qa",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:push",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:push",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:push",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:push",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:push",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:push",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:tag",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:tag",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "release:tag",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:tag",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:tag",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "release:tag",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:validate-qa",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "release:validate-qa",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:framework-update",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:framework-update",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "repo:framework-update",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "repo:framework-update",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:file.write",
+      "type": "HAS_PERMISSION",
+      "label": "can file.write",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:pr.read",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:init-framework",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:sync-origin",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "repo:sync-origin",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:dispatch",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:dispatch",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:dispatch",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:dispatch",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:dispatch",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:refactor",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:refactor",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:refactor",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:refactor",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:branch.delete",
+      "type": "HAS_PERMISSION",
+      "label": "can branch.delete",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:container.run",
+      "type": "HAS_PERMISSION",
+      "label": "can container.run",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:issue.close",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:milestone.create",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:pr.create",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.create",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:pr.merge",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.merge",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:pr.read",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "sprint:status-pm",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:work-auto",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:work-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "sprint:work-auto",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:ci-status",
+      "target": "cap:ci.read",
+      "type": "HAS_PERMISSION",
+      "label": "can ci.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:ci-status",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:ci-status",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:ci-status",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:example",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:container.run",
+      "type": "HAS_PERMISSION",
+      "label": "can container.run",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:issue.close",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:issue.create",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.create",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:issue.label",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.label",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:milestone.close",
+      "type": "HAS_PERMISSION",
+      "label": "can milestone.close",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:pr.merge",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.merge",
+      "cap_tier": "T3"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:skill-help",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:issue.read",
+      "type": "HAS_PERMISSION",
+      "label": "can issue.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:pr.review",
+      "type": "HAS_PERMISSION",
+      "label": "can pr.review",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:worktree-audit",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:git.branch",
+      "type": "HAS_PERMISSION",
+      "label": "can git.branch",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:git.commit",
+      "type": "HAS_PERMISSION",
+      "label": "can git.commit",
+      "cap_tier": "T1"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:git.push",
+      "type": "HAS_PERMISSION",
+      "label": "can git.push",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:worktree.manage",
+      "type": "HAS_PERMISSION",
+      "label": "can worktree.manage",
+      "cap_tier": "T2"
+    },
+    {
+      "source": "tool:worktree-cleanup",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "validate:framework",
+      "target": "cap:audit.read",
+      "type": "HAS_PERMISSION",
+      "label": "can audit.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "validate:framework",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "validate:framework",
+      "target": "cap:repo.read",
+      "type": "HAS_PERMISSION",
+      "label": "can repo.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "validate:framework",
+      "target": "cap:file.read",
+      "type": "HAS_PERMISSION",
+      "label": "can file.read",
+      "cap_tier": "T0"
+    },
+    {
+      "source": "audit:epics",
+      "target": "milestone:close-safe",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "audit:epics",
+      "target": "milestone:epic-decompose",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "audit:epics",
+      "target": "milestone:update-interactive",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "audit:milestone",
+      "target": "milestone:update-interactive",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "delivery:audit",
+      "target": "issue:close",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "issue:capture",
+      "target": "issue:triage-bulk",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "issue:prioritize-4wm",
+      "target": "issue:label",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "issue:prioritize-4wm",
+      "target": "issue:triage-bulk",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "local:health",
+      "target": "tool:skill-help",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "repo:framework-update",
+      "target": "release:tag",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "repo:sync-origin",
+      "target": "sprint:status-pm",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "sprint:work-auto",
+      "target": "repo:init-framework",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "sprint:work-auto",
+      "target": "tool:worktree-cleanup",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "tool:ci-status",
+      "target": "sprint:status-pm",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "local:create-agent",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "local:create-skill",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "local:init",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "repo:framework-update",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    },
+    {
+      "source": "tool:skill-sync",
+      "target": "tool:skill-help",
+      "type": "INVOKES",
+      "label": "invokes (escalates)"
+    }
+  ]
+}
