@@ -82,8 +82,8 @@ async def _do_enrichment(
 
     connectors = discover_connectors()
 
-    # Skip connectors that require API keys we don't have
-    DISABLED_CONNECTORS = {"fbi_crime", "nhtsa_vpic"}
+    # Skip connectors that need special conditions
+    DISABLED_CONNECTORS = {"nhtsa_vpic"}  # Only useful when VINs are discovered
     connectors = {
         k: v for k, v in connectors.items()
         if k not in DISABLED_CONNECTORS
@@ -130,7 +130,7 @@ async def _do_enrichment(
                     pass
 
     # === Phase 2: Address enrichment — Tier 1 (parallel) ===
-    phase2_names = ["census_data", "epa_echo", "openfema", "nominatim"]
+    phase2_names = ["census_data", "fbi_crime", "epa_echo", "openfema", "nominatim"]
     phase2 = [connectors[n] for n in phase2_names if n in connectors]
 
     if phase2:
