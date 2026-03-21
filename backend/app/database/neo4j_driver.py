@@ -151,33 +151,35 @@ async def get_investigation_graph(
     limit: int = 500,
 ) -> dict[str, Any]:
     """Get the full subgraph reachable from a root entity up to max_depth hops."""
-    query = """
-    MATCH path = (root {id: $root_id})-[*0..$depth]-(connected)
+    # Cypher doesn't support parameters in variable-length patterns,
+    # so we interpolate max_depth directly (it's always an int from our code)
+    query = f"""
+    MATCH path = (root {{id: $root_id}})-[*0..{int(max_depth)}]-(connected)
     WITH DISTINCT connected, path
     LIMIT $limit
     WITH collect(DISTINCT connected) AS nodes,
          collect(DISTINCT path) AS paths
     UNWIND nodes AS n
-    WITH collect(DISTINCT {
+    WITH collect(DISTINCT {{
         id: n.id,
         labels: labels(n),
         properties: properties(n)
-    }) AS entities, paths
+    }}) AS entities, paths
     UNWIND paths AS p
     UNWIND relationships(p) AS r
-    WITH entities, collect(DISTINCT {
+    WITH entities, collect(DISTINCT {{
         id: id(r),
         type: type(r),
         source_id: startNode(r).id,
         target_id: endNode(r).id,
         properties: properties(r)
-    }) AS relationships
+    }}) AS relationships
     RETURN entities, relationships
     """
     driver = await get_driver()
     async with driver.session() as session:
         result = await session.run(
-            query, root_id=root_entity_id, depth=max_depth, limit=limit
+            query, root_id=root_entity_id, limit=limit
         )
         record = await result.single()
         if record:
@@ -193,33 +195,33 @@ async def get_entity_neighborhood(
     depth: int = 1,
 ) -> dict[str, Any]:
     """Get an entity and its N-hop neighborhood."""
-    query = """
-    MATCH (center {id: $id})
-    OPTIONAL MATCH path = (center)-[*1..$depth]-(neighbor)
+    query = f"""
+    MATCH (center {{id: $id}})
+    OPTIONAL MATCH path = (center)-[*1..{int(depth)}]-(neighbor)
     WITH center, collect(DISTINCT neighbor) AS neighbors,
          collect(DISTINCT relationships(path)) AS all_rels
     UNWIND all_rels AS rels
     UNWIND rels AS r
-    RETURN {
+    RETURN {{
         id: center.id,
         labels: labels(center),
         properties: properties(center)
-    } AS center,
-    [n IN neighbors | {
+    }} AS center,
+    [n IN neighbors | {{
         id: n.id,
         labels: labels(n),
         properties: properties(n)
-    }] AS neighbors,
-    collect(DISTINCT {
+    }}] AS neighbors,
+    collect(DISTINCT {{
         type: type(r),
         source_id: startNode(r).id,
         target_id: endNode(r).id,
         properties: properties(r)
-    }) AS relationships
+    }}) AS relationships
     """
     driver = await get_driver()
     async with driver.session() as session:
-        result = await session.run(query, id=entity_id, depth=depth)
+        result = await session.run(query, id=entity_id)
         record = await result.single()
         if record:
             return {
