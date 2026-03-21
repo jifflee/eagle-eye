@@ -1,0 +1,45 @@
+# Worker container for autonomous issue work via Proxmox worker queue.
+# Clones repo, runs Claude Code on an issue, pushes branch, creates PR.
+#
+# Build:  docker build -f Dockerfile.worker -t eagle-eye-worker .
+# Run:    Dispatched by worker-webhook on docker-workers VM
+
+FROM python:3.11-slim
+
+# Install system deps: git for repo ops, gh CLI for PR creation, curl for Claude Code
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    jq \
+    gcc \
+    && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+       -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+       > /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update && apt-get install -y --no-install-recommends gh \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Claude Code CLI
+RUN npm install -g @anthropic-ai/claude-code 2>/dev/null \
+    || (curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+        && apt-get install -y --no-install-recommends nodejs \
+        && npm install -g @anthropic-ai/claude-code \
+        && rm -rf /var/lib/apt/lists/*)
+
+# Install Python deps (backend only — no runtime services needed)
+WORKDIR /build
+COPY backend/pyproject.toml ./
+RUN pip install --no-cache-dir ".[dev]" && rm -rf /build
+
+WORKDIR /workspace
+
+# Entrypoint: clone, branch, work, push, PR
+COPY scripts/worker-entrypoint.sh /usr/local/bin/worker-entrypoint.sh
+RUN chmod +x /usr/local/bin/worker-entrypoint.sh
+
+# Labels (proxmox container standards)
+LABEL app.infra.name="eagle-eye-worker" \
+      app.infra.role="ci-worker" \
+      app.infra.owner="jifflee"
+
+ENTRYPOINT ["worker-entrypoint.sh"]
