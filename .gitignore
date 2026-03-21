@@ -51,6 +51,9 @@ neo4j/logs/
 postgres/data/
 redis/data/
 
+# Cached data (downloaded at runtime)
+backend/data/
+
 # Misc
 *.log
 tmp/
