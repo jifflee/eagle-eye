@@ -22,6 +22,7 @@ class EntityType(str, enum.Enum):
     EMAIL_ADDRESS = "EMAIL_ADDRESS"
     ENVIRONMENTAL_FACILITY = "ENVIRONMENTAL_FACILITY"
     CENSUS_TRACT = "CENSUS_TRACT"
+    FINANCIAL_RECORD = "FINANCIAL_RECORD"
 
 
 class BaseEntity(BaseModel):
@@ -182,6 +183,13 @@ class EnvironmentalFacility(BaseEntity):
     penalties_total: float | None = None
 
 
+class FinancialRecord(BaseEntity):
+    entity_type: EntityType = EntityType.FINANCIAL_RECORD
+    record_type: str  # mortgage_lending_summary, income_stats, etc.
+    scope: str | None = None  # geographic scope (tract, county, ZIP)
+    year: int | None = None
+
+
 class CensusTract(BaseEntity):
     entity_type: EntityType = EntityType.CENSUS_TRACT
     tract_number: str
@@ -210,6 +218,7 @@ AnyEntity = (
     | EmailAddress
     | EnvironmentalFacility
     | CensusTract
+    | FinancialRecord
 )
 
 # Map entity type enum to model class
@@ -226,4 +235,5 @@ ENTITY_TYPE_MAP: dict[EntityType, type[BaseEntity]] = {
     EntityType.EMAIL_ADDRESS: EmailAddress,
     EntityType.ENVIRONMENTAL_FACILITY: EnvironmentalFacility,
     EntityType.CENSUS_TRACT: CensusTract,
+    EntityType.FINANCIAL_RECORD: FinancialRecord,
 }

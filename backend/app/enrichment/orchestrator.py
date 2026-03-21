@@ -208,7 +208,7 @@ async def _do_enrichment(
 
     # === Phase 2: Address enrichment — Tier 1 APIs (parallel) ===
     phase2_names = [
-        "census_data", "fbi_crime", "epa_echo", "openfema", "nominatim",
+        "census_data", "fbi_crime", "epa_echo", "openfema", "nominatim", "hmda",
         "openfec", "fdic_bankfind", "overpass_osm", "propublica_nonprofit",
     ]
     phase2 = [connectors[n] for n in phase2_names if n in connectors]
