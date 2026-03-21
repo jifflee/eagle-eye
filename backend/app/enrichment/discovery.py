@@ -79,7 +79,8 @@ async def run_discovery(
         # Exclude disabled scrapers (sites that prohibit automated access)
         DISABLED = {
             "qpublic", "gsccca_deeds", "gbi_sex_offender",
-            "gwinnett_sheriff_jail", "gwinnett_courts", "ga_secretary_state",
+            "gwinnett_sheriff_jail", "gwinnett_courts",
+            # "ga_secretary_state" — re-enabled with browser-like headers (issue #88)
         }
         connectors = discover_connectors()
         applicable = [

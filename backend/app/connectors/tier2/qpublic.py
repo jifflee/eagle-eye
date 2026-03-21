@@ -12,7 +12,7 @@ from uuid import uuid4
 from app.cache.redis_cache import get_cached, set_cached
 from app.connectors.base import BaseConnector, ConnectorResult, RateLimit
 from app.models.entities import EntityType
-from app.utils.http_client import fetch_text
+from app.utils.http_client import fetch_text, get_browser_headers
 
 QPUBLIC_SEARCH = "https://qpublic.schneidercorp.com/Application.aspx"
 QPUBLIC_APP_ID = "1282"
@@ -52,6 +52,7 @@ class QPublicConnector(BaseConnector):
             html = await fetch_text(
                 QPUBLIC_SEARCH,
                 params={"AppID": QPUBLIC_APP_ID, "PageTypeID": "1", "SearchText": search_term},
+                headers=get_browser_headers(referer="https://qpublic.schneidercorp.com/"),
             )
         except Exception as e:
             self.logger.error("qPublic error: %s", e)
@@ -87,7 +88,12 @@ class QPublicConnector(BaseConnector):
 
     async def validate(self) -> bool:
         try:
-            await fetch_text(QPUBLIC_SEARCH, params={"AppID": QPUBLIC_APP_ID}, retries=1)
+            await fetch_text(
+                QPUBLIC_SEARCH,
+                params={"AppID": QPUBLIC_APP_ID},
+                headers=get_browser_headers(referer="https://qpublic.schneidercorp.com/"),
+                retries=1,
+            )
             return True
         except Exception:
             return False

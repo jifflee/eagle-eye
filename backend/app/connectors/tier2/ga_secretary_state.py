@@ -11,7 +11,7 @@ from uuid import uuid4
 from app.cache.redis_cache import get_cached, set_cached
 from app.connectors.base import BaseConnector, ConnectorResult, RateLimit
 from app.models.entities import EntityType
-from app.utils.http_client import fetch_json, fetch_text
+from app.utils.http_client import fetch_text, get_browser_headers
 
 GA_SOS_SEARCH = "https://ecorp.sos.ga.gov/BusinessSearch/search"
 GA_SOS_DETAIL = "https://ecorp.sos.ga.gov/BusinessSearch/BusinessInformation"
@@ -54,6 +54,7 @@ class GASecretaryStateConnector(BaseConnector):
             html = await fetch_text(
                 GA_SOS_SEARCH,
                 params={"SearchType": "name", "SearchTerm": search_term},
+                headers=get_browser_headers(referer="https://ecorp.sos.ga.gov/BusinessSearch"),
             )
         except Exception as e:
             self.logger.error("GA SOS error: %s", e)
@@ -110,7 +111,12 @@ class GASecretaryStateConnector(BaseConnector):
 
     async def validate(self) -> bool:
         try:
-            await fetch_text(GA_SOS_SEARCH, params={"SearchType": "name", "SearchTerm": "test"}, retries=1)
+            await fetch_text(
+                GA_SOS_SEARCH,
+                params={"SearchType": "name", "SearchTerm": "test"},
+                headers=get_browser_headers(referer="https://ecorp.sos.ga.gov/BusinessSearch"),
+                retries=1,
+            )
             return True
         except Exception:
             return False

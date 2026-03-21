@@ -141,7 +141,7 @@ async def _do_enrichment(
         "gbi_sex_offender",      # CAPTCHA-gated, no API
         "gwinnett_sheriff_jail", # No robots.txt, unclear ToS
         "gwinnett_courts",       # No robots.txt, unclear ToS — use CourtListener instead
-        "ga_secretary_state",    # robots.txt returns 403 — unclear permissions
+        # "ga_secretary_state" — re-enabled with browser-like headers (issue #88)
     }
     connectors = {
         k: v for k, v in connectors.items()
