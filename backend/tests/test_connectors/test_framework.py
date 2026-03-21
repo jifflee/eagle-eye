@@ -16,20 +16,25 @@ from app.rate_limiting.limiter import CircuitBreaker, RateLimiter, TokenBucket
 def test_connector_registry_discovers_all() -> None:
     reset_registry()
     connectors = discover_connectors()
-    # Should find all 9 tier1 + 7 tier2 = 16 connectors
-    assert len(connectors) >= 16
+    # Active connectors: 18 tier1 + 2 active tier2 + 1 tier3 = 21
+    # 5 disabled connectors live in _disabled/ and are NOT discovered.
+    assert len(connectors) >= 12
     tier1 = [
         "census_geocoder", "census_data", "fbi_crime",
         "epa_echo", "sec_edgar", "courtlistener",
         "openfema", "nominatim", "nhtsa_vpic",
     ]
-    tier2 = [
-        "gwinnett_parcel", "ga_secretary_state", "gwinnett_courts",
-        "qpublic", "gsccca_deeds", "gbi_sex_offender",
-        "gwinnett_sheriff_jail",
+    tier2_active = [
+        "gwinnett_parcel", "ga_secretary_state",
     ]
-    for name in tier1 + tier2:
+    disabled_should_be_absent = [
+        "qpublic", "gsccca_deeds", "gbi_sex_offender",
+        "gwinnett_sheriff_jail", "gwinnett_courts",
+    ]
+    for name in tier1 + tier2_active:
         assert name in connectors, f"Missing connector: {name}"
+    for name in disabled_should_be_absent:
+        assert name not in connectors, f"Disabled connector should not be registered: {name}"
 
 
 def test_get_connector_by_name() -> None:

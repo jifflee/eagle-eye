@@ -76,16 +76,11 @@ async def run_discovery(
             return
 
         # Find connectors that can discover from this entity type
-        # Exclude disabled scrapers (sites that prohibit automated access)
-        DISABLED = {
-            "qpublic", "gsccca_deeds", "gbi_sex_offender",
-            "gwinnett_sheriff_jail", "gwinnett_courts",
-            # "ga_secretary_state" — re-enabled with browser-like headers (issue #88)
-        }
+        # Disabled connectors live in connectors/_disabled/ and are not registered.
         connectors = discover_connectors()
         applicable = [
             c for c in connectors.values()
-            if c.can_discover_from(entity_type) and c.name not in DISABLED
+            if c.can_discover_from(entity_type)
         ]
 
         if not applicable:

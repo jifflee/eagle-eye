@@ -133,20 +133,8 @@ async def _do_enrichment(
 
     connectors = discover_connectors()
 
-    # Disabled connectors — sites that prohibit or restrict automated access.
-    # See docs/DATA_SOURCE_CLASSIFICATION.md for full legal audit.
-    DISABLED_CONNECTORS = {
-        "qpublic",               # ToS blocks AI crawlers, prohibits scraping
-        "gsccca_deeds",          # ToS bans robots/spiders with criminal penalties
-        "gbi_sex_offender",      # CAPTCHA-gated, no API
-        "gwinnett_sheriff_jail", # No robots.txt, unclear ToS
-        "gwinnett_courts",       # No robots.txt, unclear ToS — use CourtListener instead
-        # "ga_secretary_state" — re-enabled with browser-like headers (issue #88)
-    }
-    connectors = {
-        k: v for k, v in connectors.items()
-        if k not in DISABLED_CONNECTORS
-    }
+    # Disabled connectors now live in connectors/_disabled/ and are not
+    # auto-discovered by the registry. See docs/DATA_SOURCE_CLASSIFICATION.md.
 
     # Filter to tier 1 only if requested
     if tier1_only:

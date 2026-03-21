@@ -111,10 +111,10 @@ Require subscription. Consider for premium tier.
 
 | Source | Status | Recommendation |
 |--------|--------|----------------|
-| GA SOS eCorp | robots.txt returns 403 | Use manual lookup; request API access |
-| Gwinnett Courts | No robots.txt (404) | Use Open Records request instead |
-| GBI Sex Offender | CAPTCHA-gated | Use NSOPW API if available |
-| Gwinnett Sheriff JAIL | No robots.txt | Use Open Records request |
+| GA SOS eCorp | robots.txt returns 403 | Re-enabled with browser headers (issue #88). File: `connectors/tier2/ga_secretary_state.py` |
+| Gwinnett Courts | No robots.txt (404) | Disabled. File: `connectors/_disabled/gwinnett_courts.py` |
+| GBI Sex Offender | CAPTCHA-gated | Disabled. File: `connectors/_disabled/gbi_sex_offender.py` |
+| Gwinnett Sheriff JAIL | No robots.txt | Disabled. File: `connectors/_disabled/gwinnett_sheriff_jail.py` |
 | GA Ethics Commission | No robots.txt (404) | Public records by law; proceed cautiously |
 | GA DOR Lien Search | JavaScript-heavy; unclear | Manual lookup only |
 | GA SOS License | robots.txt returns 403 | Use manual lookup |
