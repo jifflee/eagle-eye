@@ -175,6 +175,15 @@ async def _do_enrichment(
         **address,
     }
 
+    # Ensure root address entity exists in Neo4j (may have failed during API call)
+    try:
+        await neo4j_driver.merge_entity(
+            EntityType.ADDRESS, "id", root_entity_id, address_entity
+        )
+        logger.info("Root address entity ensured in Neo4j: %s", root_entity_id)
+    except Exception as e:
+        logger.error("Failed to create root address entity: %s", e)
+
     # === Phase 1: Geocoding ===
     geocoder = connectors.get("census_geocoder")
     if geocoder:
