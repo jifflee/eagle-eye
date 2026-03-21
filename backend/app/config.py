@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     hunter_io_api_key: str = ""
     numverify_api_key: str = ""
     census_api_key: str = ""
+    fbi_api_key: str = ""
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

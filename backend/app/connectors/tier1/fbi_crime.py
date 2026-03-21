@@ -1,7 +1,8 @@
 """FBI Crime Data Explorer connector — crime statistics by state/county.
 
-API: https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/explorer/crime/crime-trend
-Free, no auth required. Uses the public Crime Data Explorer API.
+API: https://crime-data-explorer.fr.cloud.gov/pages/docApi
+Requires a free data.gov API key (register at https://api.data.gov/signup/).
+Falls back to unauthenticated endpoint if no key is configured.
 """
 
 from __future__ import annotations
@@ -10,12 +11,14 @@ from typing import Any
 from uuid import uuid4
 
 from app.cache.redis_cache import get_cached, set_cached
+from app.config import settings
 from app.connectors.base import BaseConnector, ConnectorResult, RateLimit
 from app.models.entities import EntityType
 from app.utils.http_client import fetch_json
 
-# Crime Data Explorer public API
-CDE_API_BASE = "https://cde.ucr.cjis.gov/LATEST/webapp/api"
+# Authenticated API (works from containers, requires data.gov API key)
+FBI_API_BASE = "https://api.usa.gov/crime/fbi/sapi/api"
+API_KEY = settings.fbi_api_key
 
 # State FIPS codes
 STATE_FIPS = {"GA": "13", "AL": "01", "FL": "12", "SC": "45", "TN": "47", "NC": "37"}
@@ -38,6 +41,7 @@ class FBICrimeConnector(BaseConnector):
         """Fetch crime statistics for the area around an address."""
         state = entity.get("state", "GA").upper()
         state_fips = STATE_FIPS.get(state, "13")
+        state_abbr = state.lower()
 
         cache_params = {"state": state, "state_fips": state_fips}
         cached = await get_cached(self.name, cache_params)
@@ -48,17 +52,27 @@ class FBICrimeConnector(BaseConnector):
                 raw_data=cached, source_name=self.name, confidence=self.default_confidence,
             )
 
-        # Try the Crime Data Explorer estimates endpoint
-        try:
-            data = await fetch_json(
-                f"{CDE_API_BASE}/estimates/states/{state_fips}",
-                retries=2,
-            )
-        except Exception:
-            # Fallback: try the national estimates endpoint
+        data = None
+
+        # Primary: authenticated API (works from containers)
+        if API_KEY:
             try:
                 data = await fetch_json(
-                    f"{CDE_API_BASE}/estimates/national",
+                    f"{FBI_API_BASE}/estimates/states/{state_abbr}",
+                    params={"API_KEY": API_KEY},
+                    retries=2,
+                )
+            except Exception as e:
+                self.logger.warning("FBI authenticated API failed: %s", e)
+
+        # Fallback: try national estimates
+        if not data:
+            try:
+                params = {"API_KEY": API_KEY} if API_KEY else None
+                data = await fetch_json(
+                    f"{FBI_API_BASE}/estimates/national" if API_KEY
+                    else "https://cde.ucr.cjis.gov/LATEST/webapp/api/estimates/national",
+                    params=params,
                     retries=1,
                 )
             except Exception as e:
@@ -72,7 +86,7 @@ class FBICrimeConnector(BaseConnector):
         relationships = []
         address_id = entity.get("id")
 
-        # Parse response — CDE returns various formats
+        # Parse response — API returns various formats
         results = data if isinstance(data, list) else data.get("results", data.get("data", []))
         if isinstance(results, dict):
             results = [results]
@@ -123,7 +137,9 @@ class FBICrimeConnector(BaseConnector):
 
     async def validate(self) -> bool:
         try:
-            await fetch_json(f"{CDE_API_BASE}/estimates/national", retries=1)
+            params = {"API_KEY": API_KEY} if API_KEY else None
+            url = f"{FBI_API_BASE}/estimates/national" if API_KEY else "https://cde.ucr.cjis.gov/LATEST/webapp/api/estimates/national"
+            await fetch_json(url, params=params, retries=1)
             return True
         except Exception:
             return False
