@@ -40,7 +40,7 @@ class FDICBankFindConnector(BaseConnector):
 
         try:
             data = await fetch_json(f"{FDIC_BASE}/locations", params={
-                "filters": f"STALP:{state} AND CITY:{city}",
+                "filters": f"STALP:'{state}' AND CITY:'{city}'",
                 "fields": "UNINUMBR,INSTNAME,OFFNAME,STADDR,CITY,STALP,ZIP,MAINOFF",
                 "limit": "10", "sort_by": "INSTNAME", "sort_order": "ASC",
             })

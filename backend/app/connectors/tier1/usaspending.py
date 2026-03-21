@@ -44,9 +44,14 @@ class USASpendingConnector(BaseConnector):
 
         try:
             data = await fetch_json(f"{USA_BASE}/search/spending_by_award/", method="POST", json_body={
-                "filters": {"recipient_search_text": [search_term], "time_period": [{"start_date": "2020-01-01", "end_date": "2026-12-31"}]},
+                "filters": {
+                    "recipient_search_text": [search_term],
+                    "time_period": [{"start_date": "2020-01-01", "end_date": "2026-12-31"}],
+                    "award_type_codes": ["A", "B", "C", "D", "02", "03", "04", "05"],
+                },
                 "fields": ["Award ID", "Recipient Name", "Award Amount", "Awarding Agency", "Award Type", "Start Date"],
                 "limit": 10, "page": 1, "sort": "Award Amount", "order": "desc",
+                "subawards": False,
             })
         except Exception as e:
             return ConnectorResult(error=str(e), source_name=self.name)

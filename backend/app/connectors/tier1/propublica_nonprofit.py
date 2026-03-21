@@ -13,7 +13,7 @@ from app.connectors.base import BaseConnector, ConnectorResult, RateLimit
 from app.models.entities import EntityType
 from app.utils.http_client import fetch_json
 
-PP_BASE = "https://projects.propublica.org/nonprofits/api/v2"
+PP_BASE = "https://projects.propublica.org/nonprofits/api"
 
 
 class ProPublicaNonprofitConnector(BaseConnector):
