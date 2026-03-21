@@ -33,21 +33,18 @@ class CensusGeocoderConnector(BaseConnector):
         city = entity.get("city", "")
         state = entity.get("state", "")
         zip_code = entity.get("zip", "")
+        entity_id = entity.get("id", "unknown")
 
         if not street or not (city or zip_code):
             return ConnectorResult(error="Address requires street and city or zip")
 
-        # Check cache
+        # Check cache — only cache raw API data, not entities/relationships
         cache_params = {"street": street, "city": city, "state": state, "zip": zip_code}
         cached = await get_cached(self.name, cache_params)
-        if cached:
-            return ConnectorResult(
-                entities=cached.get("entities", []),
-                relationships=cached.get("relationships", []),
-                raw_data=cached,
-                source_name=self.name,
-                confidence=self.default_confidence,
-            )
+
+        if cached and "coordinates" in cached:
+            # Rebuild entities/relationships from cached API data with current entity ID
+            return self._build_result(entity_id, cached)
 
         # Geocode with geographies to get census tract
         params = {
@@ -81,25 +78,36 @@ class CensusGeocoderConnector(BaseConnector):
         match = matches[0]
         coordinates = match.get("coordinates", {})
         geographies = match.get("geographies", {})
-
-        # Extract census tract info
         tracts = geographies.get("Census Tracts", [])
         tract_info = tracts[0] if tracts else {}
 
-        # Update the address entity with coordinates
+        # Cache only the raw API response data (no entity IDs)
+        cache_data = {
+            "coordinates": coordinates,
+            "matched_address": match.get("matchedAddress", ""),
+            "tract_info": tract_info,
+        }
+        await set_cached(self.name, cache_params, cache_data)
+
+        return self._build_result(entity_id, cache_data)
+
+    def _build_result(self, entity_id: str, data: dict) -> ConnectorResult:
+        """Build ConnectorResult from raw geocoding data + current entity ID."""
+        coordinates = data.get("coordinates", {})
+        tract_info = data.get("tract_info", {})
+
         address_updates = {
             "latitude": coordinates.get("y"),
             "longitude": coordinates.get("x"),
-            "matched_address": match.get("matchedAddress", ""),
+            "matched_address": data.get("matched_address", ""),
         }
 
         entities = []
         relationships = []
 
-        # Create census tract entity if we have tract data
         if tract_info:
             tract_id = str(uuid4())
-            tract_entity = {
+            entities.append({
                 "id": tract_id,
                 "type": "CENSUS_TRACT",
                 "tract_number": tract_info.get("TRACT", ""),
@@ -107,23 +115,21 @@ class CensusGeocoderConnector(BaseConnector):
                 "county": tract_info.get("COUNTY", ""),
                 "state": tract_info.get("STATE", ""),
                 "geoid": tract_info.get("GEOID", ""),
-            }
-            entities.append(tract_entity)
+            })
 
-            # Relationship: ADDRESS -> IN_CENSUS_TRACT -> CENSUS_TRACT
             relationships.append({
-                "source_id": entity.get("id"),
+                "source_id": entity_id,
                 "target_id": tract_id,
                 "type": "IN_CENSUS_TRACT",
                 "properties": {"sources": [self.name]},
             })
 
-        response = ConnectorResult(
+        return ConnectorResult(
             entities=entities,
             relationships=relationships,
             raw_data={
                 "coordinates": coordinates,
-                "matched_address": match.get("matchedAddress"),
+                "matched_address": data.get("matched_address"),
                 "tract_info": tract_info,
                 "address_updates": address_updates,
                 "entities": entities,
@@ -133,17 +139,10 @@ class CensusGeocoderConnector(BaseConnector):
             confidence=self.default_confidence,
         )
 
-        # Cache the result
-        await set_cached(self.name, cache_params, response.raw_data or {})
-
-        return response
-
     async def enrich(self, entity: dict[str, Any]) -> ConnectorResult:
-        """Enrich is the same as discover for geocoding."""
         return await self.discover(entity)
 
     async def validate(self) -> bool:
-        """Check if the Census Geocoder API is reachable."""
         try:
             await fetch_json(
                 f"{GEOCODER_BASE}/benchmarks",
