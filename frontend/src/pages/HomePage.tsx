@@ -111,9 +111,19 @@ export default function HomePage() {
         body: JSON.stringify({ address }),
       });
       navigate(`/investigation/${result.id}`);
-    } catch {
-      // Fallback — navigate with demo ID
-      navigate(`/investigation/demo`);
+    } catch (err) {
+      // Retry once after 2s (rate limit window)
+      await new Promise((r) => setTimeout(r, 2000));
+      try {
+        const result = await apiFetch<{ id: string }>("/api/v1/investigation", {
+          method: "POST",
+          body: JSON.stringify({ address }),
+        });
+        navigate(`/investigation/${result.id}`);
+      } catch {
+        setStep("input");
+        setServerErrors(["Could not create investigation. Please try again."]);
+      }
     }
   };
 

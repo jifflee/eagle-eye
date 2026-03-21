@@ -26,19 +26,20 @@ interface Props {
 }
 
 // Modern soft palette — lighter fills with darker borders for contrast
-const NODE_STYLES: Record<string, { bg: string; border: string; shape: string }> = {
-  PERSON:                  { bg: "#60A5FA", border: "#2563EB", shape: "dot" },
-  ADDRESS:                 { bg: "#F87171", border: "#DC2626", shape: "dot" },
-  BUSINESS:                { bg: "#34D399", border: "#059669", shape: "diamond" },
-  PROPERTY:                { bg: "#FBBF24", border: "#D97706", shape: "square" },
-  CASE:                    { bg: "#A78BFA", border: "#7C3AED", shape: "triangle" },
-  VEHICLE:                 { bg: "#F472B6", border: "#DB2777", shape: "dot" },
-  CRIME_RECORD:            { bg: "#FB7185", border: "#E11D48", shape: "triangleDown" },
-  SOCIAL_PROFILE:          { bg: "#2DD4BF", border: "#0D9488", shape: "dot" },
-  PHONE_NUMBER:            { bg: "#9CA3AF", border: "#6B7280", shape: "dot" },
-  EMAIL_ADDRESS:           { bg: "#9CA3AF", border: "#6B7280", shape: "dot" },
-  ENVIRONMENTAL_FACILITY:  { bg: "#5EEAD4", border: "#14B8A6", shape: "hexagon" },
-  CENSUS_TRACT:            { bg: "#CBD5E1", border: "#64748B", shape: "hexagon" },
+// Each entity type gets a unique shape + color combination
+const NODE_STYLES: Record<string, { bg: string; border: string; shape: string; icon?: string }> = {
+  PERSON:                  { bg: "#60A5FA", border: "#2563EB", shape: "dot" },           // ● blue circle
+  ADDRESS:                 { bg: "#F87171", border: "#DC2626", shape: "star" },          // ★ red star
+  BUSINESS:                { bg: "#34D399", border: "#059669", shape: "diamond" },       // ◆ green diamond
+  PROPERTY:                { bg: "#FBBF24", border: "#D97706", shape: "square" },        // ■ amber square
+  CASE:                    { bg: "#A78BFA", border: "#7C3AED", shape: "triangle" },      // ▲ purple triangle
+  VEHICLE:                 { bg: "#F472B6", border: "#DB2777", shape: "triangleDown" },  // ▼ pink inverted
+  CRIME_RECORD:            { bg: "#FB7185", border: "#E11D48", shape: "triangle" },      // ▲ red triangle
+  SOCIAL_PROFILE:          { bg: "#2DD4BF", border: "#0D9488", shape: "diamond" },       // ◆ teal diamond
+  PHONE_NUMBER:            { bg: "#9CA3AF", border: "#6B7280", shape: "dot" },           // ● gray dot (small)
+  EMAIL_ADDRESS:           { bg: "#A5B4FC", border: "#6366F1", shape: "dot" },           // ● indigo dot
+  ENVIRONMENTAL_FACILITY:  { bg: "#5EEAD4", border: "#14B8A6", shape: "hexagon" },       // ⬡ teal hexagon
+  CENSUS_TRACT:            { bg: "#CBD5E1", border: "#64748B", shape: "hexagon" },       // ⬡ slate hexagon
 };
 
 const EDGE_COLORS: Record<string, string> = {
@@ -64,13 +65,13 @@ const NETWORK_OPTIONS: Options = {
   physics: {
     solver: "forceAtlas2Based",
     forceAtlas2Based: {
-      gravitationalConstant: -60,
-      centralGravity: 0.008,
-      springLength: 180,
-      springConstant: 0.06,
-      damping: 0.5,
+      gravitationalConstant: -80,
+      centralGravity: 0.005,
+      springLength: 220,
+      springConstant: 0.04,
+      damping: 0.6,
     },
-    stabilization: { iterations: 150, fit: true },
+    stabilization: { iterations: 200, fit: true },
   },
   interaction: {
     hover: true,
@@ -193,40 +194,49 @@ export default function GraphVisualization({
     // Add/update visible nodes
     const nodeUpdates: any[] = [];
     const dark = isDarkMode();
+    const TYPE_SIZES: Record<string, number> = {
+      ADDRESS: 30, PERSON: 24, BUSINESS: 22, PROPERTY: 20,
+      CASE: 18, VEHICLE: 16, CRIME_RECORD: 18, SOCIAL_PROFILE: 14,
+      PHONE_NUMBER: 12, EMAIL_ADDRESS: 12, ENVIRONMENTAL_FACILITY: 16, CENSUS_TRACT: 16,
+    };
+
     visibleEntities.forEach((entity) => {
       const style = NODE_STYLES[entity.type] || { bg: "#9CA3AF", border: "#6B7280", shape: "dot" };
       const isSelected = entity.id === selectedNodeId;
-      const size = entity.type === "ADDRESS" ? 28 : entity.type === "PERSON" ? 22 : entity.type === "BUSINESS" ? 20 : 16;
+      const size = TYPE_SIZES[entity.type] || 16;
+
+      // Type label shown below name
+      const typeLabel = entity.type.replace(/_/g, " ").toLowerCase();
+      const label = `${truncateLabel(entity.label)}\n${typeLabel}`;
 
       nodeUpdates.push({
         id: entity.id,
-        label: truncateLabel(entity.label),
+        label,
         title: buildTooltip(entity),
         shape: style.shape,
         size,
         color: {
           background: dark ? style.border : style.bg,
           border: isSelected ? "#F8FAFC" : dark ? style.bg : style.border,
-          highlight: {
-            background: style.bg,
-            border: "#F8FAFC",
-          },
-          hover: {
-            background: style.bg,
-            border: dark ? "#E2E8F0" : style.border,
-          },
+          highlight: { background: style.bg, border: "#F8FAFC" },
+          hover: { background: style.bg, border: dark ? "#E2E8F0" : style.border },
         },
         font: {
           color: dark ? "#E2E8F0" : "#1E293B",
+          size: 11,
           strokeWidth: dark ? 3 : 2,
-          strokeColor: dark ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.85)",
+          strokeColor: dark ? "rgba(10,14,26,0.9)" : "rgba(255,255,255,0.9)",
+          multi: "md",
+          face: "Inter, system-ui, sans-serif",
         },
         borderWidth: isSelected ? 4 : 2.5,
         shadow: {
           enabled: true,
-          color: dark ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.12)",
-          size: isSelected ? 12 : 8,
-          x: 2,
+          color: dark
+            ? `${style.bg}33`  // Colored glow matching node
+            : "rgba(0,0,0,0.1)",
+          size: isSelected ? 16 : 10,
+          x: 0,
           y: 2,
         },
       });
