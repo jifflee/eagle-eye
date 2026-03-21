@@ -218,8 +218,11 @@ async def _do_enrichment(
             except Exception:
                 pass
 
-    # === Phase 2: Address enrichment — Tier 1 (parallel) ===
-    phase2_names = ["census_data", "fbi_crime", "epa_echo", "openfema", "nominatim"]
+    # === Phase 2: Address enrichment — Tier 1 APIs (parallel) ===
+    phase2_names = [
+        "census_data", "fbi_crime", "epa_echo", "openfema", "nominatim",
+        "openfec", "fdic_bankfind", "overpass_osm", "propublica_nonprofit",
+    ]
     phase2 = [connectors[n] for n in phase2_names if n in connectors]
 
     if phase2:
@@ -239,7 +242,7 @@ async def _do_enrichment(
         )
 
     # === Phase 3: Entity discovery — API-based only ===
-    phase3_names = ["sec_edgar"]  # GA SOS disabled (scraping restricted)
+    phase3_names = ["sec_edgar", "usaspending", "uspto_trademark", "fcc_license", "wayback"]
     phase3 = [connectors[n] for n in phase3_names if n in connectors]
 
     if phase3:
