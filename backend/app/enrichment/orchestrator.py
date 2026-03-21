@@ -241,8 +241,10 @@ async def _do_enrichment(
             return_exceptions=True,
         )
 
-    # === Phase 3: Entity discovery — API-based only ===
-    phase3_names = ["sec_edgar", "usaspending", "uspto_trademark", "fcc_license", "wayback"]
+    # === Phase 3: Address-level entity discovery ===
+    # Only connectors that accept ADDRESS type. Person/business connectors
+    # (usaspending, uspto, fcc, wayback) run in Phase 4 discovery per-entity.
+    phase3_names = ["sec_edgar"]
     phase3 = [connectors[n] for n in phase3_names if n in connectors]
 
     if phase3:
