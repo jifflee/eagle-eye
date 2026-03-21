@@ -236,7 +236,7 @@ export default function GraphPage() {
       {/* Main area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Graph */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 bg-gray-50 dark:bg-[#0B1120]">
           <GraphVisualization
             entities={searchQuery ? filteredEntities : entities}
             relationships={relationships}

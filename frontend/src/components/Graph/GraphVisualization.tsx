@@ -25,63 +25,90 @@ interface Props {
   filterTypes?: Set<string>;
 }
 
-const NODE_STYLES: Record<string, { color: string; shape: string }> = {
-  PERSON:                  { color: "#3B82F6", shape: "circle" },
-  ADDRESS:                 { color: "#EF4444", shape: "square" },
-  BUSINESS:                { color: "#10B981", shape: "diamond" },
-  PROPERTY:                { color: "#F59E0B", shape: "square" },
-  CASE:                    { color: "#8B5CF6", shape: "triangle" },
-  VEHICLE:                 { color: "#EC4899", shape: "dot" },
-  CRIME_RECORD:            { color: "#DC2626", shape: "triangleDown" },
-  SOCIAL_PROFILE:          { color: "#14B8A6", shape: "dot" },
-  PHONE_NUMBER:            { color: "#6B7280", shape: "dot" },
-  EMAIL_ADDRESS:           { color: "#6B7280", shape: "dot" },
-  ENVIRONMENTAL_FACILITY:  { color: "#0D9488", shape: "hexagon" },
-  CENSUS_TRACT:            { color: "#94A3B8", shape: "hexagon" },
+// Modern soft palette — lighter fills with darker borders for contrast
+const NODE_STYLES: Record<string, { bg: string; border: string; shape: string }> = {
+  PERSON:                  { bg: "#60A5FA", border: "#2563EB", shape: "dot" },
+  ADDRESS:                 { bg: "#F87171", border: "#DC2626", shape: "dot" },
+  BUSINESS:                { bg: "#34D399", border: "#059669", shape: "diamond" },
+  PROPERTY:                { bg: "#FBBF24", border: "#D97706", shape: "square" },
+  CASE:                    { bg: "#A78BFA", border: "#7C3AED", shape: "triangle" },
+  VEHICLE:                 { bg: "#F472B6", border: "#DB2777", shape: "dot" },
+  CRIME_RECORD:            { bg: "#FB7185", border: "#E11D48", shape: "triangleDown" },
+  SOCIAL_PROFILE:          { bg: "#2DD4BF", border: "#0D9488", shape: "dot" },
+  PHONE_NUMBER:            { bg: "#9CA3AF", border: "#6B7280", shape: "dot" },
+  EMAIL_ADDRESS:           { bg: "#9CA3AF", border: "#6B7280", shape: "dot" },
+  ENVIRONMENTAL_FACILITY:  { bg: "#5EEAD4", border: "#14B8A6", shape: "hexagon" },
+  CENSUS_TRACT:            { bg: "#CBD5E1", border: "#64748B", shape: "hexagon" },
 };
 
 const EDGE_COLORS: Record<string, string> = {
-  LIVES_AT: "#3B82F6",
-  OWNS_PROPERTY: "#F59E0B",
-  IS_RELATIVE_OF: "#EC4899",
-  OWNS_BUSINESS: "#10B981",
-  NAMED_IN_CASE: "#8B5CF6",
-  LOCATED_AT: "#EF4444",
-  HAS_CRIME_NEAR: "#DC2626",
-  IN_CENSUS_TRACT: "#94A3B8",
-  HAS_ENV_FACILITY: "#0D9488",
-  AFFILIATED_WITH: "#6366F1",
+  LIVES_AT: "#93C5FD",
+  OWNS_PROPERTY: "#FCD34D",
+  IS_RELATIVE_OF: "#F9A8D4",
+  OWNS_BUSINESS: "#6EE7B7",
+  NAMED_IN_CASE: "#C4B5FD",
+  LOCATED_AT: "#FCA5A5",
+  HAS_CRIME_NEAR: "#FDA4AF",
+  IN_CENSUS_TRACT: "#CBD5E1",
+  HAS_ENV_FACILITY: "#99F6E4",
+  AFFILIATED_WITH: "#A5B4FC",
+  REGISTERED_VEHICLE: "#FBCFE8",
+  HAS_SOCIAL_PROFILE: "#99F6E4",
+  HAS_PHONE: "#D1D5DB",
+  HAS_EMAIL: "#D1D5DB",
+  IS_RELATIVE_OF: "#F9A8D4",
+  WORKS_FOR: "#6EE7B7",
 };
 
 const NETWORK_OPTIONS: Options = {
   physics: {
     solver: "forceAtlas2Based",
     forceAtlas2Based: {
-      gravitationalConstant: -40,
-      centralGravity: 0.005,
-      springLength: 150,
-      springConstant: 0.08,
-      damping: 0.4,
+      gravitationalConstant: -60,
+      centralGravity: 0.008,
+      springLength: 180,
+      springConstant: 0.06,
+      damping: 0.5,
     },
-    stabilization: { iterations: 100, fit: true },
+    stabilization: { iterations: 150, fit: true },
   },
   interaction: {
     hover: true,
-    tooltipDelay: 200,
+    tooltipDelay: 150,
     multiselect: false,
-    navigationButtons: true,
+    navigationButtons: false,
     keyboard: { enabled: true },
+    zoomView: true,
   },
   edges: {
-    arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-    font: { size: 10, color: "#9CA3AF", strokeWidth: 0 },
-    smooth: { type: "continuous", roundness: 0.3 },
-    width: 1.5,
+    arrows: { to: { enabled: true, scaleFactor: 0.4, type: "arrow" } },
+    font: {
+      size: 9,
+      color: "#94A3B8",
+      strokeWidth: 2,
+      strokeColor: "#00000033",
+      face: "Inter, system-ui, sans-serif",
+    },
+    smooth: { type: "curvedCW", roundness: 0.15 },
+    width: 2,
+    hoverWidth: 0.5,
+    selectionWidth: 1,
   },
   nodes: {
-    font: { size: 12, face: "Inter, system-ui, sans-serif" },
-    borderWidth: 2,
-    shadow: { enabled: true, size: 4, x: 1, y: 1 },
+    font: {
+      size: 13,
+      face: "Inter, system-ui, sans-serif",
+      bold: { color: "#F8FAFC", size: 13, face: "Inter, system-ui, sans-serif", mod: "bold" },
+    },
+    borderWidth: 2.5,
+    borderWidthSelected: 4,
+    shadow: {
+      enabled: true,
+      color: "rgba(0,0,0,0.15)",
+      size: 8,
+      x: 2,
+      y: 2,
+    },
   },
 };
 
@@ -165,32 +192,44 @@ export default function GraphVisualization({
 
     // Add/update visible nodes
     const nodeUpdates: any[] = [];
+    const dark = isDarkMode();
     visibleEntities.forEach((entity) => {
-      const style = NODE_STYLES[entity.type] || { color: "#6B7280", shape: "dot" };
+      const style = NODE_STYLES[entity.type] || { bg: "#9CA3AF", border: "#6B7280", shape: "dot" };
       const isSelected = entity.id === selectedNodeId;
-      const nodeData = {
+      const size = entity.type === "ADDRESS" ? 28 : entity.type === "PERSON" ? 22 : entity.type === "BUSINESS" ? 20 : 16;
+
+      nodeUpdates.push({
         id: entity.id,
         label: truncateLabel(entity.label),
         title: buildTooltip(entity),
         shape: style.shape,
+        size,
         color: {
-          background: style.color,
-          border: isSelected ? "#FFFFFF" : style.color,
-          highlight: { background: style.color, border: "#FFFFFF" },
-          hover: { background: style.color, border: "#E5E7EB" },
+          background: dark ? style.border : style.bg,
+          border: isSelected ? "#F8FAFC" : dark ? style.bg : style.border,
+          highlight: {
+            background: style.bg,
+            border: "#F8FAFC",
+          },
+          hover: {
+            background: style.bg,
+            border: dark ? "#E2E8F0" : style.border,
+          },
         },
         font: {
-          color: isDarkMode() ? "#F3F4F6" : "#1F2937",
+          color: dark ? "#E2E8F0" : "#1E293B",
+          strokeWidth: dark ? 3 : 2,
+          strokeColor: dark ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.85)",
         },
-        size: entity.type === "ADDRESS" ? 25 : entity.type === "PERSON" ? 20 : 15,
-        borderWidth: isSelected ? 4 : 2,
-      };
-
-      if (existingNodeIds.has(entity.id)) {
-        nodeUpdates.push(nodeData);
-      } else {
-        nodeUpdates.push(nodeData);
-      }
+        borderWidth: isSelected ? 4 : 2.5,
+        shadow: {
+          enabled: true,
+          color: dark ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.12)",
+          size: isSelected ? 12 : 8,
+          x: 2,
+          y: 2,
+        },
+      });
     });
     nodes.update(nodeUpdates);
 
@@ -203,12 +242,27 @@ export default function GraphVisualization({
       const edgeId = `${rel.source_id}-${rel.type}-${rel.target_id}`;
       if (existingEdgeIds.has(edgeId)) return;
 
+      const dark = isDarkMode();
+      const edgeColor = EDGE_COLORS[rel.type] || (dark ? "#475569" : "#CBD5E1");
       newEdges.push({
         id: edgeId,
         from: rel.source_id,
         to: rel.target_id,
-        label: rel.type.replace(/_/g, " "),
-        color: { color: EDGE_COLORS[rel.type] || "#9CA3AF", opacity: 0.7 },
+        label: rel.type.replace(/_/g, " ").toLowerCase(),
+        color: {
+          color: edgeColor,
+          opacity: dark ? 0.6 : 0.5,
+          highlight: edgeColor,
+          hover: edgeColor,
+        },
+        font: {
+          color: dark ? "#94A3B8" : "#64748B",
+          strokeWidth: dark ? 3 : 2,
+          strokeColor: dark ? "rgba(15,23,42,0.9)" : "rgba(255,255,255,0.9)",
+          size: 9,
+        },
+        width: 1.8,
+        hoverWidth: 0.5,
       });
     });
     if (newEdges.length) edges.add(newEdges);
