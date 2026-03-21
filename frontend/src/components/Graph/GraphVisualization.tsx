@@ -99,8 +99,15 @@ export default function GraphVisualization({
   const edgesRef = useRef<DataSet<any>>(new DataSet());
   const entityMapRef = useRef<Map<string, GraphNode>>(new Map());
   const [initialized, setInitialized] = useState(false);
+  const [containerReady, setContainerReady] = useState(false);
 
-  // Initialize the network
+  // Callback ref to detect when container mounts
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    setContainerReady(!!node);
+  }, []);
+
+  // Initialize the network when container is ready
   useEffect(() => {
     if (!containerRef.current || initialized) return;
 
@@ -109,7 +116,6 @@ export default function GraphVisualization({
     networkRef.current = network;
     setInitialized(true);
 
-    // Event handlers
     network.on("click", (params) => {
       if (params.nodes.length > 0 && onNodeClick) {
         const nodeId = params.nodes[0] as string;
@@ -129,7 +135,7 @@ export default function GraphVisualization({
       networkRef.current = null;
       setInitialized(false);
     };
-  }, [containerRef.current]);
+  }, [containerReady]);
 
   // Update data when entities/relationships change
   useEffect(() => {
@@ -230,7 +236,7 @@ export default function GraphVisualization({
 
   return (
     <div className="relative h-full w-full">
-      <div ref={containerRef} className="h-full w-full" />
+      <div ref={setContainerRef} className="h-full w-full" style={{ minHeight: "400px" }} />
 
       {/* Controls overlay */}
       <div className="absolute bottom-4 right-4 flex flex-col gap-1">
