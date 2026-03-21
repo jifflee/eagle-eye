@@ -41,9 +41,9 @@ class CensusDataConnector(BaseConnector):
 
     async def discover(self, entity: dict[str, Any]) -> ConnectorResult:
         """Fetch demographics for a census tract."""
-        # Get tract identifiers
-        state_fips = entity.get("state", "")
-        county_fips = entity.get("county", "")
+        # Get tract identifiers — check both FIPS-specific and general field names
+        state_fips = entity.get("state_fips") or entity.get("state", "")
+        county_fips = entity.get("county_fips") or entity.get("county", "")
         tract_number = entity.get("tract_number", "")
 
         if not (state_fips and county_fips and tract_number):

@@ -170,15 +170,28 @@ async def _do_enrichment(
     geocoder = connectors.get("census_geocoder")
     if geocoder:
         result = await _run_connector(investigation_id, geocoder, address_entity)
-        # Update address entity with geocoded coordinates
+        # Update address entity with geocoded coordinates AND tract info
         if result and result.raw_data:
             updates = result.raw_data.get("address_updates", {})
             if updates:
                 address_entity.update(updates)
-                try:
-                    await neo4j_driver.update_entity(root_entity_id, updates)
-                except Exception:
-                    pass
+
+            # Extract tract FIPS for census_data connector
+            tract_info = result.raw_data.get("tract_info", {})
+            if tract_info:
+                address_entity["state_fips"] = tract_info.get("STATE", "")
+                address_entity["county_fips"] = tract_info.get("COUNTY", "")
+                address_entity["tract_number"] = tract_info.get("TRACT", "")
+                address_entity["geoid"] = tract_info.get("GEOID", "")
+
+            try:
+                await neo4j_driver.update_entity(root_entity_id, {
+                    k: v for k, v in address_entity.items()
+                    if k in ("latitude", "longitude", "state_fips", "county_fips", "tract_number", "geoid")
+                    and v
+                })
+            except Exception:
+                pass
 
     # === Phase 2: Address enrichment — Tier 1 (parallel) ===
     phase2_names = ["census_data", "fbi_crime", "epa_echo", "openfema", "nominatim"]
