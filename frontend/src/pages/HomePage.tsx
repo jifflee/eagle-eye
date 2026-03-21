@@ -36,10 +36,12 @@ export default function HomePage() {
   const [suggestions, setSuggestions] = useState<MatchedAddress[]>([]);
   const [warning, setWarning] = useState("");
 
-  // Load recent searches from localStorage
+  // Load recent searches from localStorage (filter out broken entries)
   const [recentSearches] = useState<string[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem("eagle-eye-recent") || "[]");
+      const raw = JSON.parse(localStorage.getItem("eagle-eye-recent") || "[]") as string[];
+      // Filter out broken entries like ", , GA " or empty strings
+      return raw.filter((s) => s && s.trim().length > 5 && !s.startsWith(","));
     } catch {
       return [];
     }
@@ -327,13 +329,27 @@ export default function HomePage() {
               <button
                 key={i}
                 onClick={() => {
-                  // Check local cache
-                  const cached = localStorage.getItem(`eagle-eye-cache:${addr}`);
-                  if (cached) {
-                    const data = JSON.parse(cached);
-                    setMatched(data.matched);
-                    setStep("confirm");
+                  // Parse address string back into fields and re-validate
+                  const parts = addr.split(",").map((s: string) => s.trim());
+                  const street = parts[0] || "";
+                  const rest = parts.slice(1).join(",").trim();
+                  // "City, ST ZIP" or "City ST ZIP"
+                  const cityStateZip = rest.match(/^(.+?),?\s+([A-Z]{2})\s+(\d{5})/);
+                  if (cityStateZip) {
+                    setAddress({
+                      street,
+                      city: cityStateZip[1],
+                      state: cityStateZip[2],
+                      zip: cityStateZip[3],
+                    });
+                  } else {
+                    setAddress((a) => ({ ...a, street }));
                   }
+                  // Clear any stale state and let user re-submit
+                  setFieldErrors({});
+                  setServerErrors([]);
+                  setMatched(null);
+                  setStep("input");
                 }}
                 className="block w-full rounded-md px-3 py-2 text-left text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
               >
