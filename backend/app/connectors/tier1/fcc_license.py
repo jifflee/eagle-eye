@@ -13,7 +13,7 @@ from app.connectors.base import BaseConnector, ConnectorResult, RateLimit
 from app.models.entities import EntityType
 from app.utils.http_client import fetch_json
 
-FCC_BASE = "https://data.fcc.gov/api/license-view/basicSearch/getLicenses"
+FCC_BASE = "https://www.fcc.gov/api/license-view/basicSearch/getLicenses"
 
 
 class FCCLicenseConnector(BaseConnector):

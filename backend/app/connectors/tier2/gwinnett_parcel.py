@@ -103,14 +103,17 @@ class GwinnettParcelConnector(BaseConnector):
                 })
 
             # PERSON — current owner
+            # Tax records use "LAST FIRST MIDDLE" or "LAST, FIRST" format
             if owner_name:
                 person_id = str(uuid4())
-                parts = owner_name.split()
+                first, last = _parse_tax_name(owner_name)
+                readable_name = f"{first} {last}".strip() if first else owner_name
                 entities.append({
                     "id": person_id, "type": "PERSON",
-                    "full_name": owner_name,
-                    "first_name": parts[1] if len(parts) > 1 else "",
-                    "last_name": parts[0] if parts else "",
+                    "full_name": readable_name,
+                    "first_name": first,
+                    "last_name": last,
+                    "tax_record_name": owner_name,  # preserve original
                     "mail_address": attrs.get("MAILADDR", ""),
                     "mail_city": attrs.get("MAILCITY", ""),
                     "mail_state": attrs.get("MAILSTAT", ""),
@@ -156,6 +159,39 @@ class GwinnettParcelConnector(BaseConnector):
             return True
         except Exception:
             return False
+
+
+def _parse_tax_name(raw: str) -> tuple[str, str]:
+    """Parse tax record name format into (first, last).
+
+    Handles:
+      "MOON SEUNGYIL DANNY"  → ("Seungyil Danny", "Moon")
+      "DUNCAN GEORGE D JR."  → ("George D Jr.", "Duncan")
+      "SMITH, JOHN"          → ("John", "Smith")
+      "PEACHTREE PROPERTIES LLC" → ("", "Peachtree Properties LLC")
+    """
+    raw = raw.strip()
+    if not raw:
+        return ("", "")
+
+    # Check for business indicators
+    biz_words = {"LLC", "INC", "CORP", "LP", "LLP", "PLLC", "TRUST", "ESTATE", "FOUNDATION"}
+    upper_words = set(raw.upper().split())
+    if upper_words & biz_words:
+        return ("", raw.title())
+
+    # Comma format: "LAST, FIRST"
+    if "," in raw:
+        parts = raw.split(",", 1)
+        return (parts[1].strip().title(), parts[0].strip().title())
+
+    # Space format: "LAST FIRST MIDDLE..."
+    parts = raw.split()
+    if len(parts) == 1:
+        return ("", parts[0].title())
+    last = parts[0].title()
+    first = " ".join(p.title() for p in parts[1:])
+    return (first, last)
 
 
 def _safe_num(val: Any) -> float | None:
