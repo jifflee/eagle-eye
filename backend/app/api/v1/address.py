@@ -249,6 +249,12 @@ async def get_investigation(investigation_id: UUID) -> InvestigationResponse:
     if root_entity_id:
         try:
             graph = await neo4j_driver.get_investigation_graph(root_entity_id)
+            logger.info(
+                "Graph API: root=%s, raw entities=%d, raw rels=%d",
+                root_entity_id[:8],
+                len(graph.get("entities", [])),
+                len(graph.get("relationships", [])),
+            )
             for e in graph.get("entities", []):
                 props = e.get("properties", {})
                 labels = e.get("labels", [])

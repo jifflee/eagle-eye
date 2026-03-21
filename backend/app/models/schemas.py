@@ -69,11 +69,11 @@ class SourceInfo(BaseModel):
 
 
 class RelationshipResponse(BaseModel):
-    id: UUID
-    source_id: UUID
-    target_id: UUID
-    type: RelationshipType
-    properties: dict
+    id: int | str | UUID = 0
+    source_id: str
+    target_id: str
+    type: str  # RelationshipType or any string
+    properties: dict = {}
 
 
 class GraphResponse(BaseModel):
