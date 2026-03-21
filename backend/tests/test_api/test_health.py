@@ -19,7 +19,7 @@ def test_sources_endpoint(client: TestClient) -> None:
     assert response.status_code == 200
     data = response.json()
     assert "sources" in data
-    assert len(data["sources"]) >= 15  # At least 15 connectors registered
+    assert len(data["sources"]) >= 10  # API-based connectors (scrapers removed)
     # Verify source structure
     source = data["sources"][0]
     assert "name" in source

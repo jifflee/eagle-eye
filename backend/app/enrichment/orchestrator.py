@@ -133,9 +133,16 @@ async def _do_enrichment(
 
     connectors = discover_connectors()
 
-    # No permanently disabled connectors — all are available.
-    # NHTSA vPIC runs during discovery when VEHICLE entities with VINs are found.
-    DISABLED_CONNECTORS: set[str] = set()
+    # Disabled connectors — sites that prohibit or restrict automated access.
+    # See docs/DATA_SOURCE_CLASSIFICATION.md for full legal audit.
+    DISABLED_CONNECTORS = {
+        "qpublic",               # ToS blocks AI crawlers, prohibits scraping
+        "gsccca_deeds",          # ToS bans robots/spiders with criminal penalties
+        "gbi_sex_offender",      # CAPTCHA-gated, no API
+        "gwinnett_sheriff_jail", # No robots.txt, unclear ToS
+        "gwinnett_courts",       # No robots.txt, unclear ToS — use CourtListener instead
+        "ga_secretary_state",    # robots.txt returns 403 — unclear permissions
+    }
     connectors = {
         k: v for k, v in connectors.items()
         if k not in DISABLED_CONNECTORS
@@ -221,8 +228,8 @@ async def _do_enrichment(
             return_exceptions=True,
         )
 
-    # === Phase 2b: Address enrichment — Tier 2 county sources (parallel) ===
-    phase2b_names = ["gwinnett_parcel", "qpublic", "gbi_sex_offender"]
+    # === Phase 2b: Address enrichment — Tier 2 county sources (API only) ===
+    phase2b_names = ["gwinnett_parcel"]  # ArcGIS REST API — no scraping
     phase2b = [connectors[n] for n in phase2b_names if n in connectors]
 
     if phase2b:
@@ -231,8 +238,8 @@ async def _do_enrichment(
             return_exceptions=True,
         )
 
-    # === Phase 3: Entity discovery — SEC + GA SOS (parallel) ===
-    phase3_names = ["sec_edgar", "ga_secretary_state"]
+    # === Phase 3: Entity discovery — API-based only ===
+    phase3_names = ["sec_edgar"]  # GA SOS disabled (scraping restricted)
     phase3 = [connectors[n] for n in phase3_names if n in connectors]
 
     if phase3:

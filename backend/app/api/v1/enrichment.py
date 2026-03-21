@@ -23,25 +23,23 @@ from app.models.schemas import (
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Registry of all available connectors
+# Registry of available connectors (only API-based, no restricted scrapers)
+# See docs/DATA_SOURCE_CLASSIFICATION.md for full audit
 AVAILABLE_CONNECTORS: list[SourceListItem] = [
-    SourceListItem(name="census_geocoder", tier=1, requires_auth=False, description="US Census Geocoder — address to coordinates + census tract", status="available"),
+    # Tier 1 — Free APIs, no auth
+    SourceListItem(name="census_geocoder", tier=1, requires_auth=False, description="Census Geocoder — address to coordinates + tract", status="available"),
     SourceListItem(name="census_data", tier=1, requires_auth=False, description="Census Data API — demographics by tract", status="available"),
-    SourceListItem(name="fbi_crime", tier=1, requires_auth=False, description="FBI Crime Data API — crime statistics by county", status="available"),
-    SourceListItem(name="epa_echo", tier=1, requires_auth=False, description="EPA ECHO — environmental facilities and violations", status="available"),
-    SourceListItem(name="sec_edgar", tier=1, requires_auth=False, description="SEC EDGAR — corporate filings and officers", status="available"),
-    SourceListItem(name="courtlistener", tier=1, requires_auth=False, description="CourtListener — federal/state court records", status="available"),
-    SourceListItem(name="openfema", tier=1, requires_auth=False, description="OpenFEMA — disaster declarations and flood data", status="available"),
-    SourceListItem(name="nominatim", tier=1, requires_auth=False, description="OSM Nominatim — backup geocoder", status="available"),
-    SourceListItem(name="nhtsa_vpic", tier=1, requires_auth=False, description="NHTSA vPIC — VIN decoding and recalls", status="available"),
-    SourceListItem(name="gwinnett_parcel", tier=2, requires_auth=False, description="Gwinnett County ArcGIS — parcel data", status="available"),
-    SourceListItem(name="ga_secretary_state", tier=2, requires_auth=False, description="GA Secretary of State — business registrations", status="available"),
-    SourceListItem(name="gwinnett_courts", tier=2, requires_auth=False, description="Gwinnett Courts — county case search", status="available"),
-    SourceListItem(name="qpublic", tier=2, requires_auth=False, description="qPublic — detailed property records", status="available"),
-    SourceListItem(name="gsccca_deeds", tier=2, requires_auth=False, description="GSCCCA — deeds, liens, UCC filings", status="available"),
-    SourceListItem(name="gbi_sex_offender", tier=2, requires_auth=False, description="GBI Sex Offender Registry", status="available"),
-    SourceListItem(name="gwinnett_sheriff_jail", tier=2, requires_auth=False, description="Gwinnett Sheriff — inmate records", status="available"),
-    SourceListItem(name="opencorporates", tier=3, requires_auth=False, description="OpenCorporates — global company registry", status="available"),
+    SourceListItem(name="fbi_crime", tier=1, requires_auth=False, description="FBI Crime Data — statistics by county", status="available"),
+    SourceListItem(name="epa_echo", tier=1, requires_auth=False, description="EPA ECHO — environmental facilities", status="available"),
+    SourceListItem(name="sec_edgar", tier=1, requires_auth=False, description="SEC EDGAR — corporate filings", status="available"),
+    SourceListItem(name="courtlistener", tier=1, requires_auth=False, description="CourtListener — court records", status="available"),
+    SourceListItem(name="openfema", tier=1, requires_auth=False, description="OpenFEMA — disaster/flood data", status="available"),
+    SourceListItem(name="nominatim", tier=1, requires_auth=False, description="Nominatim — backup geocoder", status="available"),
+    SourceListItem(name="nhtsa_vpic", tier=1, requires_auth=False, description="NHTSA — VIN decoding", status="available"),
+    # Tier 2 — Free APIs with registration or ArcGIS REST
+    SourceListItem(name="gwinnett_parcel", tier=2, requires_auth=False, description="Gwinnett ArcGIS — parcel data", status="available"),
+    SourceListItem(name="opencorporates", tier=3, requires_auth=False, description="OpenCorporates — company registry", status="available"),
+    # Tier 3 — Require API keys (not yet configured)
     SourceListItem(name="google_places", tier=3, requires_auth=True, description="Google Places — nearby POIs", status="unavailable"),
     SourceListItem(name="hunter_io", tier=3, requires_auth=True, description="Hunter.io — email lookup", status="unavailable"),
     SourceListItem(name="numverify", tier=3, requires_auth=True, description="NumVerify — phone validation", status="unavailable"),
