@@ -15,6 +15,7 @@ from uuid import UUID, uuid4
 from app.connectors.base import ConnectorResult
 from app.connectors.registry import discover_connectors
 from app.database import neo4j_driver, postgres_client
+from app.enrichment import log_store
 from app.models.entities import EntityType
 
 logger = logging.getLogger(__name__)
@@ -144,11 +145,19 @@ async def _do_enrichment(
     if tier1_only:
         connectors = {k: v for k, v in connectors.items() if v.tier == 1}
 
-    # Register all connectors as pending
-    for name in connectors:
+    # Register connectors — only "pending" for address-applicable ones,
+    # "skipped" for connectors that need PERSON/BUSINESS (they'll run in discovery)
+    from app.models.entities import EntityType as ET
+
+    address_connectors = set()
+    for name, conn in connectors.items():
+        is_address_applicable = conn.can_discover_from(ET.ADDRESS)
+        status = "pending" if is_address_applicable else "skipped"
+        address_connectors.add(name) if is_address_applicable else None
         try:
             await postgres_client.upsert_connector_status(
-                investigation_id, name, "pending"
+                investigation_id, name, status,
+                error_message=None if is_address_applicable else "Awaiting person/business discovery",
             )
         except Exception:
             pass
@@ -319,8 +328,14 @@ async def _run_connector(
     entity: dict[str, Any],
 ) -> ConnectorResult | None:
     """Run a single connector and persist results."""
+    import time as _time
+
     name = connector.name
+    inv_id = str(investigation_id)
+    start = _time.time()
+
     logger.info("Running connector: %s", name)
+    log_store.log(inv_id, "info", name, f"Starting {name}...")
 
     # Mark as running
     try:
@@ -333,7 +348,9 @@ async def _run_connector(
     try:
         result = await connector.discover(entity)
     except Exception as e:
+        elapsed = int((_time.time() - start) * 1000)
         logger.error("Connector %s failed: %s", name, e)
+        log_store.log(inv_id, "error", name, f"Exception: {e}", duration_ms=elapsed)
         try:
             await postgres_client.upsert_connector_status(
                 investigation_id, name, "failed", error_message=str(e)
@@ -342,8 +359,11 @@ async def _run_connector(
             logger.error("Failed to update status to failed for %s: %s", name, e2)
         return None
 
+    elapsed = int((_time.time() - start) * 1000)
+
     if result.error:
         logger.warning("Connector %s returned error: %s", name, result.error)
+        log_store.log(inv_id, "warn", name, result.error, duration_ms=elapsed)
         try:
             await postgres_client.upsert_connector_status(
                 investigation_id, name, "failed", error_message=result.error
@@ -403,6 +423,12 @@ async def _run_connector(
         logger.error("Failed to update status to complete for %s: %s", name, e)
 
     logger.info("Connector %s complete: %d entities", name, entities_found)
+    log_store.log(
+        inv_id, "info", name,
+        f"Complete: {entities_found} entities found",
+        entities_found=entities_found,
+        duration_ms=elapsed,
+    )
     return result
 
 

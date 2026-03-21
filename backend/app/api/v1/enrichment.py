@@ -86,10 +86,12 @@ async def enrichment_status(investigation_id: UUID) -> EnrichmentStatusResponse:
                     pending.append(name)
                 case "failed" | "rate_limited":
                     failed.append(name)
+                case "skipped":
+                    pass  # Don't count skipped connectors
     except Exception:
         logger.warning("PostgreSQL unavailable")
 
-    # Determine overall status
+    # Determine overall status — ignore skipped connectors
     if in_progress:
         overall_status = "enriching"
     elif pending:
@@ -109,6 +111,17 @@ async def enrichment_status(investigation_id: UUID) -> EnrichmentStatusResponse:
         discovered_entities=total_entities,
         connectors=connectors,
     )
+
+
+@router.get("/enrichment/logs/{investigation_id}")
+async def enrichment_logs(
+    investigation_id: UUID,
+    since: float = 0,
+    limit: int = 50,
+) -> list[dict]:
+    """Get real-time enrichment log entries for an investigation."""
+    from app.enrichment.log_store import get_logs
+    return get_logs(str(investigation_id), since=since, limit=limit)
 
 
 @router.post("/enrichment/{investigation_id}/control")

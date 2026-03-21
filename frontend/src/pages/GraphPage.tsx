@@ -52,18 +52,27 @@ export default function GraphPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSave, setShowSave] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [logs, setLogs] = useState<{ time: string; level: string; connector: string; message: string; duration_ms: number }[]>([]);
+  const [lastLogTs, setLastLogTs] = useState(0);
   const navigate = useNavigate();
 
   // Fetch data
   const fetchData = useCallback(async () => {
     if (!id) return;
     try {
-      const [inv, enr] = await Promise.all([
+      const [inv, enr, newLogs] = await Promise.all([
         apiFetch<InvestigationData>(`/api/v1/investigation/${id}`),
         apiFetch<EnrichmentStatus>(`/api/v1/enrichment/status/${id}`),
+        apiFetch<any[]>(`/api/v1/enrichment/logs/${id}?since=${lastLogTs}&limit=20`).catch(() => []),
       ]);
       setInvestigation(inv);
       setEnrichment(enr);
+
+      // Append new log entries
+      if (newLogs && newLogs.length > 0) {
+        setLogs((prev) => [...prev, ...newLogs].slice(-100));
+        setLastLogTs(newLogs[newLogs.length - 1]?.timestamp || lastLogTs);
+      }
 
       // Initialize active types filter with all found types
       if (!allTypesInit && inv.graph.entities.length > 0) {
@@ -293,6 +302,25 @@ export default function GraphPage() {
                 <p className="text-[10px] text-gray-400">Waiting for enrichment...</p>
               )}
             </div>
+
+            {/* Live Log */}
+            {logs.length > 0 && (
+              <>
+                <h3 className="mb-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                  Activity Log
+                </h3>
+                <div className="max-h-48 space-y-0.5 overflow-auto">
+                  {logs.slice(-20).map((log, i) => (
+                    <div key={i} className={`text-[10px] ${log.level === "error" || log.level === "warn" ? "text-red-400" : "text-gray-500 dark:text-gray-400"}`}>
+                      <span className="text-gray-400">{log.time}</span>{" "}
+                      <span className="font-medium">{log.connector.replace(/_/g, " ")}</span>{" "}
+                      {log.message.length > 40 ? log.message.slice(0, 40) + "\u2026" : log.message}
+                      {log.duration_ms > 0 && <span className="text-gray-400"> {log.duration_ms}ms</span>}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
