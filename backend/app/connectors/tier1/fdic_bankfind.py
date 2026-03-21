@@ -13,7 +13,7 @@ from app.connectors.base import BaseConnector, ConnectorResult, RateLimit
 from app.models.entities import EntityType
 from app.utils.http_client import fetch_json
 
-FDIC_BASE = "https://banks.data.fdic.gov/api"
+FDIC_BASE = "https://api.fdic.gov/banks"
 
 
 class FDICBankFindConnector(BaseConnector):
@@ -40,8 +40,8 @@ class FDICBankFindConnector(BaseConnector):
 
         try:
             data = await fetch_json(f"{FDIC_BASE}/locations", params={
-                "filters": f"STALP:'{state}' AND CITY:'{city}'",
-                "fields": "UNINUMBR,INSTNAME,OFFNAME,STADDR,CITY,STALP,ZIP,MAINOFF",
+                "filters": f"STALP:{state} AND CITY:{city}",
+                "fields": "INSTNAME,OFFNAME,STADDR,CITY,STALP,ZIP,MAINOFF",
                 "limit": "10", "sort_by": "INSTNAME", "sort_order": "ASC",
             })
         except Exception as e:
@@ -76,7 +76,7 @@ class FDICBankFindConnector(BaseConnector):
 
     async def validate(self) -> bool:
         try:
-            await fetch_json(f"{FDIC_BASE}/locations", params={"limit": "1"}, retries=1)
+            await fetch_json(f"{FDIC_BASE}/locations", params={"filters": "STALP:GA", "limit": "1"}, retries=1)
             return True
         except Exception:
             return False
