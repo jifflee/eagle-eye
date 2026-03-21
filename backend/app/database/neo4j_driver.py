@@ -151,43 +151,50 @@ async def get_investigation_graph(
     limit: int = 500,
 ) -> dict[str, Any]:
     """Get the full subgraph reachable from a root entity up to max_depth hops."""
-    # Cypher doesn't support parameters in variable-length patterns,
-    # so we interpolate max_depth directly (it's always an int from our code)
-    query = f"""
-    MATCH path = (root {{id: $root_id}})-[*0..{int(max_depth)}]-(connected)
-    WITH DISTINCT connected, path
-    LIMIT $limit
-    WITH collect(DISTINCT connected) AS nodes,
-         collect(DISTINCT path) AS paths
-    UNWIND nodes AS n
-    WITH collect(DISTINCT {{
+    # Query entities
+    entity_query = f"""
+    MATCH (root {{id: $root_id}})
+    OPTIONAL MATCH (root)-[*0..{int(max_depth)}]-(n)
+    WITH DISTINCT n LIMIT $limit
+    RETURN collect(DISTINCT {{
         id: n.id,
         labels: labels(n),
         properties: properties(n)
-    }}) AS entities, paths
-    UNWIND paths AS p
-    UNWIND relationships(p) AS r
-    WITH entities, collect(DISTINCT {{
+    }}) AS entities
+    """
+
+    # Query relationships separately for reliability
+    rel_query = f"""
+    MATCH (root {{id: $root_id}})
+    OPTIONAL MATCH (root)-[*0..{int(max_depth)}]-(n)
+    WITH collect(DISTINCT n) AS nodes
+    UNWIND nodes AS a
+    MATCH (a)-[r]->(b) WHERE b IN nodes
+    RETURN collect(DISTINCT {{
         id: id(r),
         type: type(r),
-        source_id: startNode(r).id,
-        target_id: endNode(r).id,
+        source_id: a.id,
+        target_id: b.id,
         properties: properties(r)
     }}) AS relationships
-    RETURN entities, relationships
     """
+
     driver = await get_driver()
     async with driver.session() as session:
-        result = await session.run(
-            query, root_id=root_entity_id, limit=limit
-        )
+        entities = []
+        relationships = []
+
+        result = await session.run(entity_query, root_id=root_entity_id, limit=limit)
         record = await result.single()
         if record:
-            return {
-                "entities": record["entities"],
-                "relationships": record["relationships"],
-            }
-        return {"entities": [], "relationships": []}
+            entities = record["entities"]
+
+        result = await session.run(rel_query, root_id=root_entity_id, limit=limit)
+        record = await result.single()
+        if record:
+            relationships = record["relationships"]
+
+        return {"entities": entities, "relationships": relationships}
 
 
 async def get_entity_neighborhood(
