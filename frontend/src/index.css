@@ -6,5 +6,45 @@
   body {
     @apply antialiased;
     font-family: "Inter", system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Dark mode defaults — Palantir-style dark theme */
+  .dark body,
+  .dark {
+    @apply bg-[#0a0e1a] text-[#c8d1e0];
+  }
+
+  /* Monospace for data values */
+  .font-data {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+    font-size: 0.8125rem;
+    letter-spacing: -0.02em;
+  }
+
+  /* Sleek scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 3px;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+
+  /* Input focus glow */
+  input:focus, textarea:focus {
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5), 0 0 12px rgba(59, 130, 246, 0.15);
   }
 }

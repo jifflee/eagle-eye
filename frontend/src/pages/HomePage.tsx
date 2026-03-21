@@ -125,24 +125,26 @@ export default function HomePage() {
   };
 
   const inputClass = (field: string) =>
-    `w-full rounded-lg border px-3 py-2 transition-colors focus:outline-none focus:ring-2 ${
+    `w-full rounded border px-3 py-2 text-sm transition-all focus:outline-none ${
       fieldErrors[field]
-        ? "border-red-400 focus:border-red-500 focus:ring-red-200 dark:border-red-600"
-        : "border-gray-300 focus:border-blue-500 focus:ring-blue-200 dark:border-gray-600 dark:bg-gray-800 dark:focus:border-blue-400 dark:focus:ring-blue-900"
+        ? "border-red-500/50 bg-red-500/5 text-red-300 dark:border-red-500/30 dark:bg-red-500/5"
+        : "border-[#e2e8f0] bg-white text-[#1e293b] dark:border-[#1e293b] dark:bg-[#0f1629] dark:text-[#c8d1e0] dark:focus:border-blue-500/50"
     }`;
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center px-4 py-16">
-      <h1 className="mb-2 text-4xl font-bold tracking-tight">Eagle Eye</h1>
-      <p className="mb-10 text-lg text-gray-500 dark:text-gray-400">
-        Open Source Intelligence — Address Profiling
+    <div className="mx-auto flex max-w-xl flex-col items-center justify-center px-4 py-20">
+      <h1 className="mb-1 text-2xl font-light tracking-[0.15em] uppercase text-[#334155] dark:text-[#94a3b8]">
+        Eagle Eye
+      </h1>
+      <p className="mb-12 text-[11px] font-medium uppercase tracking-[0.25em] text-[#94a3b8] dark:text-[#475569]">
+        Open Source Intelligence
       </p>
 
       {/* === Step: Input === */}
       {(step === "input" || step === "validating") && (
         <form onSubmit={handleValidate} className="w-full space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">Street Address</label>
+            <label className="mb-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-[#64748b]">Street Address</label>
             <input
               type="text"
               value={address.street}
@@ -158,7 +160,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">City</label>
+              <label className="mb-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-[#64748b]">City</label>
               <input
                 type="text"
                 value={address.city}
@@ -172,7 +174,7 @@ export default function HomePage() {
               )}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">State</label>
+              <label className="mb-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-[#64748b]">State</label>
               <input
                 type="text"
                 value={address.state}
@@ -187,7 +189,7 @@ export default function HomePage() {
               )}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">ZIP</label>
+              <label className="mb-1 block text-[10px] font-medium uppercase tracking-[0.15em] text-[#64748b]">Zip Code</label>
               <input
                 type="text"
                 value={address.zip}
@@ -235,7 +237,7 @@ export default function HomePage() {
           <button
             type="submit"
             disabled={step === "validating"}
-            className="w-full rounded-lg bg-blue-600 px-4 py-3 text-lg font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+            className="w-full rounded border border-blue-500/30 bg-blue-600/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-blue-400 transition-all hover:bg-blue-600/20 hover:border-blue-500/50 disabled:opacity-40 dark:bg-blue-500/10 dark:hover:bg-blue-500/20"
           >
             {step === "validating" ? (
               <span className="flex items-center justify-center gap-2">

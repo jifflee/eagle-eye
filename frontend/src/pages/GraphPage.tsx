@@ -159,7 +159,7 @@ export default function GraphPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Top Bar */}
-      <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-2 dark:border-gray-800 dark:bg-gray-900">
+      <div className="shrink-0 border-b border-[#e2e8f0] bg-white px-4 py-2 dark:border-[#1a2035] dark:bg-[#0d1224]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to="/" className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -168,8 +168,8 @@ export default function GraphPage() {
               </svg>
             </Link>
             <div>
-              <h2 className="text-sm font-semibold">{investigation?.address || "Loading..."}</h2>
-              <p className="text-xs text-gray-400">
+              <h2 className="text-xs font-medium uppercase tracking-[0.1em] text-[#334155] dark:text-[#94a3b8]">{investigation?.address || "Loading..."}</h2>
+              <p className="font-data text-[10px] text-[#64748b]">
                 {entities.length} entities &middot; {relationships.length} relationships
               </p>
             </div>
@@ -271,7 +271,7 @@ export default function GraphPage() {
 
         {/* Connector Sidebar (collapsed when entity panel is open) */}
         {!selectedEntity && (
-          <div className="w-56 shrink-0 overflow-auto border-l border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
+          <div className="w-56 shrink-0 overflow-auto border-l border-[#e2e8f0] bg-[#fafbfc] p-3 dark:border-[#1a2035] dark:bg-[#0d1224]">
             <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
               Data Sources
             </h3>
