@@ -305,23 +305,27 @@ if [ "$PR_STATE" != "MERGED" ]; then
   fi
 fi
 
-# Step 4: Verify issue closure
-log_step "4" "Verifying issue closure..."
+# Step 4: Close linked issue
+log_step "4" "Closing linked issue..."
 
 ISSUE_STATE="UNKNOWN"
 if $DRY_RUN; then
-  log "(dry-run) Would verify issue #$ISSUE is closed"
+  log "(dry-run) Would close issue #$ISSUE"
 else
-  # Wait a moment for GitHub's auto-close to trigger
-  sleep 2
-
   ISSUE_STATE=$(gh issue view "$ISSUE" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
 
   if [ "$ISSUE_STATE" == "CLOSED" ]; then
-    log_success "Issue #$ISSUE is closed"
+    log_success "Issue #$ISSUE is already closed"
+  elif [ "$ISSUE_STATE" == "OPEN" ]; then
+    log "Closing issue #$ISSUE..."
+    if gh issue close "$ISSUE" --comment "Closed: PR #$PR_NUMBER merged to dev. Work is complete." 2>&1; then
+      log_success "Closed issue #$ISSUE"
+      ISSUE_STATE="CLOSED"
+    else
+      log_warning "Failed to close issue #$ISSUE — close manually: gh issue close $ISSUE"
+    fi
   else
-    log_warning "Issue #$ISSUE is still $ISSUE_STATE"
-    log "GitHub's auto-close may take a moment, or the PR body may not contain 'Fixes #$ISSUE'"
+    log_warning "Issue #$ISSUE in unexpected state: $ISSUE_STATE"
   fi
 fi
 

@@ -10,7 +10,11 @@
 # Output: Cache file at /tmp/sprint-status-cache.json
 # Exit: 0 = allow prompt to proceed
 
-set -euo pipefail
+# Use pipefail but NOT -e: this hook must never exit non-zero and block prompts
+set -uo pipefail
+
+# Trap any unexpected error and exit cleanly — hook must never block prompts
+trap 'exit 0' ERR
 
 # Get project root
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"

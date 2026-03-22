@@ -1,11 +1,21 @@
 #!/bin/bash
 set -euo pipefail
 # auto-close-issues-after-promotion.sh
-# Automatically close issues linked to PRs after they're promoted to main
+#
+# DEPRECATED (Issue #1335): This script is no longer needed.
+#
+# Issues are now closed immediately when their PR merges to 'dev' by:
+#   - /pr:merge-batch skill (closes linked issues after each successful merge)
+#   - scripts/worktree/worktree-complete.sh (closes issue after PR merge)
+#
+# This script is retained for historical reference and manual fallback only.
+# It will be removed in a future cleanup pass.
+#
+# Original purpose: Automatically close issues linked to PRs after promotion to main
 #
 # GitHub only auto-closes issues when PRs are merged to the DEFAULT branch.
 # Since our PRs merge to 'dev' first, issues remain open even with "Fixes #N".
-# This script closes issues after their PRs are promoted to main.
+# This script closed issues after their PRs are promoted to main (now superseded).
 #
 # Usage:
 #   ./scripts/auto-close-issues-after-promotion.sh [--pr PR_NUMBER]
@@ -13,6 +23,12 @@ set -euo pipefail
 #   ./scripts/auto-close-issues-after-promotion.sh --all
 #
 # Part of: Issue #622 - Container PRs missing auto-close behavior
+# Superseded by: Issue #1335 - Close issues on PR merge to dev
+
+echo "[DEPRECATED] auto-close-issues-after-promotion.sh is superseded by Issue #1335." >&2
+echo "[DEPRECATED] Issues are now closed immediately when PRs merge to dev." >&2
+echo "[DEPRECATED] This script will be removed in a future cleanup pass." >&2
+echo "" >&2
 
 set -e
 

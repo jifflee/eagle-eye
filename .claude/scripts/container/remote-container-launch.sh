@@ -823,6 +823,18 @@ main() {
 
             # Test SSH connectivity first
             if ! check_ssh_connectivity "$remote_host" "$ssh_key_path" "$ssh_user"; then
+                # Auto-escalate SSH/host-unreachable blocker to infra repo (feature #1338)
+                local escalate_script="${SCRIPT_DIR}/../infra/auto-escalate-infra.sh"
+                if [ -x "$escalate_script" ] && [ -n "${issue:-}" ]; then
+                    log_info "Escalating SSH connectivity blocker to infra repo..."
+                    "$escalate_script" \
+                        --issue "$issue" \
+                        --error "SSH connection failed to Proxmox/docker-workers host: ${remote_host} (${ssh_user}@${remote_host}, key: ${ssh_key_path})" \
+                        --context "Remote host: ${remote_host}\nSSH user: ${ssh_user}\nSSH key: ${ssh_key_path}\nIssue: #${issue}" \
+                        --threshold medium \
+                        2>/dev/null || true
+                fi
+
                 if [ "$fallback_local" = "true" ]; then
                     log_warn "SSH failed - falling back to local Docker"
                     exec "${SCRIPT_DIR}/container-launch.sh" \

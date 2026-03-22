@@ -88,6 +88,25 @@ Always regenerate the manifest from the freshly pulled source before syncing:
 
 This ensures the manifest reflects the exact files currently in the framework repo.
 
+### Step 4b: Detect Deprecated Artifacts
+
+Before previewing or applying changes, scan for skills/agents that were previously installed from the framework but have since been removed or renamed upstream. Also identify locally-created files so they are protected from deletion:
+
+```bash
+TARGET_DIR="$(pwd)/.claude"
+
+"$FRAMEWORK_DIR/scripts/detect-deprecated-artifacts.sh" \
+  --target "$TARGET_DIR" \
+  --framework-manifest "$FRAMEWORK_DIR/.claude/.manifest.json"
+```
+
+This reports:
+- **DEPRECATED**: files that were installed from the framework but no longer exist upstream
+- **LOCAL**: user-created files not originating from the framework (will be preserved)
+- **CURRENT**: files still present in the upstream framework
+
+Origin tracking is maintained in `.claude/.framework-origin.json` by `manifest-sync.sh`. This is the source of truth for distinguishing framework-installed files from locally-created ones.
+
 ### Step 5: Preview Changes (always show before applying)
 
 Run manifest-sync in check/dry-run mode to show what would change:
@@ -257,12 +276,17 @@ Next step - commit the changes to your repo:
 **Available version:** v1.1.0
 
 ### Changes
-| Action  | Count | Details |
-|---------|-------|---------|
-| Added   | 3     | agents/new-agent.md, commands/new-skill.md, ... |
-| Updated | 5     | commands/sprint-work.md, hooks/block-secrets.py, ... |
-| Removed | 1     | commands/old-alias.md |
-| Unchanged | 48  | |
+| Action    | Count | Details |
+|-----------|-------|---------|
+| Added     | 3     | agents/new-agent.md, commands/new-skill.md, ... |
+| Updated   | 5     | commands/sprint-work.md, hooks/block-secrets.py, ... |
+| Removed   | 1     | commands/old-alias.md (deprecated framework artifact) |
+| Protected | 2     | commands/my-project:setup.md, agents/my-custom-agent.md (locally created) |
+| Unchanged | 48    | |
+
+### Origin Tracking
+- .framework-origin.json: 55 files tracked as framework-installed
+- 2 files in .claude/ are NOT in origin tracking (locally created — will be preserved)
 
 Run `/framework-update` to apply these changes.
 ```
@@ -276,9 +300,26 @@ Run `/framework-update` to apply these changes.
 **Previous version:** v1.0.0
 
 ### Changes Applied
-- Added: 3 files
-- Updated: 5 files
-- Removed: 1 file (backed up to .claude/.sync-backup/)
+- Added:      3 files
+- Updated:    5 files
+- Removed:    1 file (backed up to .claude/.sync-backup/)
+- Deprecated: 1 file removed (deprecated framework artifact — backed up)
+- Protected:  2 files (locally created — preserved, not touched)
+
+### Deprecated Artifacts Removed
+  commands/old-alias.md  → backed up to .claude/.sync-backup/20260101/
+
+### Locally-Created Files Preserved
+  commands/my-project:setup.md  (not a framework file — kept)
+  agents/my-custom-agent.md     (not a framework file — kept)
+
+### Settings Validation
+- ✓ .claude/settings.json has all required hook entries (UserPromptSubmit, PreToolUse, PostToolUse)
+- ✓ All required scripts present at correct paths
+
+### Global Skills Synced (~/.claude/)
+- Updated: 10 global skills refreshed in ~/.claude/commands/
+- Available immediately in all repos
 
 ### Next Steps
 Commit the changes:
@@ -324,6 +365,8 @@ To resolve:
 | Version/tag not found | Show available tags, exit |
 | manifest-sync.sh not found | Show error + point to framework repo |
 | No changes (up to date) | Confirm and exit without prompting |
+| Global skill-sync fails | Show warning, report which skills failed, continue |
+| ~/.claude/ not writable | Show warning with fix instructions, skip global sync |
 
 ## Notes
 
@@ -334,9 +377,11 @@ To resolve:
 - Set `CLAUDE_FRAMEWORK_DIR` env var to avoid prompts about framework location
 - For initial setup (no `.claude/` exists yet), use `/repo-init` instead
 - Category values: `agents`, `commands`, `hooks`, `scripts`, `configs`, `schemas`
+- **Origin tracking**: `.claude/.framework-origin.json` records which files were installed from the framework. Files not in this record are treated as locally-created and are never deleted during updates. This file is written/updated by `manifest-sync.sh` on each successful sync.
+- **Deprecated artifact detection**: `scripts/detect-deprecated-artifacts.sh` can be run standalone to audit installed files against the current framework manifest without making changes.
 
 ## Related Skills
 
-- `/repo-init` - Initial framework deployment (first time setup)
-- `/skill-sync` - Legacy global sync to `~/.claude/` (deprecated for repo-level)
-- `/repo-deploy-review` - Review and migrate existing CLAUDE.md after update
+- `/repo:init-framework` - Initial framework deployment (first time setup)
+- `/tool:skill-sync` - Manual global sync to `~/.claude/` (auto-invoked by this skill in Step 8)
+- `/local:review` - Review and migrate existing CLAUDE.md after update

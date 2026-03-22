@@ -35,6 +35,7 @@ FORCE=false
 CATEGORY_FILTER=""
 GLOBAL_ONLY=false
 CLEAN_OLD_NAMES=false
+VERBOSE=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -46,8 +47,9 @@ while [[ $# -gt 0 ]]; do
     --category) CATEGORY_FILTER="$2"; shift 2 ;;
     --global-only) GLOBAL_ONLY=true; shift ;;
     --clean) CLEAN_OLD_NAMES=true; shift ;;
+    --verbose) VERBOSE=true; shift ;;
     -h|--help)
-      echo "Usage: $0 [--check] [--force] [--target DIR] [--manifest FILE] [--category NAME] [--global-only] [--clean]"
+      echo "Usage: $0 [--check] [--force] [--target DIR] [--manifest FILE] [--category NAME] [--global-only] [--clean] [--verbose]"
       echo ""
       echo "Options:"
       echo "  --check           Dry run - show what would change without making changes"
@@ -59,6 +61,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --global-only     Sync only global skills (with global: true frontmatter)"
       echo "  --clean           Remove old hyphenated skill names from target directories"
       echo "                    (pre-colon migration cleanup, e.g., 'tool-skill-sync' -> 'tool:skill-sync')"
+      echo "  --verbose         Show full summary including unchanged file count"
       echo ""
       echo "Container context example:"
       echo "  bash /tmp/framework/scripts/manifest-sync.sh --target /workspace/repo/.claude/"
@@ -225,6 +228,26 @@ UPDATED=0
 REMOVED=0
 UNCHANGED=0
 ERRORS=0
+LOCAL_PROTECTED=0
+DEPRECATED_REMOVED=0
+
+# -------------------------------------------------------------------
+# Origin tracking: .framework-origin.json
+# Records which files were installed from the framework vs locally created.
+# This allows manifest-sync to protect user-created files during cleanup.
+# -------------------------------------------------------------------
+ORIGIN_FILE="$TARGET_DIR/.framework-origin.json"
+HAS_ORIGIN_TRACKING=false
+ORIGIN_FILES_JSON="{}"
+
+if [ -f "$ORIGIN_FILE" ]; then
+  ORIGIN_FILES_JSON=$(jq -c '.files // {}' "$ORIGIN_FILE" 2>/dev/null || echo "{}")
+  HAS_ORIGIN_TRACKING=true
+fi
+
+# Temp file to accumulate newly installed file entries during Phase 1
+TMP_ORIGIN_ENTRIES=$(mktemp)
+trap "rm -f $TMP_ORIGIN_ENTRIES" EXIT
 
 # Phase 1: Process files from manifest (add/update)
 echo -e "${BLUE}Phase 1: Add/Update files${NC}"
@@ -267,6 +290,8 @@ while IFS= read -r src_path; do
     current_hash=$(calculate_hash "$target_full")
     if [ "$current_hash" = "$expected_hash" ]; then
       UNCHANGED=$((UNCHANGED + 1))
+      # Still record as framework-origin (even if unchanged) for tracking
+      echo "{\"target\":\"$target_rel\",\"hash\":\"$expected_hash\"}" >> "$TMP_ORIGIN_ENTRIES"
       continue
     fi
 
@@ -277,6 +302,8 @@ while IFS= read -r src_path; do
       mkdir -p "$(dirname "$target_full")"
       cp "$src_full" "$target_full"
       echo -e "  ${YELLOW}UPDATED${NC}: $target_rel"
+      # Record as framework-origin
+      echo "{\"target\":\"$target_rel\",\"hash\":\"$expected_hash\"}" >> "$TMP_ORIGIN_ENTRIES"
     fi
     UPDATED=$((UPDATED + 1))
   else
@@ -287,6 +314,8 @@ while IFS= read -r src_path; do
       mkdir -p "$(dirname "$target_full")"
       cp "$src_full" "$target_full"
       echo -e "  ${GREEN}ADDED${NC}: $target_rel"
+      # Record as framework-origin
+      echo "{\"target\":\"$target_rel\",\"hash\":\"$expected_hash\"}" >> "$TMP_ORIGIN_ENTRIES"
     fi
     ADDED=$((ADDED + 1))
   fi
@@ -297,29 +326,50 @@ echo ""
 echo -e "${BLUE}Phase 2: Remove stale files${NC}"
 
 if [ -f "$INSTALLED_MANIFEST" ]; then
-  # Get files from installed manifest that are NOT in current manifest
+  # Get target paths of files in installed manifest that are NOT in the current framework manifest.
+  # Uses to_entries so both key (source path) and value.target (deploy path) are accessible.
   STALE_FILES=$(jq -r --slurpfile new "$MANIFEST_FILE" '
-    .files | keys[] as $k |
-    select($new[0].files[$k] == null) |
-    .files[$k].target
+    .files | to_entries[] |
+    select($new[0].files[.key] == null) |
+    .value.target
   ' "$INSTALLED_MANIFEST" 2>/dev/null || true)
 
   if [ -n "$STALE_FILES" ]; then
     while IFS= read -r stale_target; do
       [ -z "$stale_target" ] && continue
+      [ "$stale_target" = "null" ] && continue  # guard against jq null output
       stale_full="$TARGET_DIR/$stale_target"
 
       if [ -f "$stale_full" ]; then
+        # Check origin tracking to protect locally-created files.
+        # If origin tracking exists and this file is NOT in it, the file was
+        # created locally (not installed from the framework) — skip it.
+        if [ "$HAS_ORIGIN_TRACKING" = true ]; then
+          IN_ORIGIN=$(echo "$ORIGIN_FILES_JSON" | jq -r --arg t "$stale_target" 'has($t)' 2>/dev/null || echo "true")
+          if [ "$IN_ORIGIN" = "false" ]; then
+            if [ "$CHECK_MODE" = true ]; then
+              echo -e "  \033[0;36mPROTECTED\033[0m: $stale_target (locally created — not a framework file)"
+            else
+              echo -e "  \033[0;36mPROTECTED\033[0m: $stale_target (locally created — skipped)"
+            fi
+            LOCAL_PROTECTED=$((LOCAL_PROTECTED + 1))
+            continue
+          fi
+        fi
+
         if [ "$CHECK_MODE" = true ]; then
-          echo -e "  ${RED}REMOVE${NC}: $stale_target"
+          echo -e "  ${RED}REMOVE${NC}: $stale_target (deprecated framework artifact)"
         else
           # Backup before removing
           backup_dir="$TARGET_DIR/.sync-backup/$(date +%Y%m%d)"
           mkdir -p "$backup_dir/$(dirname "$stale_target")"
           mv "$stale_full" "$backup_dir/$stale_target"
-          echo -e "  ${RED}REMOVED${NC}: $stale_target (backed up)"
+          echo -e "  ${RED}REMOVED${NC}: $stale_target (deprecated — backed up)"
+          # Remove from origin tracking (file is gone)
+          ORIGIN_FILES_JSON=$(echo "$ORIGIN_FILES_JSON" | jq --arg t "$stale_target" 'del(.[$t])' 2>/dev/null || echo "$ORIGIN_FILES_JSON")
         fi
         REMOVED=$((REMOVED + 1))
+        DEPRECATED_REMOVED=$((DEPRECATED_REMOVED + 1))
       fi
     done <<< "$STALE_FILES"
   fi
@@ -384,6 +434,37 @@ fi
 # Phase 4: Install manifest at target
 if [ "$CHECK_MODE" = false ]; then
   cp "$MANIFEST_FILE" "$INSTALLED_MANIFEST"
+
+  # Phase 4b: Write/update origin tracking (.framework-origin.json)
+  # Merge newly installed file entries with existing origin tracking data.
+  # This file is the source of truth for distinguishing framework vs local files.
+  NEW_ENTRIES_JSON="{}"
+  if [ -s "$TMP_ORIGIN_ENTRIES" ]; then
+    NEW_ENTRIES_JSON=$(jq -s 'reduce .[] as $e ({}; . + {($e.target): {hash: $e.hash}})' \
+      "$TMP_ORIGIN_ENTRIES" 2>/dev/null || echo "{}")
+  fi
+
+  MERGED_FILES=$(jq -n \
+    --argjson existing "$ORIGIN_FILES_JSON" \
+    --argjson new_entries "$NEW_ENTRIES_JSON" \
+    '$existing + $new_entries' 2>/dev/null || echo "{}")
+
+  FRAMEWORK_VERSION_FOR_ORIGIN=$(jq -r '.framework_version' "$MANIFEST_FILE" 2>/dev/null || echo "unknown")
+
+  jq -n \
+    --arg schema_version "1.0" \
+    --arg fw_version "$FRAMEWORK_VERSION_FOR_ORIGIN" \
+    --arg last_synced "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --argjson files "$MERGED_FILES" \
+    '{
+      schema_version: $schema_version,
+      framework_version: $fw_version,
+      last_synced: $last_synced,
+      files: $files
+    }' > "$ORIGIN_FILE" 2>/dev/null || true
+
+  echo ""
+  echo "  Origin tracking updated: $ORIGIN_FILE ($(echo "$MERGED_FILES" | jq 'length' 2>/dev/null || echo "?") framework files)"
 fi
 
 # Phase 5: Ensure settings.json exists with required hook entries
@@ -407,7 +488,7 @@ if [ ! -f "$SETTINGS_FILE" ]; then
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/dynamic-loader.sh"
+            "command": "[ -f .claude/hooks/dynamic-loader.sh ] && .claude/hooks/dynamic-loader.sh || true"
           }
         ]
       }
@@ -418,7 +499,7 @@ if [ ! -f "$SETTINGS_FILE" ]; then
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/block-secrets.py"
+            "command": "[ -f .claude/hooks/block-secrets.py ] && python3 .claude/hooks/block-secrets.py || true"
           }
         ]
       }
@@ -429,7 +510,7 @@ if [ ! -f "$SETTINGS_FILE" ]; then
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/compliance-capture.sh"
+            "command": "[ -f .claude/hooks/compliance-capture.sh ] && .claude/hooks/compliance-capture.sh || true"
           }
         ]
       }
@@ -460,15 +541,15 @@ else
       for _HOOK_TYPE in $_MISSING_HOOKS; do
         case "$_HOOK_TYPE" in
           UserPromptSubmit)
-            jq '.hooks.UserPromptSubmit = [{"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/dynamic-loader.sh"}]}]' \
+            jq '.hooks.UserPromptSubmit = [{"matcher": "", "hooks": [{"type": "command", "command": "[ -f .claude/hooks/dynamic-loader.sh ] && .claude/hooks/dynamic-loader.sh || true"}]}]' \
               "$_SETTINGS_TMP" > "${_SETTINGS_TMP}.new" 2>/dev/null && mv "${_SETTINGS_TMP}.new" "$_SETTINGS_TMP" || true
             ;;
           PreToolUse)
-            jq '.hooks.PreToolUse = [{"matcher": "Read|Edit|Write", "hooks": [{"type": "command", "command": "python3 .claude/hooks/block-secrets.py"}]}]' \
+            jq '.hooks.PreToolUse = [{"matcher": "Read|Edit|Write", "hooks": [{"type": "command", "command": "[ -f .claude/hooks/block-secrets.py ] && python3 .claude/hooks/block-secrets.py || true"}]}]' \
               "$_SETTINGS_TMP" > "${_SETTINGS_TMP}.new" 2>/dev/null && mv "${_SETTINGS_TMP}.new" "$_SETTINGS_TMP" || true
             ;;
           PostToolUse)
-            jq '.hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": ".claude/hooks/compliance-capture.sh"}]}]' \
+            jq '.hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "[ -f .claude/hooks/compliance-capture.sh ] && .claude/hooks/compliance-capture.sh || true"}]}]' \
               "$_SETTINGS_TMP" > "${_SETTINGS_TMP}.new" 2>/dev/null && mv "${_SETTINGS_TMP}.new" "$_SETTINGS_TMP" || true
             ;;
         esac
@@ -487,15 +568,25 @@ fi
 # Summary
 echo ""
 echo -e "${BLUE}Summary:${NC}"
-echo -e "  ${GREEN}Added${NC}:     $ADDED"
-echo -e "  ${YELLOW}Updated${NC}:   $UPDATED"
-echo -e "  ${RED}Removed${NC}:   $REMOVED"
-if [ "$CLEAN_OLD_NAMES" = true ] && [ -n "${OLD_NAMES_REMOVED:-}" ]; then
-  echo -e "  ${RED}Cleaned${NC}:   $OLD_NAMES_REMOVED (old hyphenated names)"
+echo -e "  ${GREEN}Added${NC}:      $ADDED"
+echo -e "  ${YELLOW}Updated${NC}:    $UPDATED"
+echo -e "  ${RED}Removed${NC}:    $REMOVED"
+if [ "$DEPRECATED_REMOVED" -gt 0 ]; then
+  echo -e "  ${RED}Deprecated${NC}: $DEPRECATED_REMOVED (removed — backed up to .sync-backup/)"
 fi
-echo "  Unchanged: $UNCHANGED"
+if [ "$LOCAL_PROTECTED" -gt 0 ]; then
+  echo -e "  \033[0;36mProtected\033[0m:  $LOCAL_PROTECTED (locally created — preserved)"
+fi
+if [ "$CLEAN_OLD_NAMES" = true ] && [ -n "${OLD_NAMES_REMOVED:-}" ]; then
+  echo -e "  ${RED}Cleaned${NC}:    $OLD_NAMES_REMOVED (old hyphenated names)"
+fi
+if [ "$VERBOSE" = true ]; then
+  echo "  Unchanged:  $UNCHANGED"
+elif [ "$UNCHANGED" -gt 0 ]; then
+  echo "  ($UNCHANGED files unchanged)"
+fi
 if [ "$ERRORS" -gt 0 ]; then
-  echo -e "  ${RED}Errors${NC}:    $ERRORS"
+  echo -e "  ${RED}Errors${NC}:     $ERRORS"
 fi
 
 if [ "$CHECK_MODE" = true ]; then

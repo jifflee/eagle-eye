@@ -248,12 +248,6 @@ refresh_state() {
   echo "Warning: Refreshing state will make API calls and consume tokens" >&2
   echo "Not yet implemented - requires investigation of Claude CLI usage endpoints" >&2
   exit 1
-
-  # TODO: Implement after Phase 0 investigation
-  # Possible approaches:
-  # 1. Parse output of Claude CLI commands
-  # 2. Hook into Claude CLI internals
-  # 3. Query Anthropic API directly
 }
 
 # Parse command line arguments

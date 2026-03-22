@@ -312,7 +312,7 @@ else
 fi
 
 # Identify orphaned issues (open issues with merged PRs) - skip in minimal mode
-# These should be auto-closed but weren't due to missing "Fixes #N" format
+# These may occur if issue close failed or was skipped during pr:merge-batch/worktree-complete
 if [ "$MODE" != "minimal" ]; then
   ORPHANED_ISSUES=$(echo "$OPEN_ISSUES" | jq --argjson merged "$MERGED_PRS" '
     ($merged | map(.linked_issue) | unique) as $merged_issues |

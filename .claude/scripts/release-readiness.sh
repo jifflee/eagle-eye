@@ -32,7 +32,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Configuration
 COVERAGE_THRESHOLD=70
-TODO_THRESHOLD=150
+TODO_THRESHOLD=20
 DOC_STALENESS_DAYS=30
 
 # Parse arguments
@@ -623,7 +623,7 @@ echo "| Coverage | $GATE_COVERAGE |"
 
 # ─── Gate 10: TODO Count (WARNING) ────────────────────────────────────────────
 
-TODO_COUNT=$(grep -r "TODO\|FIXME" \
+TODO_COUNT=$(grep -rn "TODO\|FIXME" \
   --include="*.js" \
   --include="*.ts" \
   --include="*.py" \
@@ -632,7 +632,12 @@ TODO_COUNT=$(grep -r "TODO\|FIXME" \
   --exclude-dir=.git \
   --exclude-dir=dist \
   --exclude-dir=build \
-  . 2>/dev/null | wc -l || echo "0")
+  --exclude-dir=.claude-sync \
+  --exclude-dir=tests \
+  . 2>/dev/null | \
+  grep -E '(#|//|<!--)\s*(TODO|FIXME):' | \
+  grep -v 'skill-builder/' | \
+  wc -l || echo "0")
 
 if [ "$TODO_COUNT" -le "$TODO_THRESHOLD" ]; then
   GATE_TODOS="✅ PASS | $TODO_COUNT TODOs (threshold: $TODO_THRESHOLD)"

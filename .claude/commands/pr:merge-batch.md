@@ -198,10 +198,25 @@ gh pr merge {pr_number} --squash --delete-branch
 - `--squash` - Squash commits into single commit (default)
 - `--delete-branch` - Delete branch after merge (keeps repo clean)
 
-**Note on linked issues:** If the PR body contains "Fixes #N", "Closes #N", or "Resolves #N",
-GitHub will automatically close the linked issue **ONLY if merging to the default branch (main)**.
-Since PRs typically merge to `dev` first, issues will NOT auto-close. They must be closed manually
-or automatically when promoted to `main` using `./scripts/auto-close-issues-after-promotion.sh`.
+**Close linked issues immediately after merge:**
+
+After each successful merge, extract and close all linked issues from the PR body:
+
+```bash
+# Extract linked issues from PR body
+LINKED_ISSUES=$(gh pr view {pr_number} --json body -q '.body' \
+  | grep -oiE '(fixes|closes|resolves) #[0-9]+' | grep -oE '[0-9]+' | sort -u)
+
+# Close each linked issue
+for ISSUE_NUM in $LINKED_ISSUES; do
+  ISSUE_STATE=$(gh issue view $ISSUE_NUM --json state -q '.state' 2>/dev/null || echo "")
+  if [ "$ISSUE_STATE" = "OPEN" ]; then
+    gh issue close $ISSUE_NUM \
+      --comment "Closed: PR #{pr_number} merged to dev. Work is complete."
+    echo "✅ Closed issue #$ISSUE_NUM"
+  fi
+done
+```
 
 ### 6. Report Results
 
@@ -210,7 +225,7 @@ or automatically when promoted to `main` using `./scripts/auto-close-issues-afte
 
 | PR | Issue | Result | Notes |
 |----|-------|--------|-------|
-| #{pr_number} | #{linked_issue} | Merged | Issue remains open (dev branch) |
+| #{pr_number} | #{linked_issue} | Merged | Issue closed ✅ |
 | #{pr_number} | #{linked_issue} | Failed | {error_reason} |
 
 **Summary:** {merged_count}/{total_count} PRs merged successfully
@@ -220,42 +235,6 @@ or automatically when promoted to `main` using `./scripts/auto-close-issues-afte
 - Display error details
 - Suggest remediation actions
 - Continue with remaining PRs
-
-### 6.5. Check for Unclosed Issues (Warning)
-
-After merging PRs to `dev`, check if any linked issues remain open and warn the user:
-
-```bash
-# For each merged PR, extract linked issues
-for PR in $MERGED_PRS; do
-  LINKED_ISSUES=$(gh pr view $PR --json body -q '.body' | grep -oiE '(fixes|closes|resolves) #[0-9]+' | grep -oE '[0-9]+')
-
-  for ISSUE in $LINKED_ISSUES; do
-    ISSUE_STATE=$(gh issue view $ISSUE --json state -q '.state' 2>/dev/null || echo "UNKNOWN")
-    if [ "$ISSUE_STATE" = "OPEN" ]; then
-      echo "⚠️  Issue #$ISSUE still open after PR #$PR merged (expected for dev branch)"
-    fi
-  done
-done
-```
-
-**Display warning:**
-```
-⚠️  GitHub Limitation: Issues remain open after merging to 'dev'
-
-The following issues are linked to merged PRs but remain OPEN:
-  - Issue #614 (PR #615)
-  - Issue #611 (PR #613)
-  - Issue #610 (PR #616)
-
-These issues will auto-close when promoted to 'main', or you can close them manually:
-
-  # Close all issues from recently merged PRs
-  ./scripts/auto-close-issues-after-promotion.sh --recent 10
-
-  # Or close a specific issue manually
-  gh issue close 614 --comment "Closed after PR #615 merged to dev"
-```
 
 ### 7. Sync Local Branch (Auto)
 
@@ -469,7 +448,7 @@ Merging {count} PRs...
 
 | PR | Issue | Result |
 |----|-------|--------|
-| #123 | #100 | ✅ Merged |
+| #123 | #100 | ✅ Merged + Issue closed |
 
 **Summary:** {merged_count}/{total_count} merged
 
@@ -537,7 +516,7 @@ Cleanup complete: removed 5 container(s)
   - **Phase 2:** Sweep cleanup of ALL containers with closed issues or merged PRs
 - Uses squash merge by default for clean history
 - Deletes source branch after merge
-- Linked issues are auto-closed by GitHub when PR body contains "Fixes #N"
+- Linked issues are closed immediately after each successful merge to dev (does not wait for promotion to main)
 - PRs must pass validation check before merge (state may change between display and merge)
 - Use `--dry-run` to preview without making changes
 - Use `--no-sync` to skip automatic local branch sync

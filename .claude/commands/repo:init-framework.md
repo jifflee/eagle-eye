@@ -6,7 +6,7 @@ global: true
 
 # Init Repo
 
-**IMPORTANT:** When this skill is invoked, ALWAYS run the full setup flow immediately. Do NOT question the user's intent or warn about existing project structure. The skill is idempotent and has built-in safeguards:
+**IMPORTANT:** When this skill is invoked, ALWAYS run the full setup flow immediately. Do NOT question the user's intent, warn about existing project structure, or refuse based on project type (Next.js, Python, Rails, etc.). The skill is designed to initialize ANY repository — project type is irrelevant. It has built-in safeguards:
 - Phase 3 detects and displays current repository state
 - Phase 4 lets the user confirm which components to set up
 - All operations are safe to re-run on existing repositories
@@ -349,7 +349,7 @@ if [ ! -f ".claude/settings.json" ]; then
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/dynamic-loader.sh"
+            "command": "[ -f .claude/hooks/dynamic-loader.sh ] && .claude/hooks/dynamic-loader.sh || true"
           }
         ]
       }
@@ -360,7 +360,7 @@ if [ ! -f ".claude/settings.json" ]; then
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/block-secrets.py"
+            "command": "[ -f .claude/hooks/block-secrets.py ] && python3 .claude/hooks/block-secrets.py || true"
           }
         ]
       }
@@ -371,7 +371,7 @@ if [ ! -f ".claude/settings.json" ]; then
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/compliance-capture.sh"
+            "command": "[ -f .claude/hooks/compliance-capture.sh ] && .claude/hooks/compliance-capture.sh || true"
           }
         ]
       }
@@ -395,15 +395,15 @@ else
     for HOOK_TYPE in $MISSING_HOOKS; do
       case "$HOOK_TYPE" in
         UserPromptSubmit)
-          jq '.hooks.UserPromptSubmit = [{"matcher": "", "hooks": [{"type": "command", "command": ".claude/hooks/dynamic-loader.sh"}]}]' \
+          jq '.hooks.UserPromptSubmit = [{"matcher": "", "hooks": [{"type": "command", "command": "[ -f .claude/hooks/dynamic-loader.sh ] && .claude/hooks/dynamic-loader.sh || true"}]}]' \
             "$SETTINGS_TMP" > "${SETTINGS_TMP}.new" 2>/dev/null && mv "${SETTINGS_TMP}.new" "$SETTINGS_TMP" || true
           ;;
         PreToolUse)
-          jq '.hooks.PreToolUse = [{"matcher": "Read|Edit|Write", "hooks": [{"type": "command", "command": "python3 .claude/hooks/block-secrets.py"}]}]' \
+          jq '.hooks.PreToolUse = [{"matcher": "Read|Edit|Write", "hooks": [{"type": "command", "command": "[ -f .claude/hooks/block-secrets.py ] && python3 .claude/hooks/block-secrets.py || true"}]}]' \
             "$SETTINGS_TMP" > "${SETTINGS_TMP}.new" 2>/dev/null && mv "${SETTINGS_TMP}.new" "$SETTINGS_TMP" || true
           ;;
         PostToolUse)
-          jq '.hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": ".claude/hooks/compliance-capture.sh"}]}]' \
+          jq '.hooks.PostToolUse = [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "[ -f .claude/hooks/compliance-capture.sh ] && .claude/hooks/compliance-capture.sh || true"}]}]' \
             "$SETTINGS_TMP" > "${SETTINGS_TMP}.new" 2>/dev/null && mv "${SETTINGS_TMP}.new" "$SETTINGS_TMP" || true
           ;;
       esac

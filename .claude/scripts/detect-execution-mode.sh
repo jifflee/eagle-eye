@@ -268,7 +268,58 @@ EOF
     fi
 fi
 
-# Default: container (since #531), fall back to worktree if Docker unavailable
+# Default: use Proxmox-first routing (feature #1326)
+# Route through: Proxmox → local Docker → worktree
+ROUTE_SCRIPT="${SCRIPT_DIR}/route-execution-target.sh"
+if [ -x "$ROUTE_SCRIPT" ]; then
+    ROUTE_RESULT=$("$ROUTE_SCRIPT" --issue "$ISSUE_NUMBER" 2>/dev/null) || ROUTE_RESULT=""
+
+    if [ -n "$ROUTE_RESULT" ]; then
+        ROUTE_TARGET=$(echo "$ROUTE_RESULT" | jq -r '.target // "worktree"')
+        ROUTE_REASON=$(echo "$ROUTE_RESULT" | jq -r '.reason // "unknown"')
+
+        # Map routing targets to execution modes
+        case "$ROUTE_TARGET" in
+            proxmox)
+                # Proxmox containers use the same container mode
+                cat << EOF
+{
+  "issue": $ISSUE_NUMBER,
+  "mode": "container",
+  "execution_target": "proxmox",
+  "reason": "Proxmox-first routing: ${ROUTE_REASON}",
+  "labels": $(echo "$ISSUE_DATA" | jq '[.labels[].name]')
+}
+EOF
+                ;;
+            local)
+                cat << EOF
+{
+  "issue": $ISSUE_NUMBER,
+  "mode": "container",
+  "execution_target": "local",
+  "reason": "Local Docker (Proxmox routing fallback): ${ROUTE_REASON}",
+  "labels": $(echo "$ISSUE_DATA" | jq '[.labels[].name]')
+}
+EOF
+                ;;
+            worktree|*)
+                cat << EOF
+{
+  "issue": $ISSUE_NUMBER,
+  "mode": "worktree",
+  "execution_target": "worktree",
+  "reason": "Worktree fallback (routing): ${ROUTE_REASON}",
+  "labels": $(echo "$ISSUE_DATA" | jq '[.labels[].name]')
+}
+EOF
+                ;;
+        esac
+        exit 0
+    fi
+fi
+
+# Legacy fallback if route-execution-target.sh is unavailable
 if command -v docker &> /dev/null && docker info &> /dev/null 2>&1; then
     cat << EOF
 {

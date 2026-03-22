@@ -165,6 +165,36 @@ if [ -z "$BASE_BRANCH" ]; then
 fi
 
 # ============================================================================
+# FRAMEWORK AUTO-UPDATE CHECK (Issue #1329)
+# ============================================================================
+# Increment run counter; every 25th run (configurable) checks for a framework
+# update and queues it. Non-blocking: runs in background, never delays preflight.
+# The queued update fires in sprint-orchestrator.sh before the next issue runs.
+_FRAMEWORK_UPDATE_CHECK="${SCRIPT_DIR}/framework-update-check.sh"
+if [[ -x "$_FRAMEWORK_UPDATE_CHECK" ]] && [[ "${SPRINT_UPDATE_CHECK_DISABLE:-}" != "true" ]]; then
+  # Run asynchronously so it never delays the current sprint-work invocation
+  ( "$_FRAMEWORK_UPDATE_CHECK" increment 2>&1 | \
+      while IFS= read -r line; do echo "[auto-update] $line"; done ) &
+  _FRAMEWORK_UPDATE_PID=$!
+  # Detach — we do NOT wait; the orchestrator loop handles trigger-if-queued
+  disown "$_FRAMEWORK_UPDATE_PID" 2>/dev/null || true
+fi
+unset _FRAMEWORK_UPDATE_CHECK _FRAMEWORK_UPDATE_PID
+
+# Increment triage run counter; every 5th run (configurable) queues auto-triage.
+# Non-blocking: runs in background, never delays preflight.
+# The queued triage fires in sprint-orchestrator.sh before the next issue runs.
+# See: Issue #1332 — Auto-run triage-bulk every 5 sprint-work runs
+_TRIAGE_BULK_CHECK="${SCRIPT_DIR}/triage-bulk-check.sh"
+if [[ -x "$_TRIAGE_BULK_CHECK" ]] && [[ "${SPRINT_TRIAGE_CHECK_DISABLE:-}" != "true" ]]; then
+  ( "$_TRIAGE_BULK_CHECK" increment 2>&1 | \
+      while IFS= read -r line; do echo "[auto-triage] $line"; done ) &
+  _TRIAGE_BULK_PID=$!
+  disown "$_TRIAGE_BULK_PID" 2>/dev/null || true
+fi
+unset _TRIAGE_BULK_CHECK _TRIAGE_BULK_PID
+
+# ============================================================================
 # CLOUD-SYNC DETECTION (P0)
 # ============================================================================
 # Check if repository is in cloud-synced directory (can cause corruption)
@@ -579,7 +609,7 @@ if [ -n "$MERGED_PR" ]; then
   if [ "$READ_ONLY_FLAG" != "--read-only" ]; then
     gh issue close "$ISSUE_NUMBER" --comment "Auto-closing: PR #$MERGED_PR_NUM was merged at $MERGED_AT.
 
-This issue was still open because the PR body may not have used the 'Fixes #$ISSUE_NUMBER' format, or GitHub's auto-close didn't trigger.
+This issue was still open (orphaned). Issues are normally closed immediately when PRs merge to dev via pr:merge-batch or worktree-complete. Closing now as a recovery step.
 
 Closed automatically by sprint-work-preflight.sh" 2>/dev/null || true
   fi

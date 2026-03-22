@@ -1,0 +1,1999 @@
+{
+  "schema_version": "1.0",
+  "framework_version": "v0.13.0",
+  "last_synced": "2026-03-22T16:14:03Z",
+  "files": {
+    "hooks/action-capture.sh": {
+      "hash": "e05229dd69533bf9f2ffd0385d35b5bce0a617b7ad11ed686a2b792f23db3d22"
+    },
+    "hooks/auto-format.sh": {
+      "hash": "940eee994bd8ed77f025338a5ed5a397954b45b92ed0ac2158c708cadfc61f46"
+    },
+    "hooks/block-secrets.py": {
+      "hash": "3815217be6782429142b6798cc9573043620b4c1825553cb15745d464998e7f8"
+    },
+    "hooks/compliance-capture.sh": {
+      "hash": "661dbe2943f138d1e0cdcc51464c58ea0c694945528563fb2cee7c7c70e5f656"
+    },
+    "hooks/dynamic-loader.sh": {
+      "hash": "16720d1c927394f86b0bb183684e6e76dde7c9f1d6f5e830171017a2cbbc3d37"
+    },
+    "hooks/enforce-framework-standards.sh": {
+      "hash": "35eb65ec9c48ec8191014139f19c4b021dd96d162c85f9c4d022878c38e8ffa7"
+    },
+    "hooks/metrics-capture.sh": {
+      "hash": "7bba132770d64ef81b7b7ddda119e1c63fc53f35a149ee92790508f190cfcd1e"
+    },
+    "hooks/n8n-webhook.sh": {
+      "hash": "21b6b6a605b2014b707683224c1818a498f5393a7fdfa879eb00528a38572b1c"
+    },
+    "hooks/permission-decision.sh": {
+      "hash": "fbef393c43ca040845b76416c74ac8f8dcb3fce57c56d65c1b6c179ed965e23f"
+    },
+    "hooks/repo-settings-drift-hook.sh": {
+      "hash": "9fa49aa8724c591f04ab69420437fcf514a03053cafceed928de16dd6cd5b30f"
+    },
+    "hooks/sprint-status-preprocess.sh": {
+      "hash": "e971c23cb0020d977e61bc4eb62a47442b21a9df6b09b7eb10834c10415529ca"
+    },
+    "hooks/syntax-validate.sh": {
+      "hash": "67c6877c4709c7b4e7a5d82f23de9f4e3fe33bc4c7d5df4746bd610c1a94cfb4"
+    },
+    "hooks/validate-agent-output.sh": {
+      "hash": "2424bfa58924617b360673f92c8f0339e9a1d594d82f0aa67c20990e9a6f24eb"
+    },
+    "config/README.md": {
+      "hash": "7dfbbb418c192add9e6bf6f361db31bd3230154cd63e5f4bedd09e2b130b7e8d"
+    },
+    "config/agents/architect.md": {
+      "hash": "6d8072ed7ce0f069e7bb5de41e64f1f6cb10495fc43fa52b5c772524bf66e124"
+    },
+    "config/agents/backend-developer.md": {
+      "hash": "06621bb3d16d9b59d49ba839186382de6d4266f425052c888c6767f3a29e4b4d"
+    },
+    "config/agents/context7-integration-snippet.md": {
+      "hash": "9732d2479c57f54c832dbbe64d31908b54cf748b55106707ad9e7f03f8e696b0"
+    },
+    "config/agents/context7-usage.md": {
+      "hash": "3f8df9f0cb4abc20f2fc76eb356cf4b52f8fa61546cd9018b9dd7ba25e98b31a"
+    },
+    "config/agents/decision-framework/need-agent.md": {
+      "hash": "ca11946558c2dbc1980ba94be012f1174cdaa4c593db8e85569c39f7c43fb762"
+    },
+    "config/agents/decision-framework/scope-agent.md": {
+      "hash": "c2aeee8758ffc35f72cfa939a0c25724ecca7aa215ae31ece3b8fd8afa8982e3"
+    },
+    "config/agents/decision-framework/timing-agent.md": {
+      "hash": "ae9e59d11e31e02fc839ecbbaa1795598243f0cafec213e0adc589731d6e6b01"
+    },
+    "config/agents/decision-framework/vision-agent.md": {
+      "hash": "a0ec86026477facdf09420d500b72ff9dab16b308b6f180eeedd3bb78d348726"
+    },
+    "config/agents/frontend-developer.md": {
+      "hash": "26017d92260ba0e57d6f803c91dbd46d16521c74fcf9bdbfa448fae529f208eb"
+    },
+    "config/agents/pm-orchestrator.md": {
+      "hash": "38a40d2b331ea0a6c396ee879ad1aa0205ef07739941c5b3848c343f021a861d"
+    },
+    "config/agents/test-qa.md": {
+      "hash": "aa7dc6b5d01105856c7f94e35784fe4761a06ad5cc4fb23bd536ec1bcef4efb4"
+    },
+    "config/ci-config.example.json": {
+      "hash": "57d284a54a111a9cb0bf92606cf8ad1cd5ea1eda6fa451dacfa191ab11efa83c"
+    },
+    "config/commands/capture.md": {
+      "hash": "ecf91485e32b661644f4cb15f6ea99313ad8ccdf499d096909527c7ecd80638d"
+    },
+    "config/commands/delivery-audit.md": {
+      "hash": "33656a31d8da157cb9238ec676332bbac1f1b546ae0fc82e089c1a0d0ef96baf"
+    },
+    "config/commands/example.md": {
+      "hash": "4645caab9ec5fce98638ba1a4b1c4f12d48946cd657b02908e7c5e846e66055f"
+    },
+    "config/commands/issue-triage.md": {
+      "hash": "3ffad8425d643e45ffdd3347f8e592360d2cd6d76db53e13409ec9105b617556"
+    },
+    "config/commands/label-issue.md": {
+      "hash": "0d5758e7a1a49bd8eed7e0342b9e210ecf7c8e0951cd4724c7ec7cd3fdd75754"
+    },
+    "config/commands/milestone-audit.md": {
+      "hash": "a8b65d5721cff405f83578644e5a015fc72888224127d24fb9013c8a013ded2d"
+    },
+    "config/commands/milestone-update.md": {
+      "hash": "97c68652ac0750d04fff524d58dd53529e4148065d169d65e7a23d51d7e16daf"
+    },
+    "config/commands/pr-to-main.md": {
+      "hash": "46594d0a89cb5f7a691329bf3571604e9b80e19798d3af09a2dee4e02433e841"
+    },
+    "config/commands/pr-to-qa.md": {
+      "hash": "69fd64ba9d44bf8fffdb910b5fb7d92ff76327626c535519bb71656375764e64"
+    },
+    "config/commands/release-readiness.md": {
+      "hash": "11df6c57017178fe2a38468732068bc71c5f86c80e8fd73f0e179ea753c908d8"
+    },
+    "config/commands/repo-audit-complete.md": {
+      "hash": "ed0c878304f9595d23d972a11dfe8cfe0a3be14d57a0188c18fdeb339977068a"
+    },
+    "config/commands/repo-code.md": {
+      "hash": "cdcd614b5f59aa58625666d72439fbf08f0beaccc7940b044f312c38c43d8b33"
+    },
+    "config/commands/repo-structure.md": {
+      "hash": "42a6d6bb0fc9d1001953baa561b362875f81e9fa9b64c60dd100c40efccdd57b"
+    },
+    "config/commands/sprint-continue.md": {
+      "hash": "768e86e17412ed2529e31cc4d7b219549ee7c24da2f0b13f35bd08bd09cb0f12"
+    },
+    "config/commands/sprint-status.md": {
+      "hash": "7cc89e5459bec99893bbe360059769b68cbb2dcd818c08034a60b30d107af65a"
+    },
+    "config/commands/sprint-work.md": {
+      "hash": "816f47e28f03c204362e8f5eae6630f00671412828fc927702a41a0ee361408c"
+    },
+    "config/environment/container-capacity.env.example": {
+      "hash": "92961749d20158ab46c3c91f4ce4ba55301e9b599e6ce579989af0ff15756fb9"
+    },
+    "config/environment/container-queue.env.example": {
+      "hash": "b21b652e2ef786b73d2a94fc4af45b5d1b11f3f14eca3426498d78971ca12a43"
+    },
+    "config/environment/environment-tiers.yaml": {
+      "hash": "84d4385883ba735ff636feb3c96331f75170cce6979e4651b4b1187f75b6b923"
+    },
+    "config/environment/llm-providers.yaml": {
+      "hash": "998f00a9b6136487433095e1be5334ad8dc4d4aacd74c6c111a238c1c9d8b728"
+    },
+    "config/environment/proxmox-n8n.yml": {
+      "hash": "1496b68e50e584ed053be610f4f769eda07c059681ebb3bfdda73ffe09a98671"
+    },
+    "config/license-policy.json": {
+      "hash": "0c9dc4c48c7f38871e0971d2c4f40ca1ec8d2bba8dfefc0df03cdffca8202699"
+    },
+    "config/package-policy.yaml": {
+      "hash": "34649a31a0d93370f21941818272186efbcdc3658e6450b38f9a65d6f0ce9106"
+    },
+    "config/policies/agent-permissions.yaml": {
+      "hash": "8ebe7d402b189bb92e09d0d33e46222b788b03e6ed2ddb502dac748e1c7067a1"
+    },
+    "config/policies/claude-md-policy.yaml": {
+      "hash": "fe58452a1975b0484a1da679c50c807bdf9c44ede23ac42661fd237bcab1ac63"
+    },
+    "config/policies/container-permission-policy.yaml": {
+      "hash": "5acc6d4f9e053347c51d74e29705ed5f0c81c7ea6f07cbae1f2653baaa7522a4"
+    },
+    "config/policies/corporate-mode.yaml": {
+      "hash": "a9f51bc9466ce537a14feab1d2247ed97464ecfa8cb954e07badbdd77a766518"
+    },
+    "config/repo/agent-bundles.json": {
+      "hash": "d5a27cf969d224a00b0be0a51e6dcc0110ebb5bc8a17b6d60aecc8fb6f2c1d00"
+    },
+    "config/repo/doc-sync-map.json": {
+      "hash": "10a78c80928857db596114e01c9c5139fb54cf28dccea8176739dd848a80390f"
+    },
+    "config/repo/error-solutions.yml": {
+      "hash": "a72f3c7a84ff7b42934ecf35a5b813d33e6dd8e951c67f2e4490dde5bab62143"
+    },
+    "config/repo/public-release-allowlist.yaml": {
+      "hash": "81eb521019683df465aa7f0f39d9b13770d59e51e4521feb1c2cbacab29ad136"
+    },
+    "config/repo/repo-profile.yaml": {
+      "hash": "f8a52cbfd35a2e01ee2c61bdad1ca63d69f8c88be6ee5759107957e794142868"
+    },
+    "config/repo/repo-settings.yaml": {
+      "hash": "a061425182fb61875541cdae771327aa93b4be0ebfb9856a890d16d00727a1da"
+    },
+    "config/repo/security-policy.yaml": {
+      "hash": "bd5f7e4f7b5777df92c4be5330e41791c3a7044f03d42a690afcb7eab4118033"
+    },
+    "config/semgrep-rules.yml": {
+      "hash": "6f1823faf5a0539fd78dcbec2163bf4c5b0b035d7f8755fb1d822845a14c87bb"
+    },
+    "agents/architect.md": {
+      "hash": "6d8072ed7ce0f069e7bb5de41e64f1f6cb10495fc43fa52b5c772524bf66e124"
+    },
+    "agents/backend-developer.md": {
+      "hash": "06621bb3d16d9b59d49ba839186382de6d4266f425052c888c6767f3a29e4b4d"
+    },
+    "agents/need-agent.md": {
+      "hash": "ca11946558c2dbc1980ba94be012f1174cdaa4c593db8e85569c39f7c43fb762"
+    },
+    "agents/scope-agent.md": {
+      "hash": "c2aeee8758ffc35f72cfa939a0c25724ecca7aa215ae31ece3b8fd8afa8982e3"
+    },
+    "agents/timing-agent.md": {
+      "hash": "ae9e59d11e31e02fc839ecbbaa1795598243f0cafec213e0adc589731d6e6b01"
+    },
+    "agents/vision-agent.md": {
+      "hash": "a0ec86026477facdf09420d500b72ff9dab16b308b6f180eeedd3bb78d348726"
+    },
+    "agents/frontend-developer.md": {
+      "hash": "26017d92260ba0e57d6f803c91dbd46d16521c74fcf9bdbfa448fae529f208eb"
+    },
+    "agents/pm-orchestrator.md": {
+      "hash": "38a40d2b331ea0a6c396ee879ad1aa0205ef07739941c5b3848c343f021a861d"
+    },
+    "agents/test-qa.md": {
+      "hash": "aa7dc6b5d01105856c7f94e35784fe4761a06ad5cc4fb23bd536ec1bcef4efb4"
+    },
+    "commands/audit:code.md": {
+      "hash": "2a0acf2efc312cd67048acdce81842da2267a724f5eb5e2328df764e8fb2963b"
+    },
+    "commands/audit:config.md": {
+      "hash": "95b2f0dc705e2635944fba866cd056b8aa1397d93aa350c2291d117e0df129ee"
+    },
+    "commands/audit:epics.md": {
+      "hash": "bdc5bb923cc9d620d67565e6754f4a28defa57eace14d8f0eb695cca7e7c2f7e"
+    },
+    "commands/audit:full.md": {
+      "hash": "0fd34693c7147bd6bec10191c253462d926f0c5010374ae5c53e446a684c2949"
+    },
+    "commands/audit:milestone.md": {
+      "hash": "dba4a255442b4b4e0c3d92cf8ed3cf2591b0376145639bf19b33fd5160c6aa33"
+    },
+    "commands/audit:regression.md": {
+      "hash": "65bf27fb8781cc25711e6262e7ac10af0792699ee1f8bcf584ebcadd4b457a3d"
+    },
+    "commands/audit:structure.md": {
+      "hash": "42a6d6bb0fc9d1001953baa561b362875f81e9fa9b64c60dd100c40efccdd57b"
+    },
+    "commands/audit:ui-ux.md": {
+      "hash": "f3f1da0c00072eadfbd7df592b452ed5c8a24d929ba570f6fe9657ba16612d02"
+    },
+    "commands/delivery:audit.md": {
+      "hash": "e8e8b17187b0ceede3d02d771c08feb899137a8e2aa5d1d735faafa8c2420bb5"
+    },
+    "commands/issue:capture.md": {
+      "hash": "a5fc14e61d265b01ef72019bcac922f8e662dea50cd4e01f22608312c96dc4d5"
+    },
+    "commands/issue:checkout.md": {
+      "hash": "88a06d2f023802229e81ca7739cfdd5c1cb5f3146ebc4feb576d6cd77e97dcf7"
+    },
+    "commands/issue:close.md": {
+      "hash": "4a4ac5a2ac9582f0a3f3f536c0c427a45eccb9ec4a43aa753e4f1fe4e70c9c08"
+    },
+    "commands/issue:create.md": {
+      "hash": "3c9f4ae7e1c1508daabb09d6ab3240e1fbe512f25ed543e3d7bc642ba64222a1"
+    },
+    "commands/issue:label.md": {
+      "hash": "e983d1621bf7a2a2fa190e7ff40627be02a750f81449e5c357c169d4e14aa25f"
+    },
+    "commands/issue:locks.md": {
+      "hash": "1263b578b72e85ebcc1910bb6d6ac2fcc775b55daaabe36b04fe46be5d08302d"
+    },
+    "commands/issue:prioritize-4wm.md": {
+      "hash": "c4713100486168524351f5ffff101bce4fe10e2c9f3a76ffee6dc7e3010358ed"
+    },
+    "commands/issue:release.md": {
+      "hash": "bb6c92164984875bc8161ea55068e29d751d01335adc0f4cb41c49cc042853ea"
+    },
+    "commands/issue:triage-bulk.md": {
+      "hash": "d18e77d19d3b3cb7e817106ddb4a3ab3bd7d7897603a6ed98fea64827cc65ca6"
+    },
+    "commands/issue:triage-single.md": {
+      "hash": "0fc82482ae499c63e3f779628702e8cab11a7d5e4399fe8c160ce6332f082b1f"
+    },
+    "commands/local:create-agent.md": {
+      "hash": "a412941a0f98c3fab1acbce2b7b7da286e5cb9791b4c15792c807b076686f487"
+    },
+    "commands/local:create-function.md": {
+      "hash": "d9f5a434684be8352121ac32551feccc1664ecd2e4bf4087f5291a36d6891313"
+    },
+    "commands/local:create-skill.md": {
+      "hash": "8b4e915ff282c46c312bd48b636ccdb6302471fd7b9390ca53ffaf4353b278e9"
+    },
+    "commands/local:customize.md": {
+      "hash": "0f933d5291bb36840b908766ded88d8aa649f225635c40e78ae263d6cd2fe813"
+    },
+    "commands/local:health.md": {
+      "hash": "132e45eb764712ccde55376d64a3f054a0f579053ca069d1affd73d5cf292f92"
+    },
+    "commands/local:init.md": {
+      "hash": "078aac4e3d3e5f623840b2bb0943c5a657ea0359a93374dcbbc677f37d488d58"
+    },
+    "commands/local:review.md": {
+      "hash": "2d9cb092f9f1808c5d588e4c7d0792e18dc4cae47b6da3155fa6b595d4fc4185"
+    },
+    "commands/merge:resolve.md": {
+      "hash": "0844b44b00b208fe3efd482d1735776f1e2ae79f197fa5c6ee28fa25aeed2e6b"
+    },
+    "commands/milestone:close-safe.md": {
+      "hash": "3488ef4273feba9fabee240d7472ca9a7d147c47987719decdfa0abef6ce311d"
+    },
+    "commands/milestone:complete-auto.md": {
+      "hash": "b5d6dd2f9a64fcb303a30d74ddc50ad1ee4c14e16e2af297f00fd92d9291fe23"
+    },
+    "commands/milestone:create-new.md": {
+      "hash": "d1a112bab81f2c7460a868fe833964f921192f57eef908074bffe41721307f47"
+    },
+    "commands/milestone:epic-decompose.md": {
+      "hash": "5cc389b62c0f1d10b5c21158768ff47146f41b3e829f51a6b7c1e04f5bb4f133"
+    },
+    "commands/milestone:list-all.md": {
+      "hash": "e8f6ca6b6a59bcc8de8aa354ccb8d3a903f01e94dab3c306c351d57f3567e893"
+    },
+    "commands/milestone:update-interactive.md": {
+      "hash": "97c68652ac0750d04fff524d58dd53529e4148065d169d65e7a23d51d7e16daf"
+    },
+    "commands/ops:actions.md": {
+      "hash": "9c1df026c0c2b597ba6586a7e9bda4eadbbd2e54706885362e75830dbc089091"
+    },
+    "commands/ops:agents.md": {
+      "hash": "894dfc2edfffc9313def47370a623b95c40a8aca4fdeb34877de30b5c615e50b"
+    },
+    "commands/ops:full.md": {
+      "hash": "def2373fc58af21d9a1805f660e60eac9b382aecaabb6409f69be0da2913d432"
+    },
+    "commands/ops:metrics.md": {
+      "hash": "e595268b9cbb9903fe3945c6f51eac0f0c2d39b4c42334da96505561afa06881"
+    },
+    "commands/ops:models.md": {
+      "hash": "a4d20e19e1ffe812f239b4f328471e5d9d3c73fa20f890f1a772d09edd39e286"
+    },
+    "commands/ops:skill-deps.md": {
+      "hash": "662687ed858311861048f700bd40f8af5ff8904f9ac5ad5e014a5fd724defb8b"
+    },
+    "commands/ops:skills.md": {
+      "hash": "0b5f5b8780effd6779129d82fbd4f462f7989b027ade3199d26526c6c2f6b7e5"
+    },
+    "commands/pr:dep-review-auto.md": {
+      "hash": "166108395e65f2cf998fc80578fd51f7f5d12779ef04c179a09e65449830296e"
+    },
+    "commands/pr:iterate-auto.md": {
+      "hash": "3043bfb355374614905ded6a4b7bbda3d1563eca375ed38361814356f167be9b"
+    },
+    "commands/pr:merge-batch.md": {
+      "hash": "ebfcd7670f391a3447d3b495951dd8ae01abee2f1b3ba906fe33f4be946e98e9"
+    },
+    "commands/pr:rebase-dev.md": {
+      "hash": "42c451d50086c3d79003997e7aab3af1b7c7b5e8847a7ba1ac3f191700ed4c24"
+    },
+    "commands/pr:review-local.md": {
+      "hash": "629579f2e7b8533535382697ac935c825b7599e2195a6a882f93f5ca202ab76a"
+    },
+    "commands/pr:route-fixes.md": {
+      "hash": "05bfec942833f62a6b5795c234ce0b3797ace8d985029446f1fe2bb335129764"
+    },
+    "commands/pr:status-check.md": {
+      "hash": "bf26ccc7cca7db5cf53ade79819fec4f1674872d08b0f01df9ab8d07289f3b24"
+    },
+    "commands/release:promote-main.md": {
+      "hash": "e9863db1320996cca6342a9b52306be21385c119162c6f306aac578d018f58b9"
+    },
+    "commands/release:promote-qa.md": {
+      "hash": "27524279599491a2438907ae6067b0edec3273b7ae511914f977ea79dcf9ecd5"
+    },
+    "commands/release:push.md": {
+      "hash": "98363652a729cd951b8e0171d477c981014f0173d6e28651174e6733bd26d840"
+    },
+    "commands/release:tag.md": {
+      "hash": "53c41693a2c54f2cc4da59b8d6f3d5bea8dece7facfc34802100271d3586dcec"
+    },
+    "commands/release:validate-qa.md": {
+      "hash": "2d2184674b2287be3734c17620148a48a8712c50dd9a48593cde969410c74731"
+    },
+    "commands/repo:framework-update.md": {
+      "hash": "3b0c763f39be3b53200ae457efa785c26afc1160d91c97eed9e76d920c1bbd5f"
+    },
+    "commands/repo:init-framework.md": {
+      "hash": "4de18d0e8fe0c2e177251bfa0f3a2231e3e8682de72470ac96e13f22eaecd291"
+    },
+    "commands/repo:sync-origin.md": {
+      "hash": "aee21e8cc030322df6eb937fd1cfb698f1edd6d68616f071a1ac944d72c80dd4"
+    },
+    "commands/sprint:dispatch.md": {
+      "hash": "39e4270bae02167c3c38c3b0f764c6f261d5d9dd5accc93d4e4320656d47958e"
+    },
+    "commands/sprint:refactor.md": {
+      "hash": "41384ce5dc1caae1e38b77d83c2ad65cb14d4063d19626e9b495c71bf5bd63fb"
+    },
+    "commands/sprint:status-pm.md": {
+      "hash": "a30c4fc27b950086bb422c1523aad2d2465bef6b70f78f063df84fe928d6dda3"
+    },
+    "commands/sprint:work-auto.md": {
+      "hash": "e70d93bbd0413ebf2748cbcc664a4cfac7858f10d12b6b7d7812ce7e4c19b628"
+    },
+    "commands/tool:ci-status.md": {
+      "hash": "03804c6c5a791fbc5a001d859ad2af8756776505380cba265ee2fe1cfdcd2ec4"
+    },
+    "commands/tool:example.md": {
+      "hash": "119ee71d80f01e0502515c210bfe2f459f284518f3184d857499504645e6579b"
+    },
+    "commands/tool:skill-help.md": {
+      "hash": "e164b31c1941882d5dc9040be2f4e475b8e9d05a64b8760b14ba600503bdcb8e"
+    },
+    "commands/tool:skill-sync.md": {
+      "hash": "52e320bd41ac885d4599a365d38281910afcda564be474f996a82f8341c24934"
+    },
+    "commands/tool:worktree-audit.md": {
+      "hash": "62b32863e6f34134c452a91fbf9a8ec7c2c82038b92688b56c9f6014b11a04c4"
+    },
+    "commands/tool:worktree-cleanup.md": {
+      "hash": "54bd274e34f1641979ffc8f951cde786df7aaa2dc899a3d2f6908909b45e6502"
+    },
+    "commands/validate:framework.md": {
+      "hash": "3f80ec4bad9ad98dd44099c9ec36474c8c1a4eb91f1f92b6435201a4f03c8490"
+    },
+    "skills/approve-method/SKILL.md": {
+      "hash": "cf48aee945f6d3f079e894caa71517998319c8a62b981c468b0c1ca32ff7fbaa"
+    },
+    "skills/approve-method/approve-method.sh": {
+      "hash": "cb89f502893317e0fe71aa574efa38b44a0c9a06da8abf4587895b5781a21213"
+    },
+    "skills/capture-framework/SKILL.md": {
+      "hash": "85342f7a41361fb7639643b46cf09b5b6e218c29414098514a2e8a273231f816"
+    },
+    "skills/capture-framework/capture-framework.sh": {
+      "hash": "9d252eb4cd596caf378f6cbc4b7b4a2062bd88b0652d910a831b39b331019f51"
+    },
+    "skills/example-skill/SKILL.md": {
+      "hash": "34fccd7ed839c44d858a7ae9dbc9d1449a0e0147c716c679ad38eb539eec6405"
+    },
+    "skills/field-feedback/SKILL.md": {
+      "hash": "436abe2900f0a84173f0a79f0fd1cf5d6a926a1411c39d4401f38be4dfab74a9"
+    },
+    "skills/field-feedback/submit-feedback.sh": {
+      "hash": "6aebb425880f3934b6c57714540163bfd07c1691853efcde28a987d2bc171da0"
+    },
+    "skills/repo-spec/SKILL.md": {
+      "hash": "172e3cac9c01ba1c3fd65fccfb25262cd5812936092532c9c495c478ec4c28ed"
+    },
+    "skills/skill-builder/README.md": {
+      "hash": "e287588ce30b5bec9c0a8277898e9fcb1250be92c67557c825d869fa61aad3d4"
+    },
+    "skills/skill-builder/SKILL.md": {
+      "hash": "27375eec475b7510b904ae0036d9f93faf78f175203809b97184ceda15b9b883"
+    },
+    "skills/skill-builder/skill-builder.sh": {
+      "hash": "1db0103aeb649bb4abd31773d41594f86755fe3bc3e8344c14700824d37b32ec"
+    },
+    "skills/skill-builder/submit-to-framework.sh": {
+      "hash": "31e18a8e42f44929176899a5eb836840cbac4a8ac8b06025749dbcf910175b2c"
+    },
+    "skills/skill-builder/templates/hooks/basic.template": {
+      "hash": "3bbe8a1ed23200d68533a365ba1983a2a3e561c9fa8b59336f14cc9d533edf3f"
+    },
+    "skills/skill-builder/templates/hooks/permission-check.template": {
+      "hash": "53dad255cd5b427217983b2fea2905cf6d197e4f99df36d02c3d36c86bcf1950"
+    },
+    "skills/skill-builder/templates/hooks/validation.template": {
+      "hash": "6ed9d5d64130619e4b8549060a1f6ac02ed1b0dc837e3dd037b5e8a0f0db482d"
+    },
+    "skills/skill-builder/templates/hooks/webhook.template": {
+      "hash": "d553316ea372f95d6644528331e3a37b48bebce923df7a491ad36bab5d1981ab"
+    },
+    "skills/skill-builder/templates/skills/audit.template": {
+      "hash": "199fa98a9050ae76abd3d7851ec861ea7e8e2f1b1ccec0f6c330d8c14c2082b4"
+    },
+    "skills/skill-builder/templates/skills/basic.template": {
+      "hash": "0811ff61fa4b12a5cd185137b160455905b982a9e8b823d976a47d4c5a8f3b0e"
+    },
+    "skills/skill-builder/test-extension.sh": {
+      "hash": "bac85112ae6e82b84cc4d53e42418bb5c22676b3b25a32285cdc08b618d9b937"
+    },
+    "skills/skill-builder/validate-extension.sh": {
+      "hash": "a5910fcb66215a5099a0e600eb4bcf70f1d262aeb3f6fcee3868b9fd858f9ef8"
+    },
+    "manifests/api-designer.json": {
+      "hash": "58d3f87f7221d75aec104e1f64e0b302695dd33909d786145a0e3ef4eace9924"
+    },
+    "manifests/architect.json": {
+      "hash": "4f03c9c4f2de28cb02abd3375ecf68cc9bfbf5032cf5c3c9b44f7aea7e67d08b"
+    },
+    "manifests/backend-developer.json": {
+      "hash": "0b33c8ff9593351bb97ca43cf4af08931c1c86404a3414d8134c14ecd784dcd1"
+    },
+    "manifests/bug.json": {
+      "hash": "9b19e57abadb324772451bda392b5ec4abc3c5a8f6d8c51cf2218dcd19e99519"
+    },
+    "manifests/cicd-workflow.json": {
+      "hash": "61ada4f0ac1f01463d7da9eeaced0c0b9e05c3fd410e6b9793dda37e068739fb"
+    },
+    "manifests/code-reviewer.json": {
+      "hash": "02673c0331d5dee052010a954bce6c9f15aacb04876927ed97f16e55919afe00"
+    },
+    "manifests/data-storage.json": {
+      "hash": "c9fe0ca8c41239ebb450a7ada38057fb20d862ad8b058bbdde218cb46e3541f2"
+    },
+    "manifests/database-migration.json": {
+      "hash": "444d0d6ffa1279acb76c694be141475a3a9de3ad649c5e39cd4ec5c898eb7291"
+    },
+    "manifests/dependency-manager.json": {
+      "hash": "c1661c207d636cf7a155aa30a10d0d859c353cddf10702b55dc63b1031c42d00"
+    },
+    "manifests/deployment.json": {
+      "hash": "a6763eeef524ae683bdebc78e2aa93e9a6bb2bff57243d324c95751cc48a4727"
+    },
+    "manifests/documentation-librarian.json": {
+      "hash": "1f3f6e9f8e192d7a82ecb46ecbfc8ecef6850869c1d387ccc31ecaa90cd09ede"
+    },
+    "manifests/documentation.json": {
+      "hash": "255ef612fa52df333963060e99d85d14e5a853fb728e606c9550c5211d7ef2bd"
+    },
+    "manifests/financial-security-auditor.json": {
+      "hash": "0db62d096f18952fe17b9aa72a03a3ce7c5ff0aaffdb2a25a70d65cc60fddfd6"
+    },
+    "manifests/financial-test-engineer.json": {
+      "hash": "2681636fd114c9f91ee456cedf2fcbdfcba00a7dda7d4f9316bbfba8aa91afe5"
+    },
+    "manifests/fintech-data-engineer.json": {
+      "hash": "f0d74f22461c46da65b44893490a184de6eaa105872171c2df76bdee0bd1b4d3"
+    },
+    "manifests/frontend-developer.json": {
+      "hash": "c6cbda57a2164367ba68100d1d2ea2b83167f2d40ff05f865c0b3c501de233f2"
+    },
+    "manifests/guardrails-policy.json": {
+      "hash": "60b5d17b427ccc4c72f1383f609089ee046a9f364bbbe4660440fb240b76ae31"
+    },
+    "manifests/milestone-manager.json": {
+      "hash": "edc02b94f3506c2e37a10e6dc7439542c1ba374392c267a4cb5e78ed0ab40220"
+    },
+    "manifests/options-strategy-analyst.json": {
+      "hash": "8435adb96f3837760dfed3db0ac504313f9ee69dd323ba867d0535fde7eb8bf5"
+    },
+    "manifests/performance-engineering.json": {
+      "hash": "ceea31705003b654eae552799d9c584148841ee8970a60dcd1af9c3d780c1d5b"
+    },
+    "manifests/pm-orchestrator.json": {
+      "hash": "d2b06b333a25d64eac06f7213b38427a572a9f3db54042aefb0bd383a8807ac7"
+    },
+    "manifests/pr-code-reviewer.json": {
+      "hash": "6565347847972ed4e75afaf890a6cf32d711dacfe84cfe2b2bdcd995b2564e27"
+    },
+    "manifests/pr-documentation.json": {
+      "hash": "089737ffd70695e5b39a0b23f51fa3bab16eb7cc2c25d88051fd316d9d6db7f8"
+    },
+    "manifests/pr-security-iam.json": {
+      "hash": "4ed711b32edb73d8492e376ddc8f6face7c40fa5501963c015f5f85e83094ca6"
+    },
+    "manifests/pr-test.json": {
+      "hash": "57b2532e2436c9f437d7ae2f4dcab74cfdbab1842967021e5f3ce17a16be8c61"
+    },
+    "manifests/product-spec-ux.json": {
+      "hash": "1ebeaabc798750febbc70ddc7ef12aa7c8f20d79a5e47942eccf1122d3493893"
+    },
+    "manifests/refactoring-specialist.json": {
+      "hash": "edc488a0e21dd20561af64353d0c286fb583a15cb71304e0517ec16eb2a394e9"
+    },
+    "manifests/repo-workflow.json": {
+      "hash": "f7e8b247a7771da519aebdd1ee0d9c88973d432da645d1809047219f3505177a"
+    },
+    "manifests/security-iam-design.json": {
+      "hash": "b51baa7231d8d163ffe0ea8e6796abd551bb5846ab055a25d5324b03219402cd"
+    },
+    "manifests/security-iam-prepr.json": {
+      "hash": "8b7078872d722671d8ad4279ff23024dbd54c5bc61ffee12f699d1815df0c885"
+    },
+    "manifests/test-qa.json": {
+      "hash": "d88976670cedc3aae3b3b2d21308e62d0d145e80845201eb3cc99ad785cda174"
+    },
+    "schemas/agent-manifest.schema.json": {
+      "hash": "5170789636800da8b4fa50adc7493adf42e8d5cdd679c97d575719d207448cc3"
+    },
+    "schemas/audit-recommendation.schema.json": {
+      "hash": "3accbf4f7ed2a0b007cd62f09da24b1c0613b2a9b64698842d0260b7d1110893"
+    },
+    "schemas/claude-tastic-manifest.schema.json": {
+      "hash": "f2f2cd2706cf661da5d1eff5be593b6f13971359367ccc3da983f2e5c40af67b"
+    },
+    "schemas/command-manifest.schema.json": {
+      "hash": "6ea9fa2e7c1b024710bbc6b5d5afb97eef67e96f119f9020307b338b3ae9953b"
+    },
+    "schemas/framework-manifest.schema.json": {
+      "hash": "1f01c36dbd714e2cd8abca5ab610279b1161508b9323c99cb8b398446cd55058"
+    },
+    "schemas/n8n-workflow.schema.json": {
+      "hash": "b303aaf7437cb466ff6de0a93454823d836b8378cc69c31c4261d8faf1d3c25c"
+    },
+    "schemas/orchestrator-config.schema.json": {
+      "hash": "d4769374ddab2a7c7ec561b1c680ada73074cf4e41345e754e3323b800be9d96"
+    },
+    "schemas/refactor-finding.schema.json": {
+      "hash": "e8d9ffb3e50d0afc6cb10cd1254e71f1cab9f56ac8578e26848709c9d9ef5b58"
+    },
+    "schemas/refactor-fix-plan.schema.json": {
+      "hash": "339eda8ca91d433479a8da935918ca8723f89eadca42962d1de83bc964321aee"
+    },
+    "schemas/security-policy.schema.json": {
+      "hash": "7134bceed889b64ee545a46f1d97b42e480ffc43f68daf12ada0285131c3c21b"
+    },
+    "schemas/skill-manifest.schema.json": {
+      "hash": "771bdadf1e2f82caef86eec725c0f1037eda4980ede1153504aafb027ddbc8a2"
+    },
+    "schemas/structured-log.schema.json": {
+      "hash": "409dc52529d29c9d5136147ff4ad6df1fa0dc59d2b9c77dd0e15c9f312e94991"
+    },
+    "schemas/sync-manifest.schema.json": {
+      "hash": "00e0a59ea97d2c6a9abb20887c6a5415ac65799030f8a68d02367f8e75d111a0"
+    },
+    "schemas/sync-state.schema.json": {
+      "hash": "207c4248069096ee407b148bdf94e9b508b8df7e41a99d6fee723f1bb7e76d13"
+    },
+    "scripts/.ci-config.json": {
+      "hash": "3f38d8a8af3b53fd2e2f5067c7016157fdd7d3520736d617d0689c9fa2cd0cc2"
+    },
+    "scripts/.dep-audit/osv-scanner.json": {
+      "hash": "c93735b4091f500b6b59bee0915db82e090ea13d07f5d52b82817a724b35b291"
+    },
+    "scripts/README.md": {
+      "hash": "67c0752c6ee1f58d104623cb18604689278bbdfa71fe50e4d27e65129163ee41"
+    },
+    "scripts/accept-command.sh": {
+      "hash": "3510c30cf3322bd6d4d98736c29b4981fdf37c8edc11332f33546d4a63ac3f20"
+    },
+    "scripts/action-log.sh": {
+      "hash": "e8dc98e4840334e70775992bd79fdd6e98b07283fdfaddc8867b8c3d92820a64"
+    },
+    "scripts/add-pack-command.sh": {
+      "hash": "f75926477f6cb6bdbba7d04016ad1761f78ddf8cfcc205c91a7f7841f2652b57"
+    },
+    "scripts/analyze-epic-work-mode.sh": {
+      "hash": "48cac9a6a95eedb8619e742087f6f0473194189cacf1c450e76c22f6722c9322"
+    },
+    "scripts/api-latency-audit-data.sh": {
+      "hash": "ec36cfe66d527ee82d6b51a147967be124e94aa7f1474bba207353cd0e0105f8"
+    },
+    "scripts/arch-scan.py": {
+      "hash": "1d8b54ad73115610903a514f83959ec639d3e32396a472e09121875a7f6be422"
+    },
+    "scripts/arch-scan.sh": {
+      "hash": "8f778c688f4aeeb594d5ab20be8cf624eb0ffcf5b30b714f3817b8a7f840010b"
+    },
+    "scripts/archive/README.md": {
+      "hash": "85bf73f6fbfdbe7d13d8a29f97473236b2d7dcbb2cc5b1978dc648d19f90df01"
+    },
+    "scripts/archive/fix-duplicate-skills.sh": {
+      "hash": "f1f465bc1d1588d9d08635abb9e5e652ffb1167d06720d218b95a78383fd6318"
+    },
+    "scripts/archive/rename-skills-to-colon-format.sh": {
+      "hash": "489599b107999830751b2ac8a53f8c77a67f5dcb264e8b2e7531f62404fa76be"
+    },
+    "scripts/archive/verify-skill-rename.sh": {
+      "hash": "81d208150b75034c3f5f66c03b7697ff997f3634112a0e806c7c7974b3379939"
+    },
+    "scripts/assemble-worker-context.sh": {
+      "hash": "63d5ec2a158a0b58a59285df7c4d29add3429f5cb4bd7a6a4b7edea357e59b3f"
+    },
+    "scripts/audit-actions-data.sh": {
+      "hash": "2edf7695882cb470219722e06570ebc93c95a123fcffb9fe37b6311187a6cf44"
+    },
+    "scripts/audit-create-issues.sh": {
+      "hash": "d9b5d4f0afa0ed5027fd1bcc082682a888743370a7bd8c2bc0e496ae4a9036a7"
+    },
+    "scripts/audit-model-configs-data.sh": {
+      "hash": "43d0011c2241b94538a1ac930aebf2f7ca4c8b523f6ad9e850ae053bf5855256"
+    },
+    "scripts/audit-regression.sh": {
+      "hash": "38752a354c042ccc14de3a416fc48d99d9f91f6f233121e46849be97b7e0198f"
+    },
+    "scripts/audit-skills-data.sh": {
+      "hash": "e1a6dfc8c3765c684ff9dab717a69b3caf3ec6d4bc7a3b26e97cb8e6410203cf"
+    },
+    "scripts/audit/capability-audit-runner.sh": {
+      "hash": "3ef3b55feea9ccd4b91c785f57bd3ee43af048fe2f3ba2d2f7e871bb69ac8623"
+    },
+    "scripts/audit/repo-health-audit.sh": {
+      "hash": "f1347c84263051d0ecc005059d4303bd8fca9c45dd33fb7b425113bb2b9e9e3f"
+    },
+    "scripts/auto-approve-safe-deps.sh": {
+      "hash": "28fc562cbfda088ee75d49a6d0b8e0724c84aef78ba960961cdbad1e8fc0862f"
+    },
+    "scripts/auto-cleanup-merged.sh": {
+      "hash": "2e8d1d115b46eea31d25f3fad2a76c5826d30d297b52ffd333556e42e7964674"
+    },
+    "scripts/auto-close-issues-after-promotion.sh": {
+      "hash": "9d48d29acb2446a99aba7ee8f664e68b7ebc583feb3853474389de5bc9fa1dc9"
+    },
+    "scripts/auto-fix-error.sh": {
+      "hash": "c013e7cd4fdac87b3633c57159fe4c0336b2e9799e89942953931221c03e20d6"
+    },
+    "scripts/auto-promote-to-qa-data.sh": {
+      "hash": "bc2522ff2ac7d3aabede6bd556b440e3f960663d5b746b34a496d8f3705de9e6"
+    },
+    "scripts/auto-promote-to-qa.sh": {
+      "hash": "081a3648ed702d24d4586b6755e29a878f8cba9120a3f374284d8bd61384f181"
+    },
+    "scripts/auto-select-issue.sh": {
+      "hash": "c45263a028c8674cb0057d1b3e9208233a2ce8b32c27bbdd5a0a0abf16e3f8e0"
+    },
+    "scripts/bundle-size-audit-data.sh": {
+      "hash": "418ee85b517c5ad91f542d527c13c5b8efcdbb957e2dd05c6692bff6c66e5545"
+    },
+    "scripts/canary-health-check.sh": {
+      "hash": "31bcec778457bfe968553e5fda680e34f19e642eb32944149f4c1681463214ad"
+    },
+    "scripts/canary-promote.sh": {
+      "hash": "1168f94d0f9e71e5555cb427da6fd56faaf290ba584c32e6ec1f8ecf81212b3a"
+    },
+    "scripts/canary-rollback.sh": {
+      "hash": "c5b4106e22d2aacffd83797fdb744ba77cad3ab5d1b46acc6f6f0629515a17ca"
+    },
+    "scripts/canary-status.sh": {
+      "hash": "75ea853d4e6a0106514bd463a3ace0b6205bcae786add421355833d94dbca819"
+    },
+    "scripts/capability-audit.sh": {
+      "hash": "61d940025922931bbb5ae265840287d5edb5a87768adee6a268c73b4b4c39b6f"
+    },
+    "scripts/capture-data.sh": {
+      "hash": "5aded43da067eb6aa3aa7a3ff81b62002fd5965c162a8d1a0bb4d85744cb966e"
+    },
+    "scripts/check-llm-availability.sh": {
+      "hash": "3f168bd65610ac82f09a7d01452f79cdd40edaed30ccf2ebde675c450dc7669f"
+    },
+    "scripts/check-proxmox-availability.sh": {
+      "hash": "d7b55b820e18995eeb4f29969aa93a3ac950583287d51584bc834e005dcb5ef6"
+    },
+    "scripts/check-rebase-status.sh": {
+      "hash": "29d3746496f56951b282a4336a5d4a58b9dada1c0362c183cb9ebba0628a27d2"
+    },
+    "scripts/check-resource-capacity.sh": {
+      "hash": "8cf6f1c721628b0b5b8fbf36ba0462a29d89cd3011609926268a1a34c5f8c553"
+    },
+    "scripts/check-test-coverage.sh": {
+      "hash": "5cce0d9d58412a00d171a30abcb79cbd37b8095c6c6bae227d85d1d358ba5677"
+    },
+    "scripts/ci-label-update.sh": {
+      "hash": "40a8f8fd935022abe14bdb9891dbe4dcb3600f6ec25b3fa09d7263e2385a3532"
+    },
+    "scripts/ci-pipeline-audit-data.sh": {
+      "hash": "fe5ff9e30f4ac3f0b6c5a8d0ecd796cffab1eb671ee61a30d8301ce2fc64080e"
+    },
+    "scripts/ci-status-data.sh": {
+      "hash": "28a3c11ec4d61899e9edc483727870bf6508bb452259e0e3311bfb505bd4bd9d"
+    },
+    "scripts/ci/README-PROVENANCE.md": {
+      "hash": "a2bbc2501f9106e9978b38feac73f1de171249622b3b0365163f40e53974939e"
+    },
+    "scripts/ci/README-PUBLISHING.md": {
+      "hash": "737c8145890ee5698ddeef7db632efa39cb9e48273a23c84899f4d09ab74b655"
+    },
+    "scripts/ci/dep-remediation.sh": {
+      "hash": "8a8e1defcc11697a37fefd4390f02b9495332a4f1705e8f83595c93fc6b43405"
+    },
+    "scripts/ci/deployment-provenance-gate.sh": {
+      "hash": "3cca7393d55cc8452be89cd2af84382f85ea4a517e2f440e090e3f47a9232f01"
+    },
+    "scripts/ci/examples/demo-package-attestation.sh": {
+      "hash": "3525114a8bbea0fc317701ceeb219d77980af9de606c3b73f43d8a9302000661"
+    },
+    "scripts/ci/generate-slsa-provenance.sh": {
+      "hash": "f8cb5c5532abd72a30a8c84326372d4f121d9014007b4156d6dc578d5be50390"
+    },
+    "scripts/ci/install-bats.sh": {
+      "hash": "222cde71590285aee0b8ba7535c61866091dbc094d232692ce7f65daed0781a2"
+    },
+    "scripts/ci/lint.sh": {
+      "hash": "8ae696dbcc8e9b3b364b21341fdbdac93b8a12d6bb5d9c524686b596c689471d"
+    },
+    "scripts/ci/publish-on-tag.sh": {
+      "hash": "aa41b86f42a7fd0776eb35a66e02f532b0b9773a3d858db25609b829974cbcdf"
+    },
+    "scripts/ci/reporters/cleanup-results.sh": {
+      "hash": "6d3e3798a108b49b74c1b934345b752640a5787992f884af04bb659fb6965150"
+    },
+    "scripts/ci/reporters/store-results.sh": {
+      "hash": "66a0f8f2cb271f186d313a497ead00fe1962579d845f199f3c7432c6ea7ccd67"
+    },
+    "scripts/ci/run-tests.sh": {
+      "hash": "edc47a90925da42ec95cce2ffaaf5c78a12c4575d78ce6d11a4b84e91e4350bf"
+    },
+    "scripts/ci/runners/install-ci-tools.sh": {
+      "hash": "53b8118b2aee1a3a1ed3a98c00308032f085df87d07e53eab26204705f15df9c"
+    },
+    "scripts/ci/runners/load-dir-config.sh": {
+      "hash": "ae8398577975cb3cde4652b3ece9f1d4503c7500350a2449407b6f1a122ad9b4"
+    },
+    "scripts/ci/runners/package-reputation.sh": {
+      "hash": "d8b5049edcc0830a10a1de3f059d1690706ffce0de08a8903993d78932df62e5"
+    },
+    "scripts/ci/runners/run-pipeline.sh": {
+      "hash": "5e2cd4f639763ffd3121a68c3632da1d5ad6d3f99240fd26a65e08fc8cf1e825"
+    },
+    "scripts/ci/runners/sanitize-for-public.sh": {
+      "hash": "1ece3a1b4226f65a0dae98ac4791aa7c1718f8ca652406beb8283a6ef9b51b24"
+    },
+    "scripts/ci/runners/scheduled-dep-remediation.sh": {
+      "hash": "eb5e8c17b8ea9a94f73335adb28442d15f7a1c3ab8ffc0cdf477236c100d019e"
+    },
+    "scripts/ci/runners/test-deployment-config-integration.sh": {
+      "hash": "30ce8c46e1513de15a360bd90efeb0ed6bcd633baf73edfc549ea3c8abf3b44b"
+    },
+    "scripts/ci/runners/test-deployment-config.sh": {
+      "hash": "7f9d44644042732db9c0279199920d6441034fe2486e38883bb8c6a03c9b90a5"
+    },
+    "scripts/ci/runners/update-dependencies.sh": {
+      "hash": "31019e46326655fa9ab35537b7fb2244b39a110d806a9fea143c567b725837c5"
+    },
+    "scripts/ci/runners/visual-test.sh": {
+      "hash": "de9e2bd1564203bfc330c34033c6853e5ef5f0b94f59dfe35ee137e67928b480"
+    },
+    "scripts/ci/shellcheck.sh": {
+      "hash": "95a2381748cb15a7dd4adaa43d5ea0a77f258a3955c9629dc2790c15ef3bb713"
+    },
+    "scripts/ci/validators/README-OSV-SCANNER.md": {
+      "hash": "4768ed124ca0d318077a09cf08104f24ea1367cf5ce53620c263da45124666f1"
+    },
+    "scripts/ci/validators/README-SAST.md": {
+      "hash": "ee735c54c78206acbe936b223da44c428a1840e4484d5b48dd8eadf73d7cd230"
+    },
+    "scripts/ci/validators/README-SBOM.md": {
+      "hash": "788679c3221f4cf4b1639a10ecd189be51f0e17691be220fcac4ff0b54a0b8af"
+    },
+    "scripts/ci/validators/check-agent-docs.sh": {
+      "hash": "e94f8289a19b411dca7df9a94f171dd65fd2ed36b0e8a5d24284ce82a5005224"
+    },
+    "scripts/ci/validators/check-dependencies.sh": {
+      "hash": "7cf90d14811f7dbd8edb29220fb5e2c8528c0a2db6003cf39ca8fff0bfbc3156"
+    },
+    "scripts/ci/validators/check-naming-conventions.sh": {
+      "hash": "e866466f02fe1fd71d8c637703340f65593ffb7c307ff346ebd38a2349f06439"
+    },
+    "scripts/ci/validators/check-script-sizes.sh": {
+      "hash": "825e7582d6257ac5db5b87e1865d874e047e3235781bad4806d9b50e71b2a450"
+    },
+    "scripts/ci/validators/check-skill-sizes.sh": {
+      "hash": "2703f16230426822e3a2d7562aecf70c77516940cd88d343f466af0761f2d672"
+    },
+    "scripts/ci/validators/check-structure.sh": {
+      "hash": "7999491086524ba2b82acbccd6bd16ee8d1669145c743f00d26878431715efce"
+    },
+    "scripts/ci/validators/ci-validate-fixtures.sh": {
+      "hash": "c46d13cd11199d1724f051650547cbbdd8296e2282b571b8af97df5912ace0a4"
+    },
+    "scripts/ci/validators/container-scan.sh": {
+      "hash": "e7b1e5414b1b752e6514a996efba0f561a4a40696f911ad2eea83efa86b9c0de"
+    },
+    "scripts/ci/validators/dep-audit.sh": {
+      "hash": "ca494afff7cb8de6b789b48501d8bb7d40f54e64dadaf5d487a8b07732371479"
+    },
+    "scripts/ci/validators/dep-license-check.sh": {
+      "hash": "368dd8cccc91c68cf2f4318033312a351aa89e584e36d62afde160f821d4dc7e"
+    },
+    "scripts/ci/validators/dep-review.sh": {
+      "hash": "ce4501429c95e2c772cf14f54d2d5d08b7922a349ecefd0c98d18b1e8d038135"
+    },
+    "scripts/ci/validators/design-compliance.sh": {
+      "hash": "9c58fac9c5a8192ae2c545bc3810a5c505eaa4f171dc506ea6c1e5dc4bfa7434"
+    },
+    "scripts/ci/validators/external-deployment-check.sh": {
+      "hash": "25256a1979f553d27b2a39874fe094a424e6be69f31f05bd24ca0c623234ec98"
+    },
+    "scripts/ci/validators/generate-sbom.sh": {
+      "hash": "6db6b6735b38205319f6b5a5c9ccd2274f879277f44b4e6b4697ff945f4c129c"
+    },
+    "scripts/ci/validators/license-check.sh": {
+      "hash": "aa3e08c9cfdb72e17ca7e12afc83e811e4246551256d0807880366f1d50f61b0"
+    },
+    "scripts/ci/validators/osv-scan.sh": {
+      "hash": "67708372a22e9e2b1b87a023bb8f07775af604f6b24c820c2127edbfb874b7fc"
+    },
+    "scripts/ci/validators/package-attestation.sh": {
+      "hash": "410fe2aa6799bed4f02718dbf335d69313f7fbeb48c88ef9f757f0bfbdbcccf3"
+    },
+    "scripts/ci/validators/refactor-lint.sh": {
+      "hash": "e178d5e1ca2c54e4cc4d6cb0035a13adedb50ae4091ba009be75caf302380c3c"
+    },
+    "scripts/ci/validators/sast-scan.sh": {
+      "hash": "c53480e30c5e6a171d8f578276a41600a226f4f266a687f5aae46f95d3851202"
+    },
+    "scripts/ci/validators/security-scan.sh": {
+      "hash": "f8cbd0f9a55d4a1ec66e058f26416a2700575e57c62ce5dfd7810b15ea14059d"
+    },
+    "scripts/ci/validators/sensitivity-scan.sh": {
+      "hash": "c6809a3669e7a061ab54535ca965379846636cdc08a2d14e4fe3fc5f0cff2e20"
+    },
+    "scripts/ci/validators/validate-environment-tier.sh": {
+      "hash": "1e293768340808c1c66e71db594a2f03a36659658030c3e481153bf5aa801b59"
+    },
+    "scripts/ci/validators/validate-framework.sh": {
+      "hash": "5ad0d7ad96b2065df996dcd7ab1defc18846fa97701cac2173bfbe65741487cc"
+    },
+    "scripts/ci/validators/validate-manifests.sh": {
+      "hash": "044960e7be0ab9427cc0b5cbe349570b1d63d24affc67f29333203008dd282ee"
+    },
+    "scripts/ci/validators/validate-package-publish.sh": {
+      "hash": "7e13981a22174388b300bc7083f64a9a9e7e8b23de4a783864abec9f23de310f"
+    },
+    "scripts/ci/validators/validate-repo-naming.sh": {
+      "hash": "56c8f6d275393d866bb842a7e4934881181069b94579b57dc6a9ebc350351662"
+    },
+    "scripts/ci/validators/validate-repo-settings.sh": {
+      "hash": "049898c0aa530bc938cb987f38c953985fc44b203237be94c4b603049d7d0001"
+    },
+    "scripts/ci/verify-slsa-provenance.sh": {
+      "hash": "0075d5dcaf458d0c696d0dbbc8bc2e7edea25ed0d7a3e22a422dfa11b65627e1"
+    },
+    "scripts/ci/workflows/lint.yml": {
+      "hash": "2dc5ff5f7c210e4d1688439707375603eb01530191715f5278335b0f10d90313"
+    },
+    "scripts/ci/workflows/security-scan.yml": {
+      "hash": "9de042755345661cf2d71b59dfd924dca94a8261f814c9a45811efb6bd0228d0"
+    },
+    "scripts/ci/workflows/shellcheck.yml": {
+      "hash": "98d89b4436408a529f9356e39555637354c0cb4ef7b8a3dc2df3a4f1e64c4597"
+    },
+    "scripts/ci/workflows/test-suite.yml": {
+      "hash": "5652ad629a77a22d65ae51b36b0929ae99d60461216aaad2c40f18446426dc5b"
+    },
+    "scripts/classify-error.sh": {
+      "hash": "bc30d6aea2db36dfbd09d2929364742745e71f6e887a7a9d669aace39097c605"
+    },
+    "scripts/claude-data-cleanup.sh": {
+      "hash": "9976b5ed117682a88acd8076f8e53fadf235609c95b7d0de8554a25b78ac4a50"
+    },
+    "scripts/claude-watchdog.sh": {
+      "hash": "e27dd70d9150966e3cfde3705662f900c504d01b68ca3861963bfb39dd33a5cf"
+    },
+    "scripts/cleanup-orphaned-workflows.sh": {
+      "hash": "bc0ce1d90697d4f86d7579966f9cefcf4251b09f25b7f87748b2dd460b043422"
+    },
+    "scripts/compliance-log.sh": {
+      "hash": "dcba8a83f3f5de765b4af9db0517c1a3d7c690a5f13867f76634dbbb0d8c6c0e"
+    },
+    "scripts/compliance-query.sh": {
+      "hash": "6701f66b52ad8e94751abab94ca52262712716548aa8047634ce62e598d8fa7c"
+    },
+    "scripts/composition/aggregate-permissions.sh": {
+      "hash": "709141738ec2c8459f83d85cf1f94c3ad4f810d668bc3a37df73d90f7916f140"
+    },
+    "scripts/composition/execute-composition.sh": {
+      "hash": "b80858ecea2aab26ee3f2a25f201a038df23633add1c45fcbf35fd481fbb0d6c"
+    },
+    "scripts/composition/parse-dependencies.sh": {
+      "hash": "096ceee579cc5bc22939305340286ae9d0567f813d82db8c5b3a1e14ec7b99f2"
+    },
+    "scripts/config-audit.sh": {
+      "hash": "4249be9ee6bce082b5133eac8b84ef0c42a96a7119f61ef11d2ee25d27492830"
+    },
+    "scripts/configure-permission-tiers.sh": {
+      "hash": "a3fe4a1c27a2e181895626578a04c0abccddf809d75139e0de39e3f11953ee7a"
+    },
+    "scripts/container-blocker-report.sh": {
+      "hash": "98fdac1355b1449501d614e9f1f4b3c1416b0950a1a0879f1c4d7a4404c94901"
+    },
+    "scripts/container/check-container-capacity.sh": {
+      "hash": "3562dc54288b0879d2ca5d6a36fe8cceb207049389c9b1307f13765e7d42dd1c"
+    },
+    "scripts/container/cloud-container-launch.sh": {
+      "hash": "85e56ee3a4e6894814bea08bb3d0f048f01670c0d88c364c7e5202d7b0124c1b"
+    },
+    "scripts/container/container-audit.sh": {
+      "hash": "5f2e7347e63fa4903c205da915064b7c7606f1e35dc5f8d66132fb28ecf5e24b"
+    },
+    "scripts/container/container-cleanup-sweep.sh": {
+      "hash": "ae795c82af9f2bce308a723dcb527f1b7b682fca4c657d812a641efcd22969f0"
+    },
+    "scripts/container/container-cleanup.sh": {
+      "hash": "3e66a7b6127a512a8b4f5c286be75b0144729a82ddab7611501c554fdcaf170f"
+    },
+    "scripts/container/container-complete-notifier.sh": {
+      "hash": "2c76b6127d40741951b822baead565c10b3f5b1709a7b6362f88396453342f65"
+    },
+    "scripts/container/container-diagnostic-capture.sh": {
+      "hash": "24fa9cb1a70b60970feb03739fb9b87b3888e10f00b9361fb9810d4bb3ce4ee7"
+    },
+    "scripts/container/container-entrypoint.sh": {
+      "hash": "aa120ae971aff596c66a7939eb178af988acdc5b36533d844c60a02140d1aac5"
+    },
+    "scripts/container/container-health-check.sh": {
+      "hash": "d5c5e21d8af50fa8d3974329f0b0c92f9f468cca39c313bd0ab6aade9464494a"
+    },
+    "scripts/container/container-heartbeat.sh": {
+      "hash": "fe0c08c3506040138fb8feb3e13c7f27f386028c7c9123d38690375415cb77e0"
+    },
+    "scripts/container/container-launch.sh": {
+      "hash": "039490c233377464b983acd5a2df75097bdf1899960645a07f68c67f0c615875"
+    },
+    "scripts/container/container-logs.sh": {
+      "hash": "e7eddafd32427177491015e72f8a4c6e4f2a81bea4037f75b7ef2756e079fc2b"
+    },
+    "scripts/container/container-metrics-persist.sh": {
+      "hash": "d36b29272590a5f31aa6d1fe48363727d976106d6782802a63df074e159a1b7d"
+    },
+    "scripts/container/container-metrics.sh": {
+      "hash": "03a22921abb03b32cc9c6db4d756c3fb0d06ef06145bae71f559479ecd822865"
+    },
+    "scripts/container/container-parallel-launch.sh": {
+      "hash": "09be08ff7334252759ebb17ac2232ee75d8714b81823bc4d0c5a299d69934cf9"
+    },
+    "scripts/container/container-post-completion-docs.sh": {
+      "hash": "ddcca2f6ee82f05fc6ae545f22c3f89f6159a197b5d50a179bdabdca329561c2"
+    },
+    "scripts/container/container-post-pr.sh": {
+      "hash": "8721cd504c356c95a15f658bc2cb03bc7f35563915f92f4823b5e35165a16fe5"
+    },
+    "scripts/container/container-preflight.sh": {
+      "hash": "603b3ff258c5d696e43bd2277dd99f558a3e3118bf659ac3881e7247e57b9448"
+    },
+    "scripts/container/container-progress.sh": {
+      "hash": "41ecb2109fff3752e53a9dc473702dbffb4d72b3d654f8a78254370a36c6666a"
+    },
+    "scripts/container/container-proxmox-webhook.sh": {
+      "hash": "bf50a3c4f6b00759301961322fd691345958aee24f3edc014819c27f21e0792d"
+    },
+    "scripts/container/container-recover.sh": {
+      "hash": "ac31a58a83b97e9b7821e18a718a1b5a2ac74227252b198ab46af803ac638e94"
+    },
+    "scripts/container/container-result.sh": {
+      "hash": "e51db774adaa28a90e48496efb1e3634b48f2b0323ebec53b56c03acb8292e95"
+    },
+    "scripts/container/container-sprint-workflow.sh": {
+      "hash": "98a08b697d7c32faf2e599935ea58d646aee90d84400aa79f0a4a3d131b022d4"
+    },
+    "scripts/container/container-status.sh": {
+      "hash": "57694dbabe3ef9d5556c5ee3a2423690601cb9c89a6775bf42814636e496cab5"
+    },
+    "scripts/container/load-container-tokens.sh": {
+      "hash": "ce61dfee8cc839218f0ce18795b9337c2f6851514901f6a524522c33814b39d8"
+    },
+    "scripts/container/merge-in-container.sh": {
+      "hash": "d9bc8abcba53f711d7e94e3c1076d8cffc609d06ff77fdc3c028db19e53085af"
+    },
+    "scripts/container/remote-container-launch.sh": {
+      "hash": "0d55edf0483d744b29b7c7d8d74d99aad499d9e787f9e674b16eddfd70735b50"
+    },
+    "scripts/container/run-container.sh": {
+      "hash": "0d68277366a0e37862b68b130731e1242266f73a5e9855b6d451be23a81b0047"
+    },
+    "scripts/container/run-e2e-containerized.sh": {
+      "hash": "21400b302efdcf2034d6ac9b82dc496b7f1b6a39ed01d6068659f846b83ada65"
+    },
+    "scripts/container/test-container-auth.sh": {
+      "hash": "5a02ac837139d94d14fe3c1f3e4d55bf74da8542c86ae43c7a54f7d61cc969d2"
+    },
+    "scripts/container/test-docker-image.sh": {
+      "hash": "120c23cb0ade0e48e84dcc75166d6580465a7ebbf95b11871bc09028aeeede1f"
+    },
+    "scripts/container/test-token-injection.sh": {
+      "hash": "048ad016f6c78e48094e18d4aecb8060b18f18a72d551a8605b4e0576ddb64e4"
+    },
+    "scripts/create-error-issue.sh": {
+      "hash": "fd8bf660e348062f6d3db5c29ad22a39079c1cc17c848303edc8e2015fae2833"
+    },
+    "scripts/create-issue-data.sh": {
+      "hash": "3a70dfe4dd1a0df5a19f3c85c57e79c68aea130fdadade1949e6e2d2b75082da"
+    },
+    "scripts/create-release-branch-data.sh": {
+      "hash": "af48554bff57f9776a6a0ecb664335b968bd18112ca98b1cfd95f51dd38e83f4"
+    },
+    "scripts/db-query-audit-data.sh": {
+      "hash": "0a325ff60fcf57da6b95bd3807b2b6a43cdcd1b79ea0643ca6bc0f0968a002c5"
+    },
+    "scripts/delivery-audit-data.sh": {
+      "hash": "2e9751193b5ed30b7070463679a1560f8b57fe0c180b6202c2361b0ca6baa5d0"
+    },
+    "scripts/dep-scan.py": {
+      "hash": "a86118646d287de64677c626dad88c3e520e3ab85b072179c2dc845ca3903d19"
+    },
+    "scripts/dep-scan.sh": {
+      "hash": "dce3f81c6975e449b43cca2f4cbc2efacf066ee8e0d0ce3f0993590f962447fc"
+    },
+    "scripts/detect-deprecated-artifacts.sh": {
+      "hash": "ffb4d9c23f749132ff3d9559dd231c7c76595ce0f34bc0c29dcc229b643d4b17"
+    },
+    "scripts/detect-epic-children.sh": {
+      "hash": "562abfd8c83bc618e93d5b6a1cad4466569a306e6f36ef32bd8297dd1c24406c"
+    },
+    "scripts/detect-execution-mode.sh": {
+      "hash": "63e96e026b48d3b7d118780797bf41fd9183ea9e731f4c84f984db3e37c4c3bd"
+    },
+    "scripts/detect-file-overlaps.sh": {
+      "hash": "052344ba9aed869cd7b14b692e9a0207777a3b6a80d61987f07cd37600a381ff"
+    },
+    "scripts/detect-infrastructure.sh": {
+      "hash": "298bbab4712e2c637256f8b1d021e747607e7393a195d4cada383bb666eff46f"
+    },
+    "scripts/determine-milestone.sh": {
+      "hash": "3cab13c735ec6fcaa7c762608231ce623d14b270a2402625705c37badc6adc5f"
+    },
+    "scripts/dev-to-qa-checkpoint-pipeline.sh": {
+      "hash": "e919239445a7b5212dfd81f4c95102d1bf8297a7fd82eceae4f60e1f36755e0e"
+    },
+    "scripts/dev/capture-api-fixture.sh": {
+      "hash": "04b70401ffff1bbcc53fad801937a9937119bf105a73650d9cc5060087c1e957"
+    },
+    "scripts/dev/capture-db-fixture.sh": {
+      "hash": "44424a3bddfc026daafa6bd56bb9c2f94774af67f5466f6ef1d866024704443f"
+    },
+    "scripts/dev/generate-fixtures.ts": {
+      "hash": "424c2ee1f3ce3d33b0cf3e920186317226945f08f5c96a4fe7c3a00a77e50a59"
+    },
+    "scripts/dev/generate-route-tests.sh": {
+      "hash": "835e47305850bbda45f3d836b43990c757ae1778515f3a24b7743bd1c4ec19bc"
+    },
+    "scripts/dev/sanitize-fixture.sh": {
+      "hash": "c01b5c35ff34ed8864e11acf1ec51c37bc601940b5ee2000975c8cdbb1f838aa"
+    },
+    "scripts/dev/setup-hooks.sh": {
+      "hash": "d9ca9f826148a7fd2870f45b024b36145beb1accb57a49c056f55b323e4f2d3c"
+    },
+    "scripts/diff-command.sh": {
+      "hash": "3784bb6681e36903f3fe4f61de7c243fda2bfa283f796c03d2404d19bc1a0abc"
+    },
+    "scripts/discover-existing-repo.sh": {
+      "hash": "be7796259b67d81739c50f43d51f9a827d4b18b6095a2d69ab051e8392a75b55"
+    },
+    "scripts/e2e-phase1-test.sh": {
+      "hash": "23e0db748f78f0445e28ef3eecb7423bafdbea359e68cbd3f619438c7d2201a7"
+    },
+    "scripts/epic-decompose.sh": {
+      "hash": "0f8a51fee5c518e94ee1aeadefff4f190df29b23d8a0c7f54f725a6bc1f1b3dd"
+    },
+    "scripts/epic-milestone-audit-data.sh": {
+      "hash": "84a65daced8f32f311dad6e61a80e8d688544d055e37ad58d08c809a54edb558"
+    },
+    "scripts/feature-adoption-audit.sh": {
+      "hash": "f231eb2968e8480c27cf63dbc9c5ac05ab074b314f125fa8ee79dbe57297161c"
+    },
+    "scripts/find-issue-status.sh": {
+      "hash": "90c2ac0676d2d6c614434c31b503872c4eef4f5b0f6f34e514e573ec08d74997"
+    },
+    "scripts/find-parent-issues.sh": {
+      "hash": "619c16d72cf1922531831470e355081808c5062ebcaeeef60a6b375dddb4d3c6"
+    },
+    "scripts/framework-scan.py": {
+      "hash": "356e4d7bd1c9d7da86ed97f894048c3132f95a69cf0c90cd1d9dfe0dd6859f36"
+    },
+    "scripts/framework-scan.sh": {
+      "hash": "56a077829c2c12a9897eda9fcb872d11c66f6cdcbf21c150fa55fa06ccb60dce"
+    },
+    "scripts/generate-claude-md.sh": {
+      "hash": "c6c101679a7c598f8bfd6278f3aebdea779ad7e3b79e53e70f385a400e220ac1"
+    },
+    "scripts/generate-manifest-simple.py": {
+      "hash": "4364812139b7b8f309c896d8b5c78a528429b28e85f08f0c15f88c5a17b521fd"
+    },
+    "scripts/generate-manifest.sh": {
+      "hash": "b02e2fb7606e4a21a6b957a37035f0220d6a7f58068cd66977aaf39f990ff0fe"
+    },
+    "scripts/generate-milestone-validation.sh": {
+      "hash": "772d2930c453ec75771927b391ec33f27efd239b0f082723e22a4d738b29d09e"
+    },
+    "scripts/get-agents-for-issue.sh": {
+      "hash": "1f8ef2649e1ae81c25c94c89995847027c2d9ca17cc49fc96f51bc914238aef3"
+    },
+    "scripts/get-secret.sh": {
+      "hash": "2846d139ce23dca6bbfb9652b1a7e879493977b81960f346781ef92a941feeab"
+    },
+    "scripts/git/batch-branch-manager.sh": {
+      "hash": "75eb94addd4e2e50701ba3312ba05d8e184cd1752100d5d5e0cc5ca912f70c14"
+    },
+    "scripts/git/branch-audit.sh": {
+      "hash": "d28c1dc7c2b0ba8e4393f073d8f1e0ca09b7b1422d808214847edf49d0170895"
+    },
+    "scripts/git/calculate-version.sh": {
+      "hash": "d4f50d4e08b979cd0a2f510c88bfd2fe8f6a201831c02d052dc1105964b72eeb"
+    },
+    "scripts/git/generate-changelog.sh": {
+      "hash": "bfeaa1baf71ac0bb43d4dfe3dbbf38b140a66a6ada8a768a254b6b57599cabfb"
+    },
+    "scripts/git/pre-push-check.sh": {
+      "hash": "aec56acb815c58bfae2a764fb700a9e6660040d333792eb75e4b1309fab5c1c3"
+    },
+    "scripts/git/push-data.sh": {
+      "hash": "84283d17c1c65a50a39431c705924206205abc203e7e3816e5cad67a99234c85"
+    },
+    "scripts/git/setup-sync-back.sh": {
+      "hash": "7b7b6f00da736b62fd3e1d21b4b95a97cc2cbe4ba6f99d1d138d8b2ce4c668d7"
+    },
+    "scripts/git/sync-back.sh": {
+      "hash": "ab6135907f0e6fa8aca6d1435bde158c842a6389f335a40d62d3eb0d1d564ffb"
+    },
+    "scripts/git/sync-main-repo.sh": {
+      "hash": "73f9d3a34d49e84612c73d81d46ff5ffa5596e668fa4bb975c0e6be0965caf02"
+    },
+    "scripts/git/tag-release.sh": {
+      "hash": "71de386fb7a28e8c4c237751d931c16db0d175bdc4f49e78dfa0a1d127df1229"
+    },
+    "scripts/graph/agent-graph.html": {
+      "hash": "aa72986c9e8b0f14ba4753b7bb352abde62d1280cc730dffc34b8a939ef1c448"
+    },
+    "scripts/graph/generate-graph-data.sh": {
+      "hash": "141b637afdcafd9e5332e1d3e443c938bbc9147d82d5f83e0a9ace68281f4a56"
+    },
+    "scripts/graph/skill-permission-graph-data.json": {
+      "hash": "807eaa89f7b5eb0ca38161063c6f90a309624094fc3f51b4bf4d47111fcde505"
+    },
+    "scripts/graph/skill-permission-graph.html": {
+      "hash": "b8588ed7da99c9ee74b2bdd58e8e0b231efa3c39bd19c6272f8c9098872e8778"
+    },
+    "scripts/graph/skill-permission-graph.sh": {
+      "hash": "63ff55f03498d71df7f52069c6e455755837a8000228690088e2bf15f3f2bf19"
+    },
+    "scripts/headless/README.md": {
+      "hash": "bef9095d34556087d66967ebdc7fd1891551ec3fca2093b4497850d4d7f92ea0"
+    },
+    "scripts/headless/backlog-triage.sh": {
+      "hash": "927e8d69eae40dd0aac15975a31e90b3e3f65c4b03878f62ee05f79af364a8d4"
+    },
+    "scripts/headless/doc-consistency.sh": {
+      "hash": "d1b91948fc568da61a476c598f5ec4d2c4282cfccb94522458e7fa0aac188984"
+    },
+    "scripts/hooks/commit-msg": {
+      "hash": "e068c6a56720472056e21dec95857927011882a82e5d32ec0997efb149bc976e"
+    },
+    "scripts/hooks/install-hooks.sh": {
+      "hash": "030944db88ab7872a84ae31737cb40b2e05e31060c2226d2b78362ffbbb7d247"
+    },
+    "scripts/hooks/post-commit": {
+      "hash": "852bd0895c595b1939ec9c3302e4edaae80aeb977147cabb53978fa2a7e747fb"
+    },
+    "scripts/hooks/post-merge": {
+      "hash": "0a4b824c186bb9b718199173e7d0c8b278fab1c901a1a8a8f602fc86dc3285d8"
+    },
+    "scripts/hooks/post-push-pr.sh": {
+      "hash": "05e4cac6ff42f460f9d6a9d404905f8825534db50a7807369624ac91a5d2a2be"
+    },
+    "scripts/hooks/pre-commit": {
+      "hash": "7377ef868c420ef763afdeb80a276310b7c44bfbaa0a3ca6165acf3229cbb69d"
+    },
+    "scripts/hooks/pre-commit-claude-md.sh": {
+      "hash": "9bc0cc220ddad9a5e4b2e854bf8a86b790e94cccd3730f40afbef3cf9d82e0a0"
+    },
+    "scripts/hooks/pre-commit-doc-sync.sh": {
+      "hash": "86afbf3f50154fabbb64ddd0bc8b4da54130c3327411fb853466f2908e79adcd"
+    },
+    "scripts/hooks/pre-commit-security.sh": {
+      "hash": "1dedefd9509f1170eb67849133fe0adb46e7f82392c7fc9df316f486287ad560"
+    },
+    "scripts/hooks/validate-commit-msg.sh": {
+      "hash": "c1f4ef41bfd01ba8a9d406d475ca0c5c57c18af5eef507b059eeb15a3865ca80"
+    },
+    "scripts/infra/auto-escalate-infra.sh": {
+      "hash": "65be475e19fb81dd4f3d664a71362e1139d18b325f618651a2a97230c2ed6c1a"
+    },
+    "scripts/infra/detect-infra-blocker.sh": {
+      "hash": "410e4ea44ed00f7f4ea5b855f49a508eacbfc6b5bbdcd82860da4ca245b97594"
+    },
+    "scripts/infra/escalate-infra-blocker.sh": {
+      "hash": "737e111b64816b3cabd54de4a4ac8b09df1a6b8a3b6dd90c93db2b348bfc0986"
+    },
+    "scripts/init-command.sh": {
+      "hash": "b217cc3fc7b8ef8be1572b5450e37b366074eb4dda4f96b5ed5ba9dd34bf62bb"
+    },
+    "scripts/init-deployment-config.sh": {
+      "hash": "15f8ff0c371d142affa193eb491c8e92a2de44559d9d5b56b2461830fb921941"
+    },
+    "scripts/init-deployment.sh": {
+      "hash": "fe965ec8aae79e707bba1e342128c8d4f1e044fb3f4b06f39bfacc27527558c7"
+    },
+    "scripts/init-github-conventions.sh": {
+      "hash": "d5786bd4e2bae70de3cbbbfa71fa9e6b07b7d868eb70c585bb6f0689eb35fc53"
+    },
+    "scripts/init-repo.sh": {
+      "hash": "00980a02c4459264b7d369f73fbce0ea40afc4ec8109ff82ade0cd98548e8d32"
+    },
+    "scripts/issue-checkout-data.sh": {
+      "hash": "51968a43065daf16857e1726daf98e9aa2331db977ecd055646a6c5bc1b75d38"
+    },
+    "scripts/issue-dependencies.sh": {
+      "hash": "c7a4526f995fa96ac7c406ff010e9a9e7aced895e8c018b55d428af950c1bd4d"
+    },
+    "scripts/issue-label-data.sh": {
+      "hash": "2a32a58182e6e852f09af872e5aa0e6d34936cb29b7b8b41f26de2cca1e1532e"
+    },
+    "scripts/issue-locks-data.sh": {
+      "hash": "d19bbee2b7489f479d2b721a55d1e0aa7cb2464f1622ac9da6e8ed9b3786f939"
+    },
+    "scripts/issue-monitor.sh": {
+      "hash": "778435392da9af9af03f090e45b8afd4e478f5ae2d1bb90dd1b00ec21bd6aed4"
+    },
+    "scripts/issue-progress.sh": {
+      "hash": "33bd7b8411f507dca35dedea248e58697a7cc56918afbe30b2d3a295b61f836d"
+    },
+    "scripts/issue-release-data.sh": {
+      "hash": "52f30206d008df355249d75e7cc2f49354b3cb41d20c5f0d14adafcf0ff98f08"
+    },
+    "scripts/issue-triage-bulk-data.sh": {
+      "hash": "19e20df0b76ff528bcdfd95dc8387764591656604a72624fcfcd2e98d43d9996"
+    },
+    "scripts/issue-triage-data.sh": {
+      "hash": "76fa84596ea433124535f6c2d92b46a3b1c4f9736e6714c4d6be3ebebd3f305c"
+    },
+    "scripts/issues-heartbeat.sh": {
+      "hash": "d241a124acf4630f1692976cf4e5af43d5ace336e046eefe1f34ef6953afbec4"
+    },
+    "scripts/keep-command.sh": {
+      "hash": "61f5d44b9d6a9790ea075741a6dfebf2c7e142d50cb7d91312f352d63ce23598"
+    },
+    "scripts/label-driven-auto-merge.sh": {
+      "hash": "e3b25b385e794aedf02c548fb23aabfa4b74e93039b3781574a862f5dd92be76"
+    },
+    "scripts/lib/README.md": {
+      "hash": "e1758b6d50d45314b73dd507d62c0a7e60a83832d777cd25fd89f86929171396"
+    },
+    "scripts/lib/api-rate-limit.sh": {
+      "hash": "86e2ba6170020d345e1bfa3ff6120b4ce81d677b7a0c3217eda1662572d7cb58"
+    },
+    "scripts/lib/changelog-cache.sh": {
+      "hash": "01c2d60cf59c02f892bc4bdf1824abd428108ef0cab47325ce0c132fd67388ad"
+    },
+    "scripts/lib/cleanup-tracking.sh": {
+      "hash": "72c5b3e5f387331fc30723fcd630ca0b5305f38326674fce1a5c799fe353c213"
+    },
+    "scripts/lib/common.sh": {
+      "hash": "c9fe9acc8e76d1060049e56608e41e15874fa850144383236e062c8606612de7"
+    },
+    "scripts/lib/config.sh": {
+      "hash": "9ef5cf30055e2d54cb77e0fb91a94a00f7da421f495b988ef06fec53f2a12731"
+    },
+    "scripts/lib/corporate-enforcement.sh": {
+      "hash": "4e1e21455b02e2ce29aa1d950783bb0cb8fab48d3dd4c243570a4f34f80bb597"
+    },
+    "scripts/lib/doc-parser.sh": {
+      "hash": "452634ac7bccc1cbef6e5e47a7446b65319fc1ada417db39bfacc2a01c27625c"
+    },
+    "scripts/lib/framework-config.sh": {
+      "hash": "3aaaf541ea4cf4b7013166374f5e133df382ec07fe7ddcd51f27c3273f15cb9c"
+    },
+    "scripts/lib/gate-common.sh": {
+      "hash": "8e0d7ae184b7bb34b2b9f37823c20f7f0ec58fe1df4c0ca8477a8aca253801b0"
+    },
+    "scripts/lib/net-gateway.sh": {
+      "hash": "cc4dcc7cd7acb233128f412552fe00c5d496957b9bfed58c8e3ee67b745a2e75"
+    },
+    "scripts/lib/script-analyzer.sh": {
+      "hash": "e32230cd46d06feeee8def833c51023cd25903be7c8f6948ead8711fc3358c73"
+    },
+    "scripts/lib/structured-logging.sh": {
+      "hash": "188bca26d4940bbd47d2c1d77e15bfb53832c7194cb439b3decb132faadb5070"
+    },
+    "scripts/lib/watchdog-heartbeat.sh": {
+      "hash": "75eefb2547e110a2f72595785ac7375e832a7a181a8803de3e49dd7bbf644f47"
+    },
+    "scripts/lint-doc-size.sh": {
+      "hash": "e94ea34f7ae09db6cff39bedeee5f21b2afff50d3ae89e160cd0684b6373ec04"
+    },
+    "scripts/lint-network-calls.sh": {
+      "hash": "95b1e9ba46d69b61fac1092ca5a6e82590c227c712a1be7be6c9101721cce181"
+    },
+    "scripts/llm-health-check.sh": {
+      "hash": "b97768c76c03ad4aa187ff2780521d27baf1ea7b2877471c0328b12d7e712804"
+    },
+    "scripts/llm-orchestrator.sh": {
+      "hash": "486613a3ffa4345b89cbc8bb2d931d11f99bb56eaa7aa8372515576042e8484d"
+    },
+    "scripts/llm-router-cli.py": {
+      "hash": "3450d0b02029af70ead860e370b5231eb0917a3d689b2ca3e1be85426d2c2cdc"
+    },
+    "scripts/llm-test-request.sh": {
+      "hash": "ab22b113042c8b56a43cc2b189387ba97b10907e2deaf81453f1b1270f975aba"
+    },
+    "scripts/llm-tunnel.sh": {
+      "hash": "f8168c1ed7de413748e77cb230c9f565af7e92b1368cb7848746cb505db9e54e"
+    },
+    "scripts/load-claude-tastic.sh": {
+      "hash": "7c2209c9ded525011a2d6b394af01695b56b1c74e1c3a31cb57a8f06f867bff9"
+    },
+    "scripts/log-capture.sh": {
+      "hash": "40b8f133a2b2064b0cb84eab21982067745aa823af37798ed9ac46ff2d96488e"
+    },
+    "scripts/logs-analyze.sh": {
+      "hash": "8d6835ead0f477e8251aeb0d981eacb52501a7e091add774adbcb59867653de5"
+    },
+    "scripts/maintenance/check-seed-migrations.sh": {
+      "hash": "f6db1e09168e34b22d15c0a8528eef6cf587d7921f6853c205eae7655bac8d9c"
+    },
+    "scripts/maintenance/find-duplicates.sh": {
+      "hash": "9e7fb26687cf554dd50c50d74195890fc3722322b42789a9d425108679e2fa4a"
+    },
+    "scripts/maintenance/find-fixtures-by-model.sh": {
+      "hash": "94da0a6b3f5125df2de386776744e1bb288126471e2f11ff530faf5dc672ce5c"
+    },
+    "scripts/maintenance/generate-inventory.sh": {
+      "hash": "1b8b7f546cceffa8668ff6702f214d10ef2f5050af3ca8c4cd2f0511cd9535fd"
+    },
+    "scripts/maintenance/regenerate-fixtures.ts": {
+      "hash": "1100551bf88d16c31113aa4b3271fb06c28e8e85efa9c1eddd11736741af0e0f"
+    },
+    "scripts/maintenance/validate-all-fixtures.sh": {
+      "hash": "daafdf288afa74b0ad59641712eb20a120787630704467ef9c4ed46fba022b4c"
+    },
+    "scripts/maintenance/validate-fixtures.sh": {
+      "hash": "d2c714daa0eb433523c3ded35f46697c035015e3dcee87228788b46e790cfb23"
+    },
+    "scripts/manifest-sync.sh": {
+      "hash": "b01208f6c4aaab66dd05dc6dd3d350553346a87cfcf51aa38406c86ca6260572"
+    },
+    "scripts/mcp-auth-server.sh": {
+      "hash": "45d1e0ebe450b4a12cdf081fc86e2217b3ac7f4ea702e463c55563ce8bc84ecd"
+    },
+    "scripts/merge-command.sh": {
+      "hash": "93322d727c8cf4f4511ef18fb30f78c887278b936c54f2e0449df22cf3bae7c9"
+    },
+    "scripts/metrics-log.sh": {
+      "hash": "0c3fe7bfdca2f7d25de6d74d2cf3362e08b55133d1d3e1fc56d4e187bc308d59"
+    },
+    "scripts/metrics-query.sh": {
+      "hash": "396590f8caeefbdeaf5f723cdd2d2584ccd08bbb475a86cbbcddaad116150274"
+    },
+    "scripts/migrate-secrets.sh": {
+      "hash": "b0f70af8b643a1942ff50c1ec1344928a6068489d87f935f7d1089535b06068f"
+    },
+    "scripts/milestone-audit-data.sh": {
+      "hash": "b62db38bee4ccdd4377c4de42b0292f5a02fbd107fbbfea1bd587b226d38ad1c"
+    },
+    "scripts/milestone-checkpoint-check.sh": {
+      "hash": "69165f4676892c5f1142ea2df536b3c80e57cd662e827e3905f239d3be7db646"
+    },
+    "scripts/milestone-close-data.sh": {
+      "hash": "65f38866ad31bb550c8b71bc40a78e55e92974e95e605cec96ecb0f9644229cd"
+    },
+    "scripts/milestone-close-safe.sh": {
+      "hash": "3edaffb2c0e2c9007a07fbb51a8e94866a8dabdfdc35826443d3cba35e67f5c7"
+    },
+    "scripts/milestone-complete-analysis.sh": {
+      "hash": "f1d2a6ded3bc52861b0cbf8cde294f33b9fb590ceb60e87670f4f8a679e84515"
+    },
+    "scripts/milestone-complete-auto.sh": {
+      "hash": "f9a423474083af8ad34031329daddba68676a16dd3d5beba405e644b06c85e9e"
+    },
+    "scripts/milestone-complete-promotion.sh": {
+      "hash": "209dad2ac3b8f6a992d5ac95c0edaa8f045591b05ce9944825ccc4e35adbe06e"
+    },
+    "scripts/milestone-create-data.sh": {
+      "hash": "b9701a1c6cb23d008bfd848f5df773b470177057b16d7cb98f26020274ea4306"
+    },
+    "scripts/milestone-list-data.sh": {
+      "hash": "b00914faf3362c0f5f885e3d73d284351e3a2e85fd8382a453b6f4779d722c62"
+    },
+    "scripts/milestone-update-data.sh": {
+      "hash": "de082898e94f82e68406a3e8aabbced71e9c397bc27d03cb6773791fe6da102f"
+    },
+    "scripts/n8n/n8n-can-work.sh": {
+      "hash": "8e8b5c9b635da432ecb0ba6d0e1f27477aee4d649b41728ce05b979cd8d70929"
+    },
+    "scripts/n8n/n8n-check-utilization.sh": {
+      "hash": "c0d990ad71bc31e58a42e2cb41a002919afff2548121bf2bf43507d02a67975f"
+    },
+    "scripts/n8n/n8n-export-config.sh": {
+      "hash": "ed1f516b37ad1715d49dbd4f9f3dbf193deae717e15123ba997b438f0943c8ac"
+    },
+    "scripts/n8n/n8n-health.sh": {
+      "hash": "60bf32c4e6267bde23e71891cbabbcac408d6f1d845ec68253a3239b068953dc"
+    },
+    "scripts/n8n/n8n-import-config.sh": {
+      "hash": "d25d43ec2908cae6f78dadb712e0574b0db54ea4d60f0133e1cf75cccd57281f"
+    },
+    "scripts/n8n/n8n-import-workflows.sh": {
+      "hash": "86c6fa77c8d161a531d5276645a619976eb3d6cff6bc3092678c23ff65d752a0"
+    },
+    "scripts/n8n/n8n-mcp-health.sh": {
+      "hash": "ed3ee4cf3cff0ad3068e73be6742f568341f24085d8e36566b5c8673a9429c7d"
+    },
+    "scripts/n8n/n8n-metrics-exporter.sh": {
+      "hash": "5ca9c4914b13f45e683a0f923a090980c4f5fc6ce6968cd8d9cf004576e42d2f"
+    },
+    "scripts/n8n/n8n-redundancy-check.sh": {
+      "hash": "c206e0988698e9b4de62cbccede6935df4ed744d42022732c99df3e87406151c"
+    },
+    "scripts/n8n/n8n-repo-commands.sh": {
+      "hash": "a748e87dada6833b2eaf7e8d6600efa3e94f3a7c4d8fb185dd6be8e78d96ea85"
+    },
+    "scripts/n8n/n8n-setup.sh": {
+      "hash": "20d41020b720888cf5fd14d34637839a6f4f2677a968646df3e268a018854ad0"
+    },
+    "scripts/n8n/n8n-start.sh": {
+      "hash": "39ab926aa19e78bb38a4474cdc566cebd616e4907553a68ba98dab1a9ae71bf0"
+    },
+    "scripts/n8n/n8n-stop.sh": {
+      "hash": "13763f6493a0e7ee8e3df94df80700585ec4a1b9533bd14a1bf70fee9fe933fc"
+    },
+    "scripts/n8n/n8n-workflow-health.sh": {
+      "hash": "02917defc915ed87700070df61218e3a53778edbb148348892c7719833fcd772"
+    },
+    "scripts/n8n/proxmox-n8n-setup.sh": {
+      "hash": "0f805fe0f311217beedc8f3e4c6e42d1d9798236ff9301630267285f341d9d73"
+    },
+    "scripts/n8n/sync-n8n-workflows.sh": {
+      "hash": "0f60f4a060df051da5f178a644c4720daf9dc3f76467bd20df756d2fd165c133"
+    },
+    "scripts/n8n/validate-n8n-workflows.sh": {
+      "hash": "b944b489d6fc1d6248b50d2d75580c973e65bd1c0fff678e83fc80e2dd677a8e"
+    },
+    "scripts/network-manifests/README.md": {
+      "hash": "b0e8c2b4957ec435aab6bb8d05877e3a84b512cc52406210d487292dc6bfed44"
+    },
+    "scripts/network-manifests/auto-cleanup-merged.json": {
+      "hash": "a561bd2015a593277fd40f5bf5fadd55dcacf1f90f03d2170dcc5d0dbc97d809"
+    },
+    "scripts/network-manifests/auto-promote-to-qa.json": {
+      "hash": "a932ea211de86bf0af90450bdd8bcbaec5b5dc3b9dc21936f6db01f30a238eed"
+    },
+    "scripts/network-manifests/batch-branch-manager.json": {
+      "hash": "3e8b91f931203881ddee012baefbc3abba41e5109973319013c61228ead602f6"
+    },
+    "scripts/network-manifests/canary-health-check.json": {
+      "hash": "543593ffe27f1d8a0721481c4e5ab75e5a9a84bcd5e525de2543ed348e905cec"
+    },
+    "scripts/network-manifests/n8n-health.json": {
+      "hash": "37ac4ce05e6594888c1f12eb983ffa5960d447e66998ba2eaada4b68656208f9"
+    },
+    "scripts/network-manifests/schema.json": {
+      "hash": "73506e7d253863d7ed4a4c1ffc3a0b851bd385bce8ed750b9cf775d350e54ab6"
+    },
+    "scripts/network-manifests/sprint-orchestrator.json": {
+      "hash": "f1d92ac7caf1314608d647b2d85d4836d319d412f874d53c1032bda9eb4dcf8c"
+    },
+    "scripts/network-manifests/sync-n8n-workflows.json": {
+      "hash": "4ffd73b7dc4bf80fa4e835f06b290bceb2e3fcb6de6fd69b31c5ca54ea24f40d"
+    },
+    "scripts/onboard-existing-repo.sh": {
+      "hash": "464f6612a83a1dd45a31dc5cdce99c8ad0d9c4ff59ffed66eaa8b80f35637e1d"
+    },
+    "scripts/orchestrator-schedule.sh": {
+      "hash": "560ae3b37db8865d258d9348b327f560d62e5808dfa3d67784daaad3571f4adc"
+    },
+    "scripts/parse-ci-logs.sh": {
+      "hash": "794a2fb7fe3215d94d435941f567b77aa802b2e6a7b16bb250db016f3b6d5756"
+    },
+    "scripts/parse-skill-permissions.sh": {
+      "hash": "885a7565ee9ad4125b469c03ebe60d6e73f4d35e1d02d945d323684e330828b8"
+    },
+    "scripts/performance-feedback.sh": {
+      "hash": "2869682e01a55e0fe363a2c7f93b23420836c1166f264c060012990279eea3a9"
+    },
+    "scripts/permission-check.sh": {
+      "hash": "711d5a6b6dbd39efccdf48f1a5db5269b3535990237359b73626b21b6c37100c"
+    },
+    "scripts/permissions/README.md": {
+      "hash": "1b737a546ad0417e6c9074c4e26278565a1d184fc0a0c92099ef09fd881e7047"
+    },
+    "scripts/permissions/context-evaluator.sh": {
+      "hash": "c6c28a994ace9a53f1aa967a656f75adefeafa83bc48b1f1ea43151d9d8d6f3e"
+    },
+    "scripts/permissions/extract-issue-scope.sh": {
+      "hash": "ce582d97e94e59c6b94cc0984da801c09027e67f18797d4202b4ea94b5bb131d"
+    },
+    "scripts/permissions/policy-evaluator.sh": {
+      "hash": "0f7d9f8518c48b01e7b6f1a5add2df941614ead737c80f4e6798835b7a43de75"
+    },
+    "scripts/permissions/tier-classifier.sh": {
+      "hash": "3c992ebd5d2fd082242993c9d90fdd4ca37b9a1fb27b5d548d4819d9ba1531f9"
+    },
+    "scripts/permissions/track-command-history.sh": {
+      "hash": "7275a0dee7714411ad27dfb56dd23403006adbe462bd1a7b478d14d49ac10d9a"
+    },
+    "scripts/policy-validator.sh": {
+      "hash": "ebafc62997a71e1f0786656445a7599ad8b8af90708e8954d8b999e1a47f7403"
+    },
+    "scripts/pr-lifecycle/README.md": {
+      "hash": "be23d25076344345d1607def36436aaaa33a791092c3e0081e134109dbfd7a40"
+    },
+    "scripts/pr-lifecycle/batch-merge.sh": {
+      "hash": "9bd294e0cd740942585fd96e879e4aa6e735a7211c7b4989eea857e7cdbbec40"
+    },
+    "scripts/pr-lifecycle/cleanup-stale-labels.sh": {
+      "hash": "e6ad04e1450416f5ff804123b7897d79d35e834e9d02e026d62c340f49712792"
+    },
+    "scripts/pr-lifecycle/merge-and-cleanup.sh": {
+      "hash": "b10382d9063388992e9391824d62c2f937404c43a4176abd11a3889fee3a9055"
+    },
+    "scripts/pr-lifecycle/resolve-conflicts.sh": {
+      "hash": "e8621715568b3070e7a261997b5e846107ea72946e0fef81d03c63062156e48b"
+    },
+    "scripts/pr-lifecycle/validate-merge.sh": {
+      "hash": "ef270360005af55fb31b0cddff59e73ad0844d10d0133f31af57b9b3247f4047"
+    },
+    "scripts/pr/check-merge-readiness.sh": {
+      "hash": "79d152b960a0c34ca714a16c50c19ca09e5eff7e40e584143431e9feef5cbe89"
+    },
+    "scripts/pr/check-pr-ci-status.sh": {
+      "hash": "60da8153968c9e3b33ca3b5d126c40686d33ec48b495b6a4fbfb3bafda6efbf9"
+    },
+    "scripts/pr/dep-review-data.sh": {
+      "hash": "0cffd96720826749ab842520e008135adfc34486b14041d307e749d587a5330e"
+    },
+    "scripts/pr/git-push-with-pr.sh": {
+      "hash": "2122200db99e2f97aa2cf0b73998800d129d8663c9a5676a132b8e96a983333e"
+    },
+    "scripts/pr/pr-checks-analysis.sh": {
+      "hash": "70103d44a50b84f1d81a9881240ce755b620fa3272093d1d859779e3bda3dbac"
+    },
+    "scripts/pr/pr-create-with-cleanup.sh": {
+      "hash": "e5d9ba56fb17dd2364db0f8f6662be16ca3385118fbcd56ed2a2facbd70797fa"
+    },
+    "scripts/pr/pr-creation-validate-runner.sh": {
+      "hash": "7db7cefbdd79b9174fdfa8529bb4cdeb4232aedd193ac618c02ebe74415ebcb2"
+    },
+    "scripts/pr/pr-cross-reference.sh": {
+      "hash": "6343b0194e5f448479ee55cf9aaeb8204d5a8b19f759439f1c924a011f9d566b"
+    },
+    "scripts/pr/pr-fix-data.sh": {
+      "hash": "06e62f9bc700d1a00196b82b029c89bef14355216f6b69c52c547c4e8b3b36cb"
+    },
+    "scripts/pr/pr-health-check.sh": {
+      "hash": "b20dbf9ee48629360b4f214c3f0cb90443a5930ba2d849ff8de6c32d541ccffd"
+    },
+    "scripts/pr/pr-iterate-data.sh": {
+      "hash": "a468c04224f65908365cab22ca89dd001b9de9bcc1450ecbd0c51ceab357855c"
+    },
+    "scripts/pr/pr-orchestrate.sh": {
+      "hash": "4bdb11ff5083d5a2159cf8eb01dec5870af4e5a422d52b5b4841a9b6b6990c5d"
+    },
+    "scripts/pr/pr-review-data.sh": {
+      "hash": "6ea3d16327aebdc317833478c011ae40db50fc73ae95b1205d224f844c74fe19"
+    },
+    "scripts/pr/pr-status-data.sh": {
+      "hash": "5c41bdc548cf2faaeb7b5655bece16b450efc1929db280702c0888cce958c8c3"
+    },
+    "scripts/pr/pr-to-main-data.sh": {
+      "hash": "a8d1b5879bd0d00e9c78d933aa9c494f0782ec7b5c30f20c7dbe804c7798471f"
+    },
+    "scripts/pr/pr-to-qa-data.sh": {
+      "hash": "19aaf4fdaad3e51b0e859bcb57127b1403baa27543518e8cd26cbc4db8999aa0"
+    },
+    "scripts/pr/pr-validate.sh": {
+      "hash": "5534026caf0048f9184560a5d0d28431b35f677d37519c757dfe6b536c0e764d"
+    },
+    "scripts/pr/pr-validation-gate.sh": {
+      "hash": "7acf445caa1cfa5bfe3eff44f9d5d4e5edc7d3bd6376f5a5815fda8aa4002027"
+    },
+    "scripts/pr/pre-promote-main-gate.sh": {
+      "hash": "4a5769f805e5a7ada9b31149f40945ea99ab701273e0db838dc6ce999a630767"
+    },
+    "scripts/pr/pre-promote-qa-gate.sh": {
+      "hash": "580822efd634f93a22ad83ec66e1f8a3bc5e01938ba3810cd5fd43b4340f05d3"
+    },
+    "scripts/pr/resolve-pr-conflicts.sh": {
+      "hash": "abcb4dd24ccbfc0943f52dfbef2d40562109ab10bf445048d63db6237ede4b03"
+    },
+    "scripts/pr/update-pr-status.sh": {
+      "hash": "c8c5531d3935c3b226dc4ba4ee24b4fdce5b99c38ae755f3a615063439c21ee0"
+    },
+    "scripts/pr/verify-pr-mergeable.sh": {
+      "hash": "a294ce55261acac94a18fbffb6b1472f186460f01a1181614734714c7e92b0ec"
+    },
+    "scripts/predict-conflicts.sh": {
+      "hash": "a83a1f2f84e6ebf4363370fe0d0af17330900367ad1de819ec62c1b55f1835a4"
+    },
+    "scripts/primitive-registry.sh": {
+      "hash": "f3e19202170792044a069ec1fbe6fc1878c96357a1be4dc77bd24415ab731f6f"
+    },
+    "scripts/publish-package.sh": {
+      "hash": "98b8caccb42a00f9597af1ea7742893128d93a527a347f470c8a85c2275aa205"
+    },
+    "scripts/qa-gate.sh": {
+      "hash": "ab1c26f75e110b2ad88577cb4609e72b8ac2de7f9cfb4608eeaea5e109e3a17e"
+    },
+    "scripts/query-audit-logs.py": {
+      "hash": "e83df3a0e81f02161d474662b6739b6b2d2a8af9662f2f79f22f33b95876baad"
+    },
+    "scripts/quickload.sh": {
+      "hash": "b9f88d6d5e1f07c949f3fd2ab215be05aaea9f2c44f1929df640c4c890125ebb"
+    },
+    "scripts/reconfigure-command.sh": {
+      "hash": "b899e1c88613541fd0fc8f0bd453f98b554de84f6ea6c7814ca02e49fe28d1b0"
+    },
+    "scripts/refactor-iterate.sh": {
+      "hash": "dd1ec4b76e72beb75a966fc1ba976dcaf3747497740813f1e18d1dad1f4a9d03"
+    },
+    "scripts/refactor-stale-check.sh": {
+      "hash": "ba7b3565b7ecc872ad6b65a9d32b31cb52bd3eb2d785bc54e898000acd35507b"
+    },
+    "scripts/release-pipeline.sh": {
+      "hash": "f0591c60edba745742c1629360acf789d244f22a9357ca841d20f0cd5b230236"
+    },
+    "scripts/release-readiness.sh": {
+      "hash": "8251f63ae6fd9af1e1fa19c787cc02ba9d75d276672aeef246029904acbe148c"
+    },
+    "scripts/remove-pack-command.sh": {
+      "hash": "767a287c942332cc8e22b41c2d1699492472baf4e049c862b549508f2b4ade3b"
+    },
+    "scripts/rename-skills.py": {
+      "hash": "481fb0a0686a481f86231d0d82597b302676f7ac75ba9b134aa9bf43ac328d64"
+    },
+    "scripts/repo-audit-baseline.sh": {
+      "hash": "07949381d8331ee5f948a32b79b0aad69a6261636cd39e527709746fa6a79419"
+    },
+    "scripts/repo-audit-complete-data.sh": {
+      "hash": "1cfac381a3576eedb7d760b8eabd7a5da0386c3d52a6d7d09b17aa1ce8cb2dd1"
+    },
+    "scripts/repo-audit-create-issues.sh": {
+      "hash": "cbb5eaada1f86f5c33878808e4404ebcf1a424c46fba776e7587fc4dc2122fc4"
+    },
+    "scripts/repo-audit-findings.sh": {
+      "hash": "9455b48f4bf5cd8aa49b88ad75bb2292baa59fadd50073a24d944d8fd4b79628"
+    },
+    "scripts/repo-code-data.sh": {
+      "hash": "a02748d5bc97fcf6a6b9259de45cec64310eae62e068ac413a8f93fa8c4452a9"
+    },
+    "scripts/repo-create-release-data.sh": {
+      "hash": "c8ec36234d058e3a27a20e345d8325b6649c95d6d88111b98824af01f4a8563c"
+    },
+    "scripts/repo-deploy-review-data.sh": {
+      "hash": "4a96b905ef08d877bc0b74a3975176e41e43a96dea7d33cd47dfe40831e63657"
+    },
+    "scripts/repo-perf-audit-data.sh": {
+      "hash": "f150e41db317539bb2633df2ddd4d64da9579e61cb9d06295181944ea3b6ae8f"
+    },
+    "scripts/repo-spec-data.sh": {
+      "hash": "66b9a2402ffd536a03eaa5d70828fc5e612fb7bdbec151555c72fa24e36f59c7"
+    },
+    "scripts/repo-structure-data.sh": {
+      "hash": "3496ec4047dd4639fb4d3966355b62c58f9e1cdea4f1afcd961819a8d0511187"
+    },
+    "scripts/review-agent-docs.sh": {
+      "hash": "567839f7f3aa875101ba1bd5777e1a9bbff03335e7f7575ef028b95c499e0b19"
+    },
+    "scripts/rollback-claude-tastic.sh": {
+      "hash": "5a044fcd7f664ee2f0a7ff4d0f39b15a66c23065216e009e475a01342cd1ca02"
+    },
+    "scripts/rollback-production.sh": {
+      "hash": "3d652a34cf9b365a85e5e88c7bffd5d63b7d8e7a1264aa43e25a11aaa330ebf2"
+    },
+    "scripts/rollback-qa.sh": {
+      "hash": "aa1e259281ac5ac02d3d9c9c5740496543a7b9b35a92a6e6b02f76a5540f2008"
+    },
+    "scripts/rotate-secrets.sh": {
+      "hash": "bda6965a4e84899a6b2ce04075dac4e7bf00d313e50ff248a68fc0b6eea917b1"
+    },
+    "scripts/route-execution-target.sh": {
+      "hash": "b78791d79c35e9065340517417a0df47606a6e7526130706c6de010f71c0f267"
+    },
+    "scripts/runtime-profile-audit-data.sh": {
+      "hash": "fc29a2b461f8f6a580c7b65b1c3f20c33b142f39ff050ceea0abcb7dc74146c9"
+    },
+    "scripts/scan-code-quality.sh": {
+      "hash": "ee4e53c67f4afd619669595d7f8ece45267d4de98a3f178482f7bee3dc7523b3"
+    },
+    "scripts/scan-docs.sh": {
+      "hash": "6288eabbe36aeb885cf04c4a754926c02451eef28f00227f473625b58a22fc77"
+    },
+    "scripts/script-health-check.sh": {
+      "hash": "b53381b79ada84f700c3fbc23054d9c6e06dd62fdec03952de64dbb46a37d2b5"
+    },
+    "scripts/search-similar-issues.sh": {
+      "hash": "1dcc3babfe3962483f22c742e6efb38c74d9134d3b1f5275277e63efe58135ca"
+    },
+    "scripts/security-scan.py": {
+      "hash": "ac0cdf5e89942f77219647db0f56742b1c75d479f42d67aa3a46f2b077a5fc5d"
+    },
+    "scripts/security/README-brew-security-audit.md": {
+      "hash": "0f655c45bafbcaa9e8d85785ae8e20cea18bc25ee2d6fe996ad6fe449ea04add"
+    },
+    "scripts/security/brew-security-audit.sh": {
+      "hash": "ae1c96e4559691c003d9687579b96f2656f836a7c4e5b4303c69942c1b62033a"
+    },
+    "scripts/session-permissions.sh": {
+      "hash": "aebd4d4f62744955903443eb6a3372ac03d62cc923f522c2f7edca1b4616dc82"
+    },
+    "scripts/setup-infisical.sh": {
+      "hash": "2920b2d7303c6a5bc20588a84a70799d732cdf185d59b3ad5800d491fc5aab1c"
+    },
+    "scripts/setup-sync-hooks.sh": {
+      "hash": "4ac4009c7c0116e5501ecd1c8012613e3d6b0ef84151a37f51dd426075ddbf1e"
+    },
+    "scripts/setup.sh": {
+      "hash": "899534d2f1c8f6a85923844d4118abdd5644aed4a2d1cce6dc6ed8fb4f7aef2a"
+    },
+    "scripts/skill-deps-data.sh": {
+      "hash": "449026a0ec6adda84d91ee5de8144f571cc73e82b4f398cd5b4473931045e0cf"
+    },
+    "scripts/skill-sync.sh": {
+      "hash": "7146c6d1ce9fc55ae60a9bbd7a6092a94fc5bf02d9bf744764dc0a7fcc6d2baa"
+    },
+    "scripts/smoke-test-framework-deployment.sh": {
+      "hash": "a9682959df69775526a8fb75fb0cbc5770f601e7645597928234dc89342f1791"
+    },
+    "scripts/sprint/analyze-parallel-work.sh": {
+      "hash": "c50d6c00142908c90e1261e9ea24ff99a02b3bd200c6171573007a1f6b22b7d5"
+    },
+    "scripts/sprint/framework-update-check.sh": {
+      "hash": "705b626ececf468638a6dbb69cae7c829cf559407aa3e3cc70cb1ee1a5b10be8"
+    },
+    "scripts/sprint/generate-sprint-state.sh": {
+      "hash": "e6fdf38b2a4c85df0e02e4b0d934defa23dec1b71f7061a651a10e86007d5c19"
+    },
+    "scripts/sprint/read-sprint-state.sh": {
+      "hash": "749b87e4719a18bde6403d6ac739d7141339f7c300c53acb202b1de6d09b5ab7"
+    },
+    "scripts/sprint/refresh-sprint-state.sh": {
+      "hash": "3b5888824ef0b3b72a9ab8b8f08dac6cdcfb69c43eadbd5b00c22d0f49f1f201"
+    },
+    "scripts/sprint/retroactive-context-review.sh": {
+      "hash": "729c4b87edf936b165f2777764f3a3871afc5496df797237e567225197cc4014"
+    },
+    "scripts/sprint/sprint-orchestrator.sh": {
+      "hash": "72f90e2d7975fd0482f5f406c8d4d93a3790985ed34ed68a646bab36ffcbb955"
+    },
+    "scripts/sprint/sprint-status-auto-merge.sh": {
+      "hash": "3305031f26edb2846c0a04b58978c96f45941d6eb405c7edf73d82a97230210c"
+    },
+    "scripts/sprint/sprint-status-containers.sh": {
+      "hash": "c4e0a7f28b78a294d1c2b7a6078dec0f0987e73f541ea96cb8923d31e492de9b"
+    },
+    "scripts/sprint/sprint-status-data.sh": {
+      "hash": "e0fba7ff61fe903552034a98a137c2d57f5eb481181e6141441aa291b6f9c30b"
+    },
+    "scripts/sprint/sprint-status-n8n.sh": {
+      "hash": "510b57d2fd82cd7f1d3a648822e6412b5d2a98490e3c788648c7bf8e75778c06"
+    },
+    "scripts/sprint/sprint-status-repo-ci.sh": {
+      "hash": "191e4c04cc99650987eb0953f0b7a30d23bfd2ac0779761850e0c2195518e2bc"
+    },
+    "scripts/sprint/sprint-status-unpushed.sh": {
+      "hash": "efb7977710c7519091553be9aeeafc7ac392c5af5b277478a7bd5edc15134c25"
+    },
+    "scripts/sprint/sprint-status-worktrees.sh": {
+      "hash": "3c130c8e87504fc23f09f4eefe3772b0a90661df5930e94103422e5fc8c3d21b"
+    },
+    "scripts/sprint/sprint-work-preflight.sh": {
+      "hash": "964693c13a05452d4d386186272e877a18586322e0ceb443408164b792c78837"
+    },
+    "scripts/sprint/triage-bulk-check.sh": {
+      "hash": "16a34b0cff0b8c37517b9f3d57446991c876925f8fa9b23661a50e83868a29e2"
+    },
+    "scripts/sync-commands-simple.py": {
+      "hash": "53a70e1ed78406d5c5ea441b93a03a6cd22c65be5df51255c4fa676e00b0a086"
+    },
+    "scripts/sync-configs.sh": {
+      "hash": "97fb7942029a1f2603a63e8f749a0a2900e012df40459a6d84f084aea6b709d3"
+    },
+    "scripts/sync.sh": {
+      "hash": "a7b71d340a6d32b5d5284d68c906d5e0d92f6e5cc17331d4e70ab17e494f54ff"
+    },
+    "scripts/test-compression-roundtrip.sh": {
+      "hash": "8bd1802ab73591b3e5c54a2ad47b6d8bb0c9e5b5f949479141de4b2c186582d1"
+    },
+    "scripts/test-metrics-security.sh": {
+      "hash": "f6b8dca428a01ecbb11d76721ffcc2f56c1b6c610d707ecce32d02dbce67f338"
+    },
+    "scripts/test-runner.py": {
+      "hash": "38292a805510bd155757d2392cc92150f897085dae657e35ce450b0c6cb47274"
+    },
+    "scripts/test-runner.sh": {
+      "hash": "64b02436b2d88d77aec8b2cf2e04a3dd09d907a3b6faaffd79284bc7eb11f1cc"
+    },
+    "scripts/test-scan.py": {
+      "hash": "d8723767c9d6ba95aa2efe515ca8cf518256297202230d64c0ec9f130ff3404e"
+    },
+    "scripts/test-scan.sh": {
+      "hash": "8fb1ebc425ef9206be97ae5c43b91f696f212447d17e6169e05ce1f3d9ab993e"
+    },
+    "scripts/test-structured-logging.sh": {
+      "hash": "7437774d482eb7d84e53eab80aae2b4b2e61971454db44e1c0c9fbf7d7ce3386"
+    },
+    "scripts/test-summary.sh": {
+      "hash": "12f528c1d71c1420707196d353b5f0a40a3e93c7f07a24715d4e010dbd532e61"
+    },
+    "scripts/tier-lookup.sh": {
+      "hash": "109577c78af5dcfe16bf31defb91721803199f4374d4dc1d23dd64eb790bdd92"
+    },
+    "scripts/update-ci-check-labels.sh": {
+      "hash": "2ae406afde7d66f5012b155d0c822107195ac6048d5a93818ea28d9a6f08673a"
+    },
+    "scripts/update-command.sh": {
+      "hash": "db69739f78d99d91aea0e40ec3e78f371870fe5ea745fee298a1f84d48a6625e"
+    },
+    "scripts/update-skills.sh": {
+      "hash": "0d9eea9648badd7fc2c02fa51b4828769ac7e1f2f9fdc7ba7ba5825996a3d5c4"
+    },
+    "scripts/update-work-state.sh": {
+      "hash": "fd14004abe1b00e75800b37dd0056a16e6dd63e3c5ab67a038feb9365f1ab03b"
+    },
+    "scripts/usage-monitor.sh": {
+      "hash": "8246801f419e13c4b4f98325d3a56dc27d5f3c421ed1f594b2302553bbf94a0f"
+    },
+    "scripts/utilization-state.sh": {
+      "hash": "d17b695a5a7486744d75684ab8a3ac77ca87971353141dc93d8e10197712014a"
+    },
+    "scripts/validate/validate-agents.sh": {
+      "hash": "4e5fb9c914d4c013238c41f1038d9ab35fa5b083b1cc813197c37c006156035e"
+    },
+    "scripts/validate/validate-capture-output.sh": {
+      "hash": "f34bca0cdb92dc10aa02a241f315ae9fdaca1954f73e1e7d0e29cb4c2c83d280"
+    },
+    "scripts/validate/validate-claude-md.sh": {
+      "hash": "6103e44b5d56f08b444e9762ac2b52c70a89f77c783d8079ee4382123abb948b"
+    },
+    "scripts/validate/validate-container-token.sh": {
+      "hash": "de6b8dc2ad64febd37ec34955b2bd9962562c9fb7b595bb3eb5bea77f60b64e8"
+    },
+    "scripts/validate/validate-corporate-mode.sh": {
+      "hash": "71c02e13897afd0231b3a1602426220e7ac88953658eac7bbe651c0f7febc1a8"
+    },
+    "scripts/validate/validate-deployment.sh": {
+      "hash": "fb62bbca4b7f8716fdd6d9f496d0de3ef7fa576a4aa36038f28faee875be34e5"
+    },
+    "scripts/validate/validate-framework-artifacts.sh": {
+      "hash": "8435f9e7fbfb725953e6aae33752c63c67de1a427d235b3b4fdbbdf236252666"
+    },
+    "scripts/validate/validate-github-conventions.sh": {
+      "hash": "d42469ca95c4928492c21ae1610f9ec2472c63435f27ca3a36f4db0a5634550a"
+    },
+    "scripts/validate/validate-in-progress.sh": {
+      "hash": "39bc23da4cc18fe5358133d8d11f59d83a061988243ea448de0c674a22ac7051"
+    },
+    "scripts/validate/validate-issue-architecture.sh": {
+      "hash": "796442f63b58e02905a1d9789ec0056a651d6683be1e357f32ff1eef0f9c4d02"
+    },
+    "scripts/validate/validate-local.sh": {
+      "hash": "6e469c6ddff36da29078b45d0fc5cc32f9e16e0209b9986cf10b349de876ab31"
+    },
+    "scripts/validate/validate-loop.sh": {
+      "hash": "3de094ba1c11a55a2c241b08085aa1bc95c6ff7522049f63068f32147025e89f"
+    },
+    "scripts/validate/validate-milestone-name.sh": {
+      "hash": "881cdaaf59c3385db877840d67d6da74a9931b9668fb845a0ba167a5ef434d07"
+    },
+    "scripts/validate/validate-naming.sh": {
+      "hash": "f786c1f8faccafceea6935a91ac1655ccc7a8b03f7e3517d04166c33b39726bf"
+    },
+    "scripts/validate/validate-phase1.sh": {
+      "hash": "9a9c06b8200990eed8eb1cc6aa85ffa6aab6b80bb7a866fdc6c9184eb502df83"
+    },
+    "scripts/validate/validate-proxmox-setup.sh": {
+      "hash": "bdf81373f4217dbde468d28f65a63608eebfa2c404dcf1e0889d271c09482e5f"
+    },
+    "scripts/validate/validate-readme.sh": {
+      "hash": "5bfadd408d593a376a628a886c2b889a4f246823241f2bec7707e833d4ab1969"
+    },
+    "scripts/validate/validate-script-naming.sh": {
+      "hash": "4ed81c9a69c991dd5b3021d032af27b691a9ca93b31840d9445ca8e6b571efe1"
+    },
+    "scripts/validate/validate-skill-boundaries.sh": {
+      "hash": "fb6a8011d77472f3cf1a146fa4a0a553bfd55e41054ae7b6516d0966dc767825"
+    },
+    "scripts/validate/validate-skill-contracts.sh": {
+      "hash": "e6099157ee0ecc6dbbb7edd8931e6c810d593ce99ce0be38c0bf8edae9913e60"
+    },
+    "scripts/validate/validate-skill-retention.sh": {
+      "hash": "5caa29aa91c3898045e2ecf109c11e25a74fd60d1314297cd3b897936626fd65"
+    },
+    "scripts/validate/validate-sprint-work.sh": {
+      "hash": "53c01e9b57dd36da84b15d1ac055f5df0edc59b5b83fcb3c770265b4f2ff0382"
+    },
+    "scripts/validate/validate-structure.sh": {
+      "hash": "119b0a740211bf34a5c7e10fabe9a20fa66fa8ba02c2e6130aaa97500f7cb59f"
+    },
+    "scripts/validate/validate-test-distribution.sh": {
+      "hash": "77d97aeb7a4a0d7ef6f230acb0e29cb5305f5cf8ee15695c64cdb94597b63866"
+    },
+    "scripts/validate/validate-test-existence.sh": {
+      "hash": "ac6c2d324b93a85cb08d1a4e250c9db9f6e4669fd0e6914f67a54c44abca62bf"
+    },
+    "scripts/webhook-listener-setup.sh": {
+      "hash": "59ab9b5eab9d5b5e01147e2930fa3b2f8e2e008b71ee4bf500fb43823ca076a1"
+    },
+    "scripts/wise-men-debate-data.sh": {
+      "hash": "ca604594e8612d2b6fd0c05d4084ee23bf67865e2672bf155d013d7cc8996c87"
+    },
+    "scripts/worktree/classify-worktree-commits.sh": {
+      "hash": "0134fce7ee8a4d5adb88cbeaf48994e1169a5eb199953a85c91f17990a537932"
+    },
+    "scripts/worktree/detect-worktree.sh": {
+      "hash": "8ff448f867c1420c55b2ab67b5ce63220ddbdbc21f8f790060f92f287ea729bc"
+    },
+    "scripts/worktree/launch-worktree-terminal.sh": {
+      "hash": "8350e732b92c61f8df618741cacbbeaf01e567042c362080027aa2f43364aaac"
+    },
+    "scripts/worktree/spawn-parallel-worktrees.sh": {
+      "hash": "faa320351ec34b0636f2999ee858edc118d8815cd0902bd1a788e6e93d3d9a12"
+    },
+    "scripts/worktree/worktree-archive.sh": {
+      "hash": "943f33f762c94d8da0ac707ac6faeb7dc116bc3cfd03bfd2f1735c5d896937fa"
+    },
+    "scripts/worktree/worktree-auto-merge.sh": {
+      "hash": "68072e87b1e9c30c541e9b5da32b3346b456e1a98e6e9788be8130c38441bd53"
+    },
+    "scripts/worktree/worktree-cherry-pick.sh": {
+      "hash": "41d3eedd1711d4a7e29e9b62c5cb1aaf9f7be97b74b45f82e7a2d3b80c1dcb12"
+    },
+    "scripts/worktree/worktree-cleanup-batch.sh": {
+      "hash": "31aec49fc34f782ec92a268861cfecd18fa024839af6d85bac6ee184c085e070"
+    },
+    "scripts/worktree/worktree-cleanup.sh": {
+      "hash": "5744fd5738be993609af934cb9cab97b7f043d9dd1caaee3160bf5903d09050a"
+    },
+    "scripts/worktree/worktree-complete.sh": {
+      "hash": "f598f8dc308e7f91d056cb59c7229921adc1518b33c9188a82ab31bb1e91906a"
+    },
+    "scripts/worktree/worktree-discard.sh": {
+      "hash": "4fca34fb5d855795cc9eac4adbe0ce67d98658023d99f48c017bd135bb1d69d0"
+    },
+    "scripts/worktree/worktree-safe-merge.sh": {
+      "hash": "dc4b4d0d0713ee4e81f7c2ce74c7000fad0b2bd1f9148054b3b67bef0f742991"
+    },
+    "scripts/worktree/worktree-validate-close.sh": {
+      "hash": "aad77552d1f3f558252ec35381578eacce839e2e67796f530cf9a23536a68ab9"
+    }
+  }
+}

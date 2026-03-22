@@ -30,8 +30,9 @@ down: ## Stop Docker services
 
 rebuild: ## Full clean rebuild (preserves data)
 	@docker compose down --remove-orphans
-	@docker compose build --no-cache -q
-	@echo "Data preserved." && bash scripts/docker-up.sh
+	@echo "Building images (no cache)..."
+	@docker compose build --no-cache
+	@echo "Build complete. Data preserved." && bash scripts/docker-up.sh
 
 nuke: ## DELETE all data (with backup prompt)
 	@echo "This will DELETE all data." && read -p "Backup first? [Y/n] " b; \

@@ -29,8 +29,15 @@
 #   124 - Phase timeout exceeded
 #   125 - Total timeout exceeded
 #   126 - Heartbeat timeout (stale heartbeat file)
+#
+# Blocker Reporting (Issue #1330):
+#   Before exiting with a timeout code the watchdog calls container-blocker-report.sh
+#   (if available and ISSUE env var is set) to post a structured comment on the
+#   GitHub issue, add the 'blocked' label, and remove 'in-progress'.
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Configuration with defaults
 PHASE_TIMEOUT="${PHASE_TIMEOUT:-600}"           # 10 minutes per phase
@@ -39,6 +46,10 @@ HEARTBEAT_MAX_AGE="${HEARTBEAT_MAX_AGE:-120}"   # 2 minutes stale heartbeat
 WATCHDOG_CHECK_INTERVAL="${WATCHDOG_CHECK_INTERVAL:-10}"  # Check every 10 seconds
 WATCHDOG_HEARTBEAT_FILE="${WATCHDOG_HEARTBEAT_FILE:-/tmp/claude-heartbeat}"
 WATCHDOG_DISABLED="${WATCHDOG_DISABLED:-false}"
+
+# Export configurable thresholds so container-blocker-report.sh picks them up
+export STUCK_TIMEOUT="${STUCK_TIMEOUT:-$PHASE_TIMEOUT}"
+export HARD_TIMEOUT="${HARD_TIMEOUT:-$TOTAL_TIMEOUT}"
 
 # Warning thresholds (80% of timeout)
 PHASE_WARNING_THRESHOLD=$((PHASE_TIMEOUT * 80 / 100))
@@ -127,6 +138,77 @@ log_diagnostics() {
         log_error "Last heartbeat: $(cat "$WATCHDOG_HEARTBEAT_FILE" 2>/dev/null || echo 'N/A')"
     else
         log_error "Heartbeat file not found: $WATCHDOG_HEARTBEAT_FILE"
+    fi
+}
+
+# Report blocker to GitHub issue before exiting (Issue #1330)
+# Non-fatal: failures are logged but never abort the watchdog exit sequence.
+#
+# Arguments:
+#   $1 - reason code forwarded to container-blocker-report.sh
+#   $2 - phase (read from heartbeat file if omitted)
+#   $3 - optional detail string
+report_blocker_to_github() {
+    local reason="${1:-watchdog_kill}"
+    local phase="${2:-}"
+    local detail="${3:-}"
+
+    # Only report when an issue number is available
+    if [ -z "${ISSUE:-}" ]; then
+        log_watchdog "ISSUE env var not set - skipping GitHub blocker report"
+        return 0
+    fi
+
+    # Detect current phase from heartbeat file if not provided
+    if [ -z "$phase" ] && [ -f "$WATCHDOG_HEARTBEAT_FILE" ]; then
+        local hb_content
+        hb_content=$(cat "$WATCHDOG_HEARTBEAT_FILE" 2>/dev/null || echo "")
+        if echo "$hb_content" | grep -q "phase:"; then
+            phase=$(echo "$hb_content" | sed -E 's/.*phase:([^ ]+).*/\1/')
+        fi
+    fi
+    phase="${phase:-implementation}"
+
+    # If no detail provided, use last heartbeat line as context
+    if [ -z "$detail" ] && [ -f "$WATCHDOG_HEARTBEAT_FILE" ]; then
+        detail=$(cat "$WATCHDOG_HEARTBEAT_FILE" 2>/dev/null | tail -1 || echo "")
+    fi
+
+    # Locate the blocker report script (try multiple paths)
+    local blocker_script=""
+    for _bpath in \
+        "${SCRIPT_DIR}/container-blocker-report.sh" \
+        "/workspace/repo/scripts/container-blocker-report.sh" \
+        "/workspace/repo/.claude/scripts/container-blocker-report.sh"; do
+        if [ -f "$_bpath" ] && [ -x "$_bpath" ]; then
+            blocker_script="$_bpath"
+            break
+        fi
+    done
+    unset _bpath
+
+    if [ -z "$blocker_script" ]; then
+        log_watchdog "container-blocker-report.sh not found - skipping GitHub blocker report"
+        return 0
+    fi
+
+    log_watchdog "Posting blocker report to GitHub issue #${ISSUE} (phase: $phase, reason: $reason)..."
+
+    # Run non-fatal (use subshell so set -e doesn't kill watchdog on failure)
+    if (ISSUE="${ISSUE}" \
+        REPO_FULL_NAME="${REPO_FULL_NAME:-}" \
+        ISSUE_TITLE="${ISSUE_TITLE:-}" \
+        STUCK_TIMEOUT="${STUCK_TIMEOUT}" \
+        HARD_TIMEOUT="${HARD_TIMEOUT}" \
+        "$blocker_script" \
+            --issue "$ISSUE" \
+            --phase "$phase" \
+            --reason "$reason" \
+            ${detail:+--detail "$detail"} \
+        2>&1); then
+        log_watchdog "Blocker report posted successfully"
+    else
+        log_watchdog "Blocker report script failed (non-fatal)"
     fi
 }
 
@@ -229,6 +311,10 @@ main() {
             log_diagnostics "Heartbeat stale for ${heartbeat_age}s (max: ${HEARTBEAT_MAX_AGE}s)" \
                 "$phase_elapsed" "$total_elapsed" "$claude_pid"
 
+            # Report blocker to GitHub before killing (Issue #1330)
+            report_blocker_to_github "heartbeat_stale" "" \
+                "No output for ${heartbeat_age}s (threshold: ${HEARTBEAT_MAX_AGE}s)"
+
             kill_claude_process "$claude_pid"
 
             # Exit container with timeout code
@@ -241,6 +327,10 @@ main() {
             log_diagnostics "Phase timeout exceeded (${phase_elapsed}s >= ${PHASE_TIMEOUT}s)" \
                 "$phase_elapsed" "$total_elapsed" "$claude_pid"
 
+            # Report blocker to GitHub before killing (Issue #1330)
+            report_blocker_to_github "phase_timeout" "" \
+                "Phase ran for ${phase_elapsed}s without a heartbeat update (limit: ${PHASE_TIMEOUT}s)"
+
             kill_claude_process "$claude_pid"
 
             # Exit container with timeout code
@@ -252,6 +342,10 @@ main() {
         if [ "$total_elapsed" -ge "$TOTAL_TIMEOUT" ]; then
             log_diagnostics "Total timeout exceeded (${total_elapsed}s >= ${TOTAL_TIMEOUT}s)" \
                 "$phase_elapsed" "$total_elapsed" "$claude_pid"
+
+            # Report blocker to GitHub before killing (Issue #1330)
+            report_blocker_to_github "total_timeout" "" \
+                "Container ran for ${total_elapsed}s (hard limit: ${TOTAL_TIMEOUT}s)"
 
             kill_claude_process "$claude_pid"
 

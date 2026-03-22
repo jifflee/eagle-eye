@@ -15,6 +15,7 @@ Syncs skills, agents, and scripts from claude-tastic repo to ~/.claude/.
 /skill-sync --status           # Show installed counts and orphans
 /skill-sync --clean            # Remove orphaned files and old hyphenated names (with confirmation)
 /skill-sync --clean --dry-run  # Preview orphan removal
+/skill-sync --verbose          # Show full summary including unchanged file count
 ```
 
 ## Steps
@@ -258,3 +259,4 @@ This skill is already well-optimized for minimal token usage:
 - Project-specific skills (55 total) remain in .claude/commands/ only
 - Uses `manifest-sync.sh --global-only` for intelligent filtering
 - Related issue: #1104 (Separate global vs project-only skills)
+- **Auto-invoked:** `/repo:framework-update` automatically runs this sync as Step 8 — no need to run separately after a framework update

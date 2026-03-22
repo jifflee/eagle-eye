@@ -19,6 +19,8 @@ permissions:
       tier: T0
     - name: auto-select-issue.sh
       tier: T0
+    - name: route-execution-target.sh
+      tier: T0
 ---
 
 # Sprint Work
@@ -28,11 +30,12 @@ Orchestrates working through backlog issues in the active milestone, running eac
 ## Usage
 
 ```
-/sprint-work                  # Auto-start highest priority issue (feature #1253), or detect from worktree
+/sprint-work                  # Fully autonomous: auto-select issue(s) + auto-select target, launch immediately
+/sprint-work --max N          # Autonomous batch: fill up to N execution slots (default: all available)
+/sprint-work --dry-run        # Preview what would be selected and where, without launching
 /sprint-work --issue N        # Work on specific issue (container mode by default)
 /sprint-work --issue N --worktree      # Opt into worktree mode instead of container
 /sprint-work --epic N         # Work on children of epic #N
-/sprint-work --dry-run        # Show what would be done
 /sprint-work --issue N --sync          # Run container synchronous (foreground)
 /sprint-work --issue N --image IMAGE   # Use specific Docker image
 
@@ -43,6 +46,39 @@ Orchestrates working through backlog issues in the active milestone, running eac
 
 # Deprecated flags (still work but show warnings)
 /sprint-work --issue N --container     # DEPRECATED: Container is now default
+```
+
+## Fully Autonomous Mode (no --issue flag)
+
+When invoked without `--issue N`, sprint-work operates fully autonomously — no user prompts required:
+
+1. **Auto-select issue(s)** via `auto-select-issue.sh`:
+   - Queries backlog sorted by P0 > P1 > P2 > P3, then bug > feature > tech-debt > docs, then age
+   - Checks running containers AND active worktrees for in-progress work
+   - Detects file overlap between candidates and active work — skips conflicting issues
+   - Skips issues labeled `blocked`, `in-progress`, `needs-triage`
+   - Fills all available execution slots with non-competing issues
+2. **Auto-select execution target** via `route-execution-target.sh` (per #1326):
+   - Proxmox available + slots open → Proxmox
+   - Proxmox available + backlog ≤ threshold → queue on Proxmox
+   - Proxmox backlog > threshold or unavailable → local Docker (if capacity)
+   - No Docker → worktree fallback
+3. **Launch immediately** — no confirmation prompt needed
+4. **Log the decision** before each launch:
+   `Selected #N (P1 bug, no conflicts). Launching on proxmox (2/3 slots used).`
+
+**Example output:**
+```
+Auto-selecting issues from milestone: sprint-1/13
+
+Detected active work: container #211 (running), worktree issue-213
+Issue #214 skipped: file overlap with container #211 (scripts/deploy.sh)
+Issue #215 skipped: file overlap with worktree issue-213
+
+Selected #216 (P1 feature, no conflicts). Launching on proxmox (1/3 slots used).
+Selected #217 (P1 bug, no conflicts). Launching on local (0/2 slots used).
+
+Launched 2 issue(s). Monitor with: ./scripts/container/container-status.sh
 ```
 
 ## Worktree Auto-Detection
@@ -436,6 +472,25 @@ RECOMMENDED_MODE=$(echo "$INFRA_JSON" | jq -r '.recommended_mode')
 CONTAINER_SCRIPT=$(echo "$INFRA_JSON" | jq -r '.container_script')
 WORKTREE_SCRIPT=$(echo "$INFRA_JSON" | jq -r '.worktree_script')
 
+# Step 0a.5: Smart execution target routing (Proxmox → local Docker → worktree)
+# Only applies when container/worktree infrastructure is available.
+# Uses route-execution-target.sh (#1326) which checks:
+#   1. Proxmox availability and capacity
+#   2. Local Docker availability and capacity
+#   3. Falls back to worktree if neither is available
+if [ "$INFRA_TYPE" != "none" ] && [ -f "./scripts/route-execution-target.sh" ]; then
+  TARGET_JSON=$(./scripts/route-execution-target.sh 2>/dev/null || \
+    echo '{"target":"local","reason":"routing script unavailable — using local fallback"}')
+  ROUTED_TARGET=$(echo "$TARGET_JSON" | jq -r '.target // "local"')
+  TARGET_REASON=$(echo "$TARGET_JSON" | jq -r '.reason // "default routing"')
+  # Map routing decision to RECOMMENDED_MODE (override detect-infrastructure result)
+  case "$ROUTED_TARGET" in
+    proxmox) RECOMMENDED_MODE="container" ;;  # Proxmox uses container workflow
+    local)   RECOMMENDED_MODE="container" ;;  # Local Docker also uses container workflow
+    worktree) RECOMMENDED_MODE="worktree" ;;
+  esac
+fi
+
 # Step 0b: Handle consumer repos (no infrastructure)
 if [ "$INFRA_TYPE" = "none" ]; then
   echo "## Direct Execution Mode"
@@ -733,30 +788,47 @@ while IFS= read -r issue_json; do
 done < <(echo "$BACKLOG" | jq -c 'sort_by(.labels[].name // "P4") | .[]')
 ```
 
-**Step 2e: Show Selection and Allow Override**
+**Step 2e: Log Decision and Launch Autonomously**
+
+In auto mode (no `--issue N` flag), sprint-work launches immediately without prompting.
+Log the decision before each launch:
+
+```bash
+# Determine execution target for each selected issue
+REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+
+for issue_num in "${SELECTED_ISSUES[@]}"; do
+  # Get issue details for the log line
+  ISSUE_INFO=$(echo "$BACKLOG_JSON" | jq -r --argjson n "$issue_num" \
+    '.[] | select(.number == $n) | "\(.number) (\([.labels[]] | if any(. == "P0") then "P0" elif any(. == "P1") then "P1" elif any(. == "P2") then "P2" elif any(. == "P3") then "P3" else "P?" end), \([.labels[]] | if any(. == "bug") then "bug" elif any(. == "feature") then "feature" elif any(. == "tech-debt") then "tech-debt" else "other" end))"')
+
+  # Route to optimal execution target
+  TARGET_JSON=$(./scripts/route-execution-target.sh --issue "$issue_num" 2>/dev/null || \
+    echo '{"target":"local","reason":"routing unavailable"}')
+  TARGET=$(echo "$TARGET_JSON" | jq -r '.target // "local"')
+  TARGET_REASON=$(echo "$TARGET_JSON" | jq -r '.reason // ""')
+
+  echo "Selected #${ISSUE_INFO}, no conflicts. Launching on ${TARGET}: ${TARGET_REASON}"
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "  (dry-run: skipping launch)"
+    continue
+  fi
+
+  # Launch on selected target
+  case "$TARGET" in
+    proxmox|local)
+      "$CONTAINER_SCRIPT" --issue "$issue_num" --repo "$REPO" --sprint-work
+      ;;
+    worktree)
+      "$WORKTREE_SCRIPT" "$issue_num"
+      ;;
+  esac
+done
+
+LAUNCHED_COUNT="${#SELECTED_ISSUES[@]}"
+[[ "$DRY_RUN" != "true" ]] && echo "" && echo "Launched ${LAUNCHED_COUNT} issue(s). Monitor with: ./scripts/container/container-status.sh"
 ```
-## Auto-Selected Issues
-
-The following issue(s) were automatically selected for launch:
-
-| # | Priority | Type | Title |
-|---|----------|------|-------|
-| #42 | P1 | feature | Add rate limiting to API endpoints |
-| #38 | P1 | bug | Fix session timeout race condition |
-
-**Available slots:** 2/2 (local limit)
-**Reason:** Highest priority (P1), no conflicts detected
-
-Options:
-  [y] Launch selected issue(s) — default (Enter)
-  [n] Interactive selection instead
-  [s] Launch only #42 (single issue)
-  [o] Override: specify different issue number(s)
-
-Select [y/n/s/o]:
-```
-
-If the user accepts or no TTY (container mode), proceed to launch. Otherwise, fall back to interactive selection.
 
 **Step 2f: Parallel Launch When Multiple Issues Selected**
 ```bash

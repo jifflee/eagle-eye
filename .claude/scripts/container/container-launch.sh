@@ -574,6 +574,19 @@ _check_container_capacity() {
                     log_error ""
                     log_error "Use --force to override capacity checks (not recommended)"
                     log_error "Or wait for capacity to become available and retry"
+
+                    # Auto-escalate capacity blocker to infra repo (feature #1338)
+                    local escalate_script="${SCRIPT_DIR}/../infra/auto-escalate-infra.sh"
+                    if [ -x "$escalate_script" ] && [ -n "${issue:-}" ]; then
+                        log_info "Escalating capacity blocker to infra repo..."
+                        "$escalate_script" \
+                            --issue "$issue" \
+                            --error "CAPACITY CHECK FAILED: $reason (failed_check: $failed_check)" \
+                            --context "Capacity check output: $(echo "$capacity_result" | jq -c '.' 2>/dev/null || echo "$capacity_result")" \
+                            --threshold medium \
+                            2>/dev/null || true
+                    fi
+
                     return 1
                 else
                     local reason

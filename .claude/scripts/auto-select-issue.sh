@@ -161,12 +161,13 @@ if [[ "$BACKLOG_COUNT" -eq 0 ]]; then
   exit 0
 fi
 
-# ── Step 3: Detect running container file overlap ──────────────────────────────
+# ── Step 3: Detect active work (containers + worktrees) for file overlap ───────
 
 CONTAINER_STATUS_SCRIPT="$SCRIPT_DIR/container/container-status.sh"
 RUNNING_ISSUE_NUMS=()
 declare -A RUNNING_FILE_SETS  # issue_num -> newline-sep file list
 
+# Step 3a: Check running containers
 if [[ -f "$CONTAINER_STATUS_SCRIPT" ]]; then
   CONTAINER_JSON=$("$CONTAINER_STATUS_SCRIPT" --json 2>/dev/null || echo '{"containers":[]}')
   while IFS= read -r running_issue; do
@@ -178,7 +179,37 @@ if [[ -f "$CONTAINER_STATUS_SCRIPT" ]]; then
   done < <(echo "$CONTAINER_JSON" | jq -r '.containers[]? | select(.status=="running") | .issue // empty')
 fi
 
-log "  Running containers with file sets: ${#RUNNING_ISSUE_NUMS[@]}"
+# Step 3b: Check active worktrees (git worktree list)
+# Extracts issue numbers from worktrees matching {repo}-issue-{N} naming convention
+REPO_ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || echo "$REPO_ROOT")"
+REPO_BASE_NAME="$(basename "$REPO_ROOT_DIR" | sed 's/-issue-[0-9]*$//')"
+
+while IFS= read -r wt_line; do
+  WORKTREE_PATH=$(echo "$wt_line" | awk '{print $1}')
+  WORKTREE_DIR=$(basename "$WORKTREE_PATH")
+  # Match pattern: {repo}-issue-{N}
+  if [[ "$WORKTREE_DIR" =~ ${REPO_BASE_NAME}-issue-([0-9]+)$ ]]; then
+    wt_issue="${BASH_REMATCH[1]}"
+    # Skip if we already have this issue from container detection
+    already_tracked=false
+    for existing in "${RUNNING_ISSUE_NUMS[@]:-}"; do
+      [[ "$existing" == "$wt_issue" ]] && already_tracked=true && break
+    done
+    if [[ "$already_tracked" == "false" ]]; then
+      RUNNING_ISSUE_NUMS+=("$wt_issue")
+      BRANCH="feat/issue-${wt_issue}"
+      # Try to get changed files from local worktree diff first, then remote branch
+      CHANGED=""
+      if [[ -d "$WORKTREE_PATH" ]]; then
+        CHANGED=$(cd "$WORKTREE_PATH" && git diff --name-only "origin/main" 2>/dev/null || true)
+      fi
+      [[ -z "$CHANGED" ]] && CHANGED=$(git diff --name-only "origin/main...origin/${BRANCH}" 2>/dev/null || true)
+      RUNNING_FILE_SETS["$wt_issue"]="$CHANGED"
+    fi
+  fi
+done < <(git worktree list 2>/dev/null || true)
+
+log "  Active work items detected (containers + worktrees): ${#RUNNING_ISSUE_NUMS[@]}"
 
 # Check if a candidate issue has file overlap with any running container
 has_file_overlap() {

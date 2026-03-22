@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 # dynamic-loader.sh
 # UserPromptSubmit hook that dynamically loads relevant agent context
 #
@@ -9,8 +8,16 @@ set -euo pipefail
 # Input: JSON via stdin with { prompt, session_id, ... }
 # Output: JSON to stdout with { result: "..." } if agents matched
 # Exit: 0 = allow prompt to proceed
+#
+# IMPORTANT: This hook must ALWAYS exit 0. It should never block prompt processing.
+# Errors are silently ignored so new/consumer repos without full deployment work fine.
 
-set -eo pipefail
+# Use pipefail but NOT -e: this hook must never exit non-zero
+# -u helps catch bugs but we trap it for safety
+set -uo pipefail
+
+# Trap any unexpected error and exit cleanly — hook must never block prompts
+trap 'exit 0' ERR
 
 # Get project root
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"

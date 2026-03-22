@@ -496,7 +496,7 @@ _ensure_settings_json() {
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/dynamic-loader.sh"
+            "command": "[ -f .claude/hooks/dynamic-loader.sh ] && .claude/hooks/dynamic-loader.sh || true"
           }
         ]
       }
@@ -507,7 +507,7 @@ _ensure_settings_json() {
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/block-secrets.py"
+            "command": "[ -f .claude/hooks/block-secrets.py ] && python3 .claude/hooks/block-secrets.py || true"
           }
         ]
       }

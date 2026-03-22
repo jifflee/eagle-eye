@@ -43,6 +43,7 @@ OPTIONS:
     --ci-wait <N>   Initial wait before CI check in seconds (default: 60)
     --ci-timeout <N> Max CI wait time in seconds (default: 600)
     --keep          Don't trigger cleanup (keep container)
+    --skip-docs     Skip post-completion documentation review
     --help          Show this help
 
 DESCRIPTION:
@@ -59,6 +60,7 @@ KEEP="false"
 CHECK_CI="false"
 CI_WAIT=60
 CI_TIMEOUT=600
+SKIP_DOCS="${SKIP_DOCS:-false}"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -86,6 +88,10 @@ while [ $# -gt 0 ]; do
             KEEP="true"
             shift
             ;;
+        --skip-docs)
+            SKIP_DOCS="true"
+            shift
+            ;;
         --help|-h)
             usage
             exit 0
@@ -106,6 +112,27 @@ fi
 
 # Main logic
 log_info "PR #$PR created for issue #$ISSUE"
+
+# ─── Post-completion documentation review (Issue #1331) ───────────────────
+# Trigger documentation agents as a background sub-process after PR creation.
+# Non-blocking: the doc review runs asynchronously and does NOT delay cleanup.
+if [ "${SKIP_DOCS:-false}" != "true" ]; then
+    DOC_SCRIPT="$SCRIPT_DIR/container-post-completion-docs.sh"
+    if [ -x "$DOC_SCRIPT" ]; then
+        log_info "Post-completion doc review triggered for PR #${PR}"
+        (
+            "$DOC_SCRIPT" \
+                --pr "$PR" \
+                --issue "$ISSUE" \
+                2>&1 | sed 's/^/[doc-review] /' >&2
+        ) &
+        log_info "Documentation agent launched in background (PID: $!)"
+    else
+        log_warn "container-post-completion-docs.sh not found — skipping doc review"
+    fi
+else
+    log_info "Post-completion doc review skipped (--skip-docs / SKIP_DOCS=true)"
+fi
 
 # Check CI status if requested
 CI_STATUS="unknown"

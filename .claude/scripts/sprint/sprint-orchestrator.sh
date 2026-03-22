@@ -346,6 +346,24 @@ main() {
             "$SCRIPT_DIR/update-work-state.sh" --complete "$issue_number" --result "$issue_result" --duration "$issue_duration" 2>/dev/null || true
         fi
 
+        # ── Framework auto-update check (Issue #1329) ──────────────────────
+        # After each container run, check if a framework update was queued
+        # by the 25th-run check in sprint-work-preflight.sh. If queued, run
+        # repo:framework-update NOW before picking up the next issue.
+        if [ -x "$SCRIPT_DIR/framework-update-check.sh" ] && \
+           [ "${SPRINT_UPDATE_CHECK_DISABLE:-}" != "true" ]; then
+            "$SCRIPT_DIR/framework-update-check.sh" trigger-if-queued 2>&1 || true
+        fi
+
+        # ── Auto triage-bulk check (Issue #1332) ───────────────────────────
+        # After each issue completion, check if auto-triage was queued by the
+        # Nth-run check in sprint-work-preflight.sh. If queued, run
+        # triage-bulk --apply + retroactive context review before next issue.
+        if [ -x "$SCRIPT_DIR/triage-bulk-check.sh" ] && \
+           [ "${SPRINT_TRIAGE_CHECK_DISABLE:-}" != "true" ]; then
+            "$SCRIPT_DIR/triage-bulk-check.sh" trigger-if-queued 2>&1 || true
+        fi
+
         processed=$((processed + 1))
 
         # Delay between issues
