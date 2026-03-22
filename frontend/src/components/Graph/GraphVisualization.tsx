@@ -40,6 +40,7 @@ const NODE_STYLES: Record<string, { bg: string; border: string; shape: string; i
   EMAIL_ADDRESS:           { bg: "#A5B4FC", border: "#6366F1", shape: "dot" },           // ● indigo dot
   ENVIRONMENTAL_FACILITY:  { bg: "#5EEAD4", border: "#14B8A6", shape: "hexagon" },       // ⬡ teal hexagon
   CENSUS_TRACT:            { bg: "#CBD5E1", border: "#64748B", shape: "hexagon" },       // ⬡ slate hexagon
+  FINANCIAL_RECORD:        { bg: "#FCD34D", border: "#D97706", shape: "square" },        // ■ amber square
 };
 
 const EDGE_COLORS: Record<string, string> = {
@@ -243,14 +244,26 @@ export default function GraphVisualization({
     });
     nodes.update(nodeUpdates);
 
-    // Sync edges
-    const existingEdgeIds = new Set(edges.getIds() as string[]);
+    // Sync edges — recapture IDs after node removal since Vis.js
+    // auto-removes edges when their connected nodes are removed
+    const currentEdgeIds = new Set(edges.getIds() as string[]);
     const newEdges: any[] = [];
+
+    // Remove edges whose endpoints are no longer visible
+    const edgesToRemove = [...currentEdgeIds].filter((edgeId) => {
+      const edge = edges.get(edgeId as any);
+      if (!edge) return true;
+      return !visibleIds.has(edge.from) || !visibleIds.has(edge.to);
+    });
+    if (edgesToRemove.length) edges.remove(edgesToRemove);
+
+    // Re-read after cleanup
+    const remainingEdgeIds = new Set(edges.getIds() as string[]);
 
     relationships.forEach((rel, i) => {
       if (!visibleIds.has(rel.source_id) || !visibleIds.has(rel.target_id)) return;
       const edgeId = `${rel.source_id}-${rel.type}-${rel.target_id}`;
-      if (existingEdgeIds.has(edgeId)) return;
+      if (remainingEdgeIds.has(edgeId)) return;
 
       const dark = isDarkMode();
       const edgeColor = EDGE_COLORS[rel.type] || (dark ? "#475569" : "#CBD5E1");

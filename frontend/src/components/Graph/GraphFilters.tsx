@@ -13,6 +13,7 @@ const ENTITY_TYPES = [
   { key: "EMAIL_ADDRESS", label: "Email", color: "#6B7280" },
   { key: "ENVIRONMENTAL_FACILITY", label: "Environmental", color: "#0D9488" },
   { key: "CENSUS_TRACT", label: "Census", color: "#94A3B8" },
+  { key: "FINANCIAL_RECORD", label: "Financial", color: "#F59E0B" },
 ];
 
 interface Props {
